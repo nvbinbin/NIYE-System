@@ -162,11 +162,9 @@ end
 function getGrade(dist, tech, types)
     local grade = "未验证"
 
-
     if types == "cargo" then -- dist = flat
         dist = dist * 100
     end
-
 
     local vals = {
         {value = 20, grade = "淘汰"},
@@ -195,4 +193,37 @@ function getGrade(dist, tech, types)
     return grade
 end
 
+function getLines(tech)
+    local texts = {}
+    local wlin = false
+    local colors
     
+    if next(tech.text) ~= nil then
+        for i, v in pairs(tech.text) do
+        table.insert(texts, {ltext = tech.text[i]%_t, lcolor = ColorRGB(1, 0.5, 0.6)})
+        end
+        table.insert(texts, {ltext = ""%_t})
+    end
+    if next(tech.perfor) ~= nil then
+        table.insert(texts, {ltext = "厂牌特性："%_t, lcolor = ColorRGB(0.9, 0.5, 0.3)})
+        for i, v in pairs(tech.perfor) do
+            if tech.perfor[i].type == 0 then colors = ColorRGB(0.8, 0.8, 0.8) end
+            if tech.perfor[i].type == 1 then colors = ColorRGB(0.4, 0.8, 0.4) end
+            if tech.perfor[i].type == 2 then colors = ColorRGB(0.8, 0.4, 0.4) end
+            table.insert(texts, {ltext = " -  " .. tech.perfor[i].name%_t, lcolor = colors})
+        end
+    end
+
+    return texts
+end
+    
+function getRoll()
+    --[[
+    概率声明：
+    10级卡片：5轮buff 5轮debuff 词条上限：5 正面buff概率：80 60 40 20 1  负面buff概率：50 20 10 5 5
+    9级卡片：  4                      
+
+    ]]
+
+
+end
