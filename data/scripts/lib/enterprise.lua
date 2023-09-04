@@ -12,6 +12,32 @@ end
 function createEnte(val,uid)
 end
 
+function addJackpot(tech, table)
+
+    for k, v in pairs(tech) do
+        for i, w in pairs(table) do
+          if w[k] then
+            tech[k] = tech[k] + w[k]
+
+          end
+        end
+      end
+
+end
+
+function addJackpot(tech, tb)
+
+    for k, v in pairs(tb) do
+        -- 数值合并
+        if tech[k] and type(v) == "number" and type(tech[k]) == "number" then
+            tech[k] = tech[k] + v
+        -- 表单合并
+        elseif tech[k] and type(v) == "table" and type(tech[k]) == "table" then
+            tech[k] = (tech[k] or {}) .. v
+        end
+    end
+
+end
 
 function getEnterprise(seed, rarity, useType)
     math.randomseed(seed)
@@ -170,39 +196,75 @@ function getEnterprise(seed, rarity, useType)
 end
 
 
-function getGrade(dist, tech, types)
-    local grade = "未验证"
+function getGrade(dist, tech,types) 
+    if tech.tech == 0902 then return "ERROR" end -- 直接返回
+    if types == "cargo" then -- dist = flat 
+    dist = dist * 100 end
 
-    if types == "cargo" then -- dist = flat
-        dist = dist * 100
-    end
+    local grade = "未验证" 
 
     local vals = {
-        {value = 20, grade = "淘汰"},
-        {value = 30, grade = "粗劣"},
-        {value = 40, grade = "普通"},
-        {value = 50, grade = "优良"},
-        {value = 60, grade = "罕见"},
-        {value = 70, grade = "稀有"},
-        {value = 80, grade = "完美"},
-        {value = 90, grade = "无暇"},
-        {value = 95, grade = "极限"},
-        {value = 100, grade = "奇迹"}
-    }
-    local ia = {value = 0, grade = "废品"}
-    for i, v in pairs(vals) do
-        -- 随机数值 大于或等于 上一个值 和 随机数值 小于 下一个数值
-        if  dist >= ia.value and dist < v.value then
-          grade = ia.grade
-          break
-        end
-        ia = v
-    end
+        "淘汰", 
+        "粗劣", 
+        "普通", 
+        "优良", 
+        "罕见", 
+        "稀有", 
+        "完美", 
+        "无暇", 
+        "极限", 
+        "奇迹" 
+    } 
 
-    if tech.tech == 0902 then grade = "ERROR" end
-
-    return grade
+    local last = 0
+    for i, v in ipairs(vals) do
+        -- 随机数值 大于或等于 上一个值*10 和 随机数值 小于 当前索引值*10
+        if  dist >= last*10 and dist < i*10 then 
+          grade = v
+          break 
+        end 
+        last = i
+    end 
+ 
+    return grade 
 end
+
+--[[
+     旧代码，新代码是手机上写的，旧代码先保留。
+function getGrade(dist, tech, types)
+   local grade = "未验证"
+
+   if types == "cargo" then -- dist = flat
+       dist = dist * 100
+   end
+
+   local vals = {
+       {value = 20, grade = "淘汰"},
+       {value = 30, grade = "粗劣"},
+       {value = 40, grade = "普通"},
+       {value = 50, grade = "优良"},
+       {value = 60, grade = "罕见"},
+       {value = 70, grade = "稀有"},
+       {value = 80, grade = "完美"},
+       {value = 90, grade = "无暇"},
+       {value = 95, grade = "极限"},
+       {value = 100, grade = "奇迹"}
+   }
+   local ia = {value = 0, grade = "废品"}
+   for i, v in pairs(vals) do
+       -- 随机数值 大于或等于 上一个值 和 随机数值 小于 下一个数值
+       if  dist >= ia.value and dist < v.value then
+         grade = ia.grade
+         break
+       end
+       ia = v
+   end
+
+   if tech.tech == 0902 then grade = "ERROR" end
+
+   return grade
+end
+]]
 
 function getLines(tech)
     local texts = {}
@@ -243,6 +305,18 @@ function getRoll(seed, tech)
         中奖的补正（每次中奖后）： -5 +3 +2                  
 
     ]]
+    local jackpot = {
+        coin = {
+            {type = 0, name = "名人签名", coinFactor = 0.6},
+            {type = 0, name = "奢侈品", coinFactor = 0.4},
+            {type = 0, name = "限量款", coinFactor = 0.4},
+            {type = 0, name = "纪念版", coinFactor = 0.2}
+        }
+        energy = {
+            {type = 1, name = "内置电池", energyFactor = -0.05},
+
+        }
+    }
     local i = #tech.perfor
     
     local draw = tech.rarity - 3 --异域卡片开始便有一次抽卡机会
