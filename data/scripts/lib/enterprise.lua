@@ -7,6 +7,20 @@ include("callable")
 
 FixedEnergyRequirement = true
 
+--[[
+
+这里是企业函数库，使用include即可引用。
+
+
+
+
+
+
+
+]]
+
+
+
 function churchText(seed)
 end
 function createEnte(val,uid)
@@ -195,11 +209,43 @@ function getEnterprise(seed, rarity, useType)
 
 end
 
-
 function getGrade(dist, tech,types) 
-    if tech.tech == 0902 then return "ERROR" end -- 直接返回
-    if types == "cargo" then -- dist = flat 
-    dist = dist * 100 end
+     if tech.tech == 0902 then return "ERROR" end -- 直接返回
+     if types == "cargo" then -- dist = flat 
+     dist = dist * 100 end
+
+     local grade = "未验证" 
+
+     local vals = {
+         "淘汰", 
+         "粗劣", 
+         "普通", 
+         "优良", 
+         "罕见", 
+         "稀有", 
+         "完美", 
+         "无暇", 
+         "极限", 
+         "奇迹" 
+     } 
+
+     local last = 0
+     for i, v in ipairs(vals) do
+         -- 随机数值 大于或等于 上一个值*10 和 随机数值 小于 当前索引值*10
+         if  dist >= last*10 and dist < i*10 then 
+           grade = v
+           break 
+         end 
+         last = i
+     end 
+  
+     return grade 
+ end
+
+--[[
+      旧代码，新代码是手机上写的，旧代码先保留。
+function getGrade(dist, tech, types)
+    local grade = "未验证"
 
     local grade = "未验证" 
 
@@ -228,44 +274,7 @@ function getGrade(dist, tech,types)
  
     return grade 
 end
-
---[[
-     旧代码，新代码是手机上写的，旧代码先保留。
-function getGrade(dist, tech, types)
-   local grade = "未验证"
-
-   if types == "cargo" then -- dist = flat
-       dist = dist * 100
-   end
-
-   local vals = {
-       {value = 20, grade = "淘汰"},
-       {value = 30, grade = "粗劣"},
-       {value = 40, grade = "普通"},
-       {value = 50, grade = "优良"},
-       {value = 60, grade = "罕见"},
-       {value = 70, grade = "稀有"},
-       {value = 80, grade = "完美"},
-       {value = 90, grade = "无暇"},
-       {value = 95, grade = "极限"},
-       {value = 100, grade = "奇迹"}
-   }
-   local ia = {value = 0, grade = "废品"}
-   for i, v in pairs(vals) do
-       -- 随机数值 大于或等于 上一个值 和 随机数值 小于 下一个数值
-       if  dist >= ia.value and dist < v.value then
-         grade = ia.grade
-         break
-       end
-       ia = v
-   end
-
-   if tech.tech == 0902 then grade = "ERROR" end
-
-   return grade
-end
 ]]
-
 function getLines(tech)
     local texts = {}
     local wlin = false
