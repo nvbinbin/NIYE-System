@@ -211,8 +211,7 @@ end
 
 function getGrade(dist, tech,types) 
      if tech.tech == 0902 then return "ERROR" end -- 直接返回
-     if types == "cargo" then -- dist = flat 
-     dist = dist * 100 end
+     if types == "cargo" then dist = dist * 100 end
 
      local grade = "未验证" 
 
@@ -242,39 +241,6 @@ function getGrade(dist, tech,types)
      return grade 
  end
 
---[[
-      旧代码，新代码是手机上写的，旧代码先保留。
-function getGrade(dist, tech, types)
-    local grade = "未验证"
-
-    local grade = "未验证" 
-
-    local vals = {
-        "淘汰", 
-        "粗劣", 
-        "普通", 
-        "优良", 
-        "罕见", 
-        "稀有", 
-        "完美", 
-        "无暇", 
-        "极限", 
-        "奇迹" 
-    } 
-
-    local last = 0
-    for i, v in ipairs(vals) do
-        -- 随机数值 大于或等于 上一个值*10 和 随机数值 小于 当前索引值*10
-        if  dist >= last*10 and dist < i*10 then 
-          grade = v
-          break 
-        end 
-        last = i
-    end 
- 
-    return grade 
-end
-]]
 function getLines(tech)
     local texts = {}
     local wlin = false
@@ -315,14 +281,16 @@ function getRoll(seed, tech)
 
     ]]
     local jackpot = {
-        coin = {
-            {type = 0, name = "名人签名", coinFactor = 0.6},
-            {type = 0, name = "奢侈品", coinFactor = 0.4},
-            {type = 0, name = "限量款", coinFactor = 0.4},
-            {type = 0, name = "纪念版", coinFactor = 0.2}
-        }
-        energy = {
+        all = {
+            {type = 0, name = "纪念版", coinFactor = 0.2},
+            {type = 0, name = "客制化", coinFactor = 0.2, energyFactor = -0.05},
             {type = 1, name = "内置电池", energyFactor = -0.05},
+            {type = 1, name = "能量转换器", energyFactor = -0.1},
+            {type = 2, name = "短路", energyFactor = 0.05}
+        }
+
+        turret = {
+            {type = 0, name = "纪念版", coinFactor = 0.2},
 
         }
     }
