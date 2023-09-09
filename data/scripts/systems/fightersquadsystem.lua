@@ -4,6 +4,8 @@ package.path = package.path .. ";data/scripts/lib/?.lua"
 include ("basesystem")
 include ("utility")
 include ("randomext")
+include ("enterprise")
+--九头蛇
 
 -- optimization so that energy requirement doesn't have to be read every frame
 FixedEnergyRequirement = true
@@ -11,15 +13,20 @@ FixedEnergyRequirement = true
 function getBonuses(seed, rarity, permanent)
     math.randomseed(seed)
 
-    local squads = getNumSquads(seed, rarity, permanent)
-    local production = 0
+    local tech = getEnterprise(seed, rarity, 1)
+    if tech.uid == 0700 then tech.nameId = "FCS-" end
+    -- 不是很想动他这个函数……
+    -- 屎山 典范  等我什么时候头不疼了再来改
+
+    local squads = getNumSquads(seed, rarity, permanent) -- 飞行中队
+    local production = 0 -- 加速时间
 
     if permanent then
-        production = math.max(0, lerp(random():getFloat(0, 1), 0, 1, rarity.value - 1, rarity.value)) * 1000
+        production = math.max(0, lerp(random():getFloat(0, 1), 0, 1, tech.rarity - 1, tech.rarity)) * 1000
         production = round(production / 100) * 100
     end
 
-    return squads, production
+    return squads, production, tech
 end
 
 function getNumBonusSquads(seed, rarity, permanent)
@@ -44,16 +51,19 @@ end
 
 function getAllSquads(seed, rarity)
     math.randomseed(seed)
+    local tech = getEnterprise(seed, rarity, 1)
 
-    local total = math.max(1, math.ceil((rarity.value + 1.5) / 2))
+
+    local total = math.max(1, math.ceil((tech.rarity + 1.5) / 2))
 
     local base = getInt(0, 1)
-    if rarity.value == RarityType.Petty then base = 0 end
+    if tech.rarity == RarityType.Petty then base = 0 end
 
     local bonus = total - base
 
     return base, bonus
 end
+
 
 function onInstalled(seed, rarity, permanent)
     local squads, production = getBonuses(seed, rarity, permanent)
@@ -66,6 +76,7 @@ function onUninstalled(seed, rarity, permanent)
 end
 
 function getName(seed, rarity)
+    local squads, production, tech = getBonuses(seed, rarity, permanent)
     local rarityName = ""
 
     if rarity == Rarity(-1) then
@@ -86,7 +97,7 @@ function getName(seed, rarity)
 
     local rnd = Random(Seed(seed))
 
-    local serialNumber = makeSerialNumber(rnd, 4, "FCS-")
+    local serialNumber = makeSerialNumber(rnd, 4, tech.nameId)
 
     return "${rarityName} Hydra ${serialNumber}"%_t % {rarityName = rarityName, serialNumber = serialNumber}
 end
@@ -96,23 +107,28 @@ function getBasicName()
 end
 
 function getIcon(seed, rarity)
+    local squads, production, tech = getBonuses(seed, rarity, permanent)
+    if tech.uid == 0700 then
+        return "data/textures/icons/fighter.png"
+    end
     return "data/textures/icons/fighter.png"
 end
 
 function getEnergy(seed, rarity, permanent)
     local squads = getNumSquads(seed, rarity, permanent)
-    return squads * 600 * 1000 * 1000 / (1.1 ^ rarity.value)
+    local _, production, tech = getBonuses(seed, rarity, permanent)
+    return (squads * 600 * 1000 * 1000 / (1.1 ^ tech.rarity)) * tech.energyFactor
 end
 
 function getPrice(seed, rarity)
     local squads = getNumSquads(seed, rarity, true)
-
+    local _, production, tech = getBonuses(seed, rarity, permanent)
     local price = 25000 * (squads)
-    return price * 1.5 ^ rarity.value
+    return (price * 1.5 ^ tech.rarity) * tech.coinFactor
 end
 
 function getTooltipLines(seed, rarity, permanent)
-    local squads, _ = getBonuses(seed, rarity, permanent)
+    local squads, _, tech = getBonuses(seed, rarity, permanent)
     local _, production = getBonuses(seed, rarity, true)
 
     local speedup = round(production / 1000 * 60)
@@ -120,6 +136,15 @@ function getTooltipLines(seed, rarity, permanent)
 
     local texts = {}
     local bonuses = {}
+
+    if tech.uid ~= 0700 then 
+        table.insert(texts, {ltext = "[" .. tech.name .. "]", lcolor = ColorRGB(1, 0.5, 1)}) 
+        if tech.uid == 0902 then
+            table.insert(bonuses, {ltext = "Fighter Squadrons"%_t, rtext = "+???", icon = "data/textures/icons/fighter.png"})
+            table.insert(bonuses, {ltext = "Production Speedup"%_t, rtext = "+???", icon = "data/textures/icons/gears.png"})
+            return texts, bonuses
+        end
+    end
 
     table.insert(texts, {ltext = "Fighter Squadrons"%_t, rtext = "+" .. squads, icon = "data/textures/icons/fighter.png", boosted = permanent})
 
@@ -144,13 +169,18 @@ function getTooltipLines(seed, rarity, permanent)
 end
 
 function getDescriptionLines(seed, rarity, permanent)
-    return
-    {
-        {ltext = "Fighter Control System"%_t, rtext = "", icon = ""},
-        {ltext = "Controls additional fighter squadrons"%_t, rtext = "", icon = ""},
-        {ltext = "Max Squadrons: 10"%_t, rtext = "", icon = ""},
+    local squads, production, tech = getBonuses(seed, rarity, permanent)
+    if tech.uid == 0700 then
+        return
+        {
+            {ltext = "Fighter Control System"%_t, rtext = "", icon = ""},
+            {ltext = "Controls additional fighter squadrons"%_t, rtext = "", icon = ""},
+            {ltext = "Max Squadrons: 10"%_t, rtext = "", icon = ""},
 
-    }
+        }
+    end
+    local texts = getLines(tech)
+    return texts
 end
 
 function getComparableValues(seed, rarity)

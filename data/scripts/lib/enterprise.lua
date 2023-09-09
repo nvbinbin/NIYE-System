@@ -191,23 +191,23 @@ function getEnterprise(seed, rarity, useType)
 
 end
 
-function getGrade(dist, tech,types) 
-     if tech.tech == 0902 then return "ERROR" end -- 直接返回
-     if types == "cargo" then dist = dist * 100 end
+function getGrade(dist, tech,num) 
+     if tech.uid == 0902 then return " 错误 - " end -- 直接返回
+      dist = dist * num
 
-     local grade = "未验证" 
+     local grade = " 未验证 - " 
 
      local vals = {
-         "淘汰", 
-         "粗劣", 
-         "普通", 
-         "优良", 
-         "罕见", 
-         "稀有", 
-         "完美", 
-         "无暇", 
-         "极限", 
-         "奇迹" 
+         " 淘汰 - ", 
+         " 粗劣 - ", 
+         " 普通 - ", 
+         " 优良 - ", 
+         " 罕见 - ", 
+         " 稀有 - ", 
+         " 完美 - ", 
+         " 无暇 - ", 
+         " 极限 - ", 
+         " 奇迹 - " 
      } 
 
      local last = 0

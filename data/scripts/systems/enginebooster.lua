@@ -3,28 +3,35 @@ package.path = package.path .. ";data/scripts/lib/?.lua"
 include ("basesystem")
 include ("utility")
 include ("randomext")
-
+include ("enterprise")
+-- 加速引擎强化
 -- optimization so that energy requirement doesn't have to be read every frame
 FixedEnergyRequirement = true
 
 function getBonuses(seed, rarity, permanent)
     math.randomseed(seed)
+    local tech = getEnterprise(seed, rarity, 2)
+    if tech.uid == 0700 then tech.nameId = "" end
+    -----  我是王者荣耀3000小时玩家  -----
+    tech.engineVfactorResult = math.random(tech.minRandom, tech.maxRandom) / 100 -- 航速
+    tech.engineAfactorResult = math.random(tech.minRandom, tech.maxRandom) / 100 -- 加速
+    ------------------------------------
 
     local vfactor = 3 -- base value, in percent
     -- add flat percentage based on rarity
-    vfactor = vfactor + (rarity.value + 1) * 3 -- add 0% (worst rarity) to +18% (best rarity)
+    vfactor = vfactor + (tech.rarity + 1) * 3 -- add 0% (worst rarity) to +18% (best rarity)
 
     -- add randomized percentage, span is based on rarity
-    vfactor = vfactor + math.random() * ((rarity.value + 1) * 4) -- add random value between 0% (worst rarity) and +24% (best rarity)
+    vfactor = vfactor + tech.engineVfactorResult * ((tech.rarity + 1) * 4) -- add random value between 0% (worst rarity) and +24% (best rarity)
     vfactor = vfactor * 0.8
     vfactor = vfactor / 100
 
     local afactor = 6 -- base value, in percent
     -- add flat percentage based on rarity
-    afactor = afactor + (rarity.value + 1) * 5 -- add 0% (worst rarity) to +30% (best rarity)
+    afactor = afactor + (tech.rarity + 1) * 5 -- add 0% (worst rarity) to +30% (best rarity)
 
     -- add randomized percentage, span is based on rarity
-    afactor = afactor + math.random() * ((rarity.value + 1) * 4) -- add random value between 0% (worst rarity) and +24% (best rarity)
+    afactor = afactor + tech.engineAfactorResult * ((tech.rarity + 1) * 4) -- add random value between 0% (worst rarity) and +24% (best rarity)
     afactor = afactor * 0.8
     afactor = afactor / 100
 
@@ -33,10 +40,10 @@ function getBonuses(seed, rarity, permanent)
         afactor = afactor * 1.5
     end
 
-    -- probability for both of them being used
+    -- probability for both of them being used 异域++
     -- when rarity.value >= 4, always both
     -- when rarity.value <= 0 always only one
-    local probability = math.max(0, rarity.value * 0.25)
+    local probability = math.max(0, tech.rarity * 0.25)
     if math.random() > probability then
         -- only 1 will be used
         if math.random() < 0.5 then
@@ -46,7 +53,7 @@ function getBonuses(seed, rarity, permanent)
         end
     end
 
-    return vfactor, afactor
+    return vfactor, afactor, tech
 end
 
 function onInstalled(seed, rarity, permanent)
@@ -61,21 +68,24 @@ function onUninstalled(seed, rarity, permanent)
 end
 
 function getName(seed, rarity)
-    local vel, acc = getBonuses(seed, rarity, true)
+    local vel, acc, tech = getBonuses(seed, rarity, true)
     local serial = makeSerialNumber(seed, 2, "V-", "0")
+    if tech.uid ~= 0700 then
+        serial = tech.nameId
+    end
 
     local name = ""
     if vel > 0 then
         if acc > 0 then
-            name = "Accelerating Engine Booster"%_t
+            name = getGrade(tech.engineAfactorResult, tech, 100) .. "Accelerating Engine Booster"%_t
         else
-            name = "Engine Booster"%_t
+            name = getGrade(tech.engineVfactorResult, tech, 100) .."Engine Booster"%_t
         end
     else
         if acc > 0 then
-            name = "Accelerating Engine Subsystem"%_t
+            name = getGrade(tech.engineAfactorResult, tech, 100) .. "Accelerating Engine Subsystem"%_t
         else
-            name = "Engine Subsystem"%_t
+            name = getGrade(tech.engineVfactorResult, tech, 100) .."Engine Subsystem"%_t
         end
     end
 
@@ -87,26 +97,38 @@ function getBasicName()
 end
 
 function getIcon(seed, rarity)
+    local vel, acc, tech = getBonuses(seed, rarity, permanent)
+    if tech.uid == 0700 then
+        return "data/textures/icons/rocket-thruster.png"
+    end
     return "data/textures/icons/rocket-thruster.png"
 end
 
 function getEnergy(seed, rarity, permanent)
-    local vel, acc = getBonuses(seed, rarity)
-    return (vel + acc) * 1.5 * 1000 * 1000 * 1000
+    local vel, acc, tech = getBonuses(seed, rarity, permanent)
+    return ((vel + acc) * 1.5 * 1000 * 1000 * 1000) * tech.energyFactor
 end
 
 function getPrice(seed, rarity)
-    local vel, acc = getBonuses(seed, rarity)
+    local vel, acc, tech = getBonuses(seed, rarity)
     local price = vel * 100 * 500 + acc * 100 * 500
-    return price * 2.5 ^ rarity.value
+    return (price * 2.5 ^ tech.rarity) * tech.coinFactor
 end
 
 function getTooltipLines(seed, rarity, permanent)
 
     local texts = {}
     local bonuses = {}
-    local vel, acc = getBonuses(seed, rarity, permanent)
+    local vel, acc, tech = getBonuses(seed, rarity, permanent)
     local baseVel, baseAcc = getBonuses(seed, rarity, false)
+    if tech.uid ~= 0700 then 
+        table.insert(texts, {ltext = "[" .. tech.name .. "]", lcolor = ColorRGB(1, 0.5, 1)}) 
+        if tech.uid == 0902 then
+            table.insert(bonuses, {ltext = "Velocity"%_t, rtext = "+???", icon = "data/textures/icons/speedometer.png"})
+            table.insert(bonuses, {ltext = "Acceleration"%_t, rtext = "+???", icon = "data/textures/icons/acceleration.png"})
+            return texts, bonuses
+        end
+    end
 
     if vel ~= 0 then
         table.insert(texts, {ltext = "Velocity"%_t, rtext = string.format("%+i%%", round(vel * 100)), icon = "data/textures/icons/speedometer.png", boosted = permanent})
@@ -119,6 +141,16 @@ function getTooltipLines(seed, rarity, permanent)
     end
 
     return texts, bonuses
+end
+
+function getDescriptionLines(seed, rarity, permanent)
+    local vel, acc, tech = getBonuses(seed, rarity, permanent)
+    if tech.uid == 0700 then
+        return {}
+    end
+
+    local texts = getLines(tech)
+    return texts
 end
 
 function getComparableValues(seed, rarity)

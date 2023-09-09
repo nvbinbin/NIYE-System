@@ -3,6 +3,17 @@ include ("utility")
 include ("stringutility")
 include ("callable")
 
+--[[
+
+这个是系统的支持库，你可能很好奇我为什么要保留这个
+因为我要覆盖掉一些令人不喜的 第三方作者 善做主张的改动
+
+这会导致 我他喵的！！！！！！！！！中文！！！！！！！！丢失！！！！！！！！！！！！！！！！！！！！！
+
+
+
+]]
+
 local seed = nil
 local rarity = nil
 local permanent = false

@@ -3,6 +3,9 @@ package.path = package.path .. ";data/scripts/lib/?.lua"
 include ("basesystem")
 include ("utility")
 include ("randomext")
+include ("enterprise")
+
+-- 超空间
 
 -- optimization so that energy requirement doesn't have to be read every frame
 FixedEnergyRequirement = true

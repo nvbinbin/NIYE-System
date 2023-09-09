@@ -15,8 +15,6 @@ function getBonuses(seed, rarity, permanent)
     -----  我是王者荣耀3000小时玩家  -----
     tech.cargoPercResult = math.random(tech.minRandom, tech.maxRandom) / 100
     tech.cargoFlatResult = math.random(tech.minRandom, tech.maxRandom) / 100
-    tech.cargoPerm = 1.5
-    tech.cargoMulti = 1
     tech.cargoPerc = false
     if tech.uid == 0700 then tech.nameId = "T1M" end
     ------------------------------------
@@ -32,9 +30,7 @@ function getBonuses(seed, rarity, permanent)
     flat = flat + (tech.rarity + 1) * 50
     flat = flat + tech.cargoFlatResult * ((tech.rarity + 1) * 50)
 
-    ---额外算法---
-    perc = perc * tech.cargoMulti
-    flat = flat * tech.cargoMulti
+
 
     -- 考虑到厂牌的多样性，部分厂牌可能不屑于给临时安装属性
     if not permanent and tech.onlyPerm then
@@ -42,8 +38,8 @@ function getBonuses(seed, rarity, permanent)
         flat = 0
     end
     if permanent then 
-        perc = perc * tech.cargoPerm
-        flat = flat * tech.cargoPerm
+        perc = perc * 1.5
+        flat = flat * 1.5
     end
 
     -- 异域级别以上的卡拥有 5% 的概率成为调度系统 / 厂牌的卡片必定为调度系统
@@ -90,7 +86,7 @@ function getName(seed, rarity)
     if tech.cargoPerc then name = name .. "SC" dist = tech.cargoPercResult 
     else name = name .. "TC" dist = tech.cargoFlatResult end
 
-    local grade = getGrade(dist, tech, "cargo")
+    local grade = getGrade(dist, tech, 100)
 
     
     return "${id}-${grade}-${name} MK ${mark} "%_t % {id = tech.nameId, name = name, grade = grade, mark = toRomanLiterals(tech.rarity + 2)}
