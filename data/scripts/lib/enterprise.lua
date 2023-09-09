@@ -11,34 +11,15 @@ FixedEnergyRequirement = true
 
 这里是企业函数库，使用include即可引用。
 
-
-
-
-
-
-
 ]]
 
 
 
 function churchText(seed)
 end
-function createEnte(val,uid)
-end
 
-function addJackpot(tech, table)
-
-    for k, v in pairs(tech) do
-        for i, w in pairs(table) do
-          if w[k] then
-            tech[k] = tech[k] + w[k]
-
-          end
-        end
-      end
-
-end
-
+--[[
+                                    奖池系统已被移除
 function addJackpot(tech, tb)
 
     for k, v in pairs(tb) do
@@ -52,6 +33,7 @@ function addJackpot(tech, tb)
     end
 
 end
+]]
 
 function getEnterprise(seed, rarity, useType)
     math.randomseed(seed)
@@ -267,6 +249,13 @@ function getLines(tech)
     return texts
 end
     
+-----------------------------------------------------------------------------
+--[[
+    更新说明：
+    在原版中7+5似乎强度就已经足够了
+    所以我并不打算实装奖池
+]]
+--[[
 function getRoll(seed, tech)
     math.randomseed(seed)
     --[[
@@ -279,7 +268,7 @@ function getRoll(seed, tech)
         厂牌等级的补正：  +3 -5 +2 
         中奖的补正（每次中奖后）： -5 +3 +2                  
 
-    ]]
+    --]
     local jackpot = {
         all = {
             {type = 0, name = "纪念版", coinFactor = 0.2},
@@ -290,7 +279,7 @@ function getRoll(seed, tech)
         }
 
         turret = {
-            {type = 0, name = "纪念版", coinFactor = 0.2},
+            {type = 1, name = "火力网络模块", coinFactor = 0.2},
 
         }
     }
@@ -334,11 +323,11 @@ function getRoll(seed, tech)
         local randoms = math.random(0,100)
 
         if randoms <= goodEntry then
-            table.insert(tech.entry, {哇！金色传说！})
+            --table.insert(tech.entry, {哇！金色传说！})
         elseif randoms <= goodEntry + neutEntry then
-            table.insert(tech.entry, {哇！褒贬不一！})
+            --table.insert(tech.entry, {哇！褒贬不一！})
         else
-            table.insert(tech.entry, {好好好！})
+            --table.insert(tech.entry, {好好好！})
         end
         goodEntry = goodEntry - 5 
         badEntry = badEntry + 3
@@ -346,3 +335,4 @@ function getRoll(seed, tech)
     end
 
 end
+]]

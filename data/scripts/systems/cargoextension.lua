@@ -17,12 +17,10 @@ function getBonuses(seed, rarity, permanent)
     tech.cargoFlatResult = math.random(tech.minRandom, tech.maxRandom) / 100
     tech.cargoPerm = 1.5
     tech.cargoMulti = 1
-    tech.cargoType = 0
-
+    tech.cargoPerc = false
+    if tech.uid == 0700 then tech.nameId = "T1M" end
     ------------------------------------
-    if tech.uid == 0700 then
-    tech.nameId = "T1M"
-    end
+   
 
     local perc = 10 -- 基础百分比
     local flat = 20 -- 基础固定值
@@ -57,12 +55,12 @@ function getBonuses(seed, rarity, permanent)
     end 
 
     if math.random() < 0.5 then
-        if not unite then flat = 0 
-        else tech.cargoType = 1 multiFlat = 0.4 end -- 1：保留百分数
+        if not unite then flat = 0 tech.cargoPerc = true
+        else tech.cargoPerc = true multiFlat = 0.4 end -- 1：保留百分数
          
     else 
         if not unite then perc = 0 
-        else tech.cargoType = 2 multiPerc = 0.4 end -- 2：保留绝对数
+        else multiPerc = 0.4 end -- 2：保留绝对数
         
     end
 
@@ -86,14 +84,15 @@ end
 function getName(seed, rarity)
     local perc, flat, tech = getBonuses(seed, rarity, true)
     local name = "科技货舱拓展"
+    if perc ~= 0 and flat ~= 0 then name =  "货舱调度系统" end
     local dist
 
-    if     tech.cargoType == 1 or tech.cargoType == 0 and perc > 0 then name = name .. "SC" dist = tech.cargoPercResult 
-    elseif tech.cargoType == 2 or tech.cargoType == 0 and flat > 0 then name = name .. "TC" dist = tech.cargoFlatResult end
+    if tech.cargoPerc then name = name .. "SC" dist = tech.cargoPercResult 
+    else name = name .. "TC" dist = tech.cargoFlatResult end
 
     local grade = getGrade(dist, tech, "cargo")
 
-    if perc ~= 0 and flat ~= 0 then name =  "货舱调度系统" end
+    
     return "${id}-${grade}-${name} MK ${mark} "%_t % {id = tech.nameId, name = name, grade = grade, mark = toRomanLiterals(tech.rarity + 2)}
 end
 
@@ -128,9 +127,9 @@ function getTooltipLines(seed, rarity, permanent)
     local basePerc, baseFlat, _ = getBonuses(seed, rarity, false)
 
 
-    if tech then 
+    if tech.uid ~= 0700 then 
         table.insert(texts, {ltext = "[" .. tech.name .. "]", lcolor = ColorRGB(1, 0.5, 1)}) 
-        if tech.uid == "0902" then
+        if tech.uid == 0902 then
             table.insert(bonuses, {ltext = "Cargo Hold (relative)"%_t, rtext = "???"%_t, icon = "data/textures/icons/crate.png", boosted = permanent})
             table.insert(bonuses, {ltext = "Cargo Hold"%_t, rtext = "???"%_t, icon = "data/textures/icons/crate.png", boosted = permanent})
             return texts, bonuses
@@ -152,12 +151,10 @@ end
 
 function getDescriptionLines(seed, rarity, permanent)
     local perc, flat, tech = getBonuses(seed, rarity, false)
-    local texts = getLines(tech)
-
     if tech.uid == 0700 then
         return{{ltext = "It's bigger on the inside!"%_t, lcolor = ColorRGB(1, 0.5, 0.5)}}
     end
-
+    local texts = getLines(tech)
     return texts
 end
 
