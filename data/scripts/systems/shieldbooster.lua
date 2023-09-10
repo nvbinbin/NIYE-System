@@ -3,7 +3,7 @@ package.path = package.path .. ";data/scripts/lib/?.lua"
 include ("basesystem")
 include ("utility")
 include ("randomext")
-
+include ("enterprise")
 -- dynamic stats
 local rechargeReady = 0
 local recharging = 0
@@ -46,24 +46,26 @@ end
 
 function getBonuses(seed, rarity, permanent)
     math.randomseed(seed)
+    local tech = getEnterprise(seed, rarity, 1)
+    if tech.uid == 0700 then tech.nameId = "" end
 
     local durability = 5000 -- add base 5.000 hp to shield
-    durability = durability + (rarity.value + 1) * 10000 -- add 0 hp (worst rarity) to 65.000 hp (best rarity) to shield
+    durability = durability + (tech.rarity + 1) * 10000 -- add 0 hp (worst rarity) to 65.000 hp (best rarity) to shield
     durability = durability + round((math.random(0, 5000)) / 500) * 500 -- add random 0 hp to 6000 hp to add some variability
 
     local recharge = 5 -- base value, in percent
     -- add flat percentage based on rarity
-    recharge = recharge + rarity.value * 2 -- add -2% (worst rarity) to +10% (best rarity)
+    recharge = recharge + tech.rarity * 2 -- add -2% (worst rarity) to +10% (best rarity)
 
     -- add randomized percentage, span is based on rarity
-    recharge = recharge + math.random() * (rarity.value * 2) -- add random value between -2% (worst rarity) and +10% (best rarity)
+    recharge = recharge + math.random() * (tech.rarity * 2) -- add random value between -2% (worst rarity) and +10% (best rarity)
     recharge = recharge * 0.8
     recharge = recharge / 100
 
     -- probability for both of them being used
     -- when rarity.value >= 4, always both
     -- when rarity.value <= 0 always only one
-    local probability = math.max(0, rarity.value * 0.25)
+    local probability = math.max(0, tech.rarity * 0.25)
     if math.random() > probability then
         -- only 1 will be used
         if math.random() < 0.5 then
@@ -79,12 +81,12 @@ function getBonuses(seed, rarity, permanent)
         durability = durability * 3
         recharge = recharge * 1.5
 
-        if rarity.value >= 2 then
+        if tech.rarity >= 2 then
             emergencyRecharge = 1
         end
     end
 
-    return durability, recharge, emergencyRecharge
+    return durability, recharge, emergencyRecharge, tech
 end
 
 function onInstalled(seed, rarity, permanent)
@@ -108,13 +110,16 @@ function onUninstalled(seed, rarity, permanent)
 end
 
 function getName(seed, rarity)
-    local durability, recharge, emergencyRecharge = getBonuses(seed, rarity, true)
+    local durability, recharge, emergencyRecharge, tech = getBonuses(seed, rarity, true)
 
     local random = Random(Seed(seed))
     local name = randomEntry(random, {"Shield Booster"%_t, "Shielder"%_t, "Protector"%_t})
     local serial = makeSerialNumber(random, 2)
-    local rarityStr = tostring((rarity.value + 2) * 1000)
+    local rarityStr = tostring((tech.rarity + 2) * 1000)
     local vars = {name = name, serial = serial, rarity = rarityStr}
+    if tech.uid ~= 0700 then
+        serial = tech.nameId
+    end
 
     if emergencyRecharge > 0 then
         return "${serial}-${rarity} Reviving ${name} /* ex: 1Q-4000 Reviving Shield Booster*/"%_t % vars
@@ -128,27 +133,41 @@ function getBasicName()
 end
 
 function getIcon(seed, rarity)
+    local durability, recharge, emergencyRecharge, tech = getBonuses(seed, rarity)
+    if tech.uid == 0700 then
+        return "data/textures/icons/shield.png"
+    end
     return "data/textures/icons/shield.png"
 end
 
 function getEnergy(seed, rarity, permanent)
-    local durability, recharge, emergencyRecharge = getBonuses(seed, rarity)
-    return ((durability / 9000) + recharge * 2) * 1000 * 1000 * 1000
+    local durability, recharge, emergencyRecharge, tech = getBonuses(seed, rarity)
+    return (((durability / 9000) + recharge * 2) * 1000 * 1000 * 1000) * tech.energyFactor
 end
 
 function getPrice(seed, rarity)
-    local durability, recharge, emergencyRecharge = getBonuses(seed, rarity)
+    local durability, recharge, emergencyRecharge, tech = getBonuses(seed, rarity)
     local price = durability / 5 + recharge * 100 * 250 + emergencyRecharge * 15000
-    return price * 2.5 ^ rarity.value
+    return (price * 2.5 ^ tech.rarity) * tech.coinFactor
 end
 
 function getTooltipLines(seed, rarity, permanent)
 
     local texts = {}
     local bonuses = {}
-    local durability, recharge, emergencyRecharge = getBonuses(seed, rarity, permanent)
+    local durability, recharge, emergencyRecharge, tech = getBonuses(seed, rarity, permanent)
     local baseDurability, baseRecharge, baseEmergencyRecharge = getBonuses(seed, rarity, false)
     local bonusDurability, _, bonusEmergencyRecharge = getBonuses(seed, rarity, true)
+    if tech.uid ~= 0700 then 
+        table.insert(texts, {ltext = "[" .. tech.name .. "]", lcolor = ColorRGB(1, 0.5, 1)}) 
+        if tech.uid == 0902 then
+            table.insert(bonuses, {ltext = "Shield Durability"%_t, rtext = "+???", icon = "data/textures/icons/health-normal.png"})
+            table.insert(bonuses, {ltext = "Shield Recharge Rate"%_t, rtext = "+???", icon = "data/textures/icons/shield-charge.png"})
+            table.insert(bonuses, {ltext = "Emergency Recharge"%_t, rtext = "+???", icon = "data/textures/icons/shield-charge.png", boosted = permanent})
+            table.insert(bonuses, {ltext = "Recharge Upon Depletion"%_t, rtext = "+???", icon = "data/textures/icons/shield-charge.png", })
+            return texts, bonuses
+        end
+    end
 
     if durability ~= 0 then
         table.insert(texts, {ltext = "Shield Durability"%_t, rtext = "+" .. createMonetaryString(durability), icon = "data/textures/icons/health-normal.png", boosted = permanent})
@@ -172,7 +191,7 @@ function getTooltipLines(seed, rarity, permanent)
 end
 
 function getDescriptionLines(seed, rarity, permanent)
-    local durability, recharge, emergencyRecharge = getBonuses(seed, rarity, true)
+    local durability, recharge, emergencyRecharge, tech = getBonuses(seed, rarity, true)
 
     local texts = {}
 
@@ -180,7 +199,9 @@ function getDescriptionLines(seed, rarity, permanent)
         table.insert(texts, {ltext = string.format("Upon depletion: Recharges %i%% of your shield."%_t, rechargeAmount * 100)})
         table.insert(texts, {ltext = plural_t("This effect can only occur once every minute.", "This effect can only occur once every ${i} minutes.", round(rechargeDelay / 60))})
     end
-
+    if tech.uid ~= 0700 then 
+        texts = getLines(tech)
+    end
     return texts
 end
 

@@ -5,7 +5,7 @@ include ("utility")
 local SpawnUtility = include ("spawnutility")
 include ("damagetypeutility")
 include ("randomext")
-
+include ("enterprise")
 
 -- static stats
 local resistanceBonus = {}
@@ -17,6 +17,10 @@ resistanceBonus[5] = {dmgFactor = 0.2}  -- Exceptional
 resistanceBonus[6] = {dmgFactor = 0.25} -- Exotic
 resistanceBonus[7] = {dmgFactor = 0.3}  -- Legendary
 resistanceBonus[8] = {dmgFactor = 0.35} -- helper
+
+resistanceBonus[9] = {dmgFactor = 0.4} -- helper
+resistanceBonus[10] = {dmgFactor = 0.45} -- helper
+resistanceBonus[11] = {dmgFactor = 0.5} -- helper
 
 local resistanceTypes =
 {
@@ -37,8 +41,10 @@ Unique = true
 
 function getBonuses(seed, rarity, permanent)
     math.randomseed(seed)
+    local tech = getEnterprise(seed, rarity, 1)
+    if tech.uid == 0700 then tech.nameId = "" end
 
-    local rarityLevel = rarity.value + 2 -- rarity levels start at -1
+    local rarityLevel = tech.rarity + 2 -- rarity levels start at -1
 
     local randomEntry = math.random(1, 4)
     resistanceType = resistanceTypes[randomEntry]
@@ -50,7 +56,7 @@ function getBonuses(seed, rarity, permanent)
         dmgFactor = dmgFactor + math.random() * (nextLevel - dmgFactor - 0.01)
     end
 
-    return resistanceType, dmgFactor
+    return resistanceType, dmgFactor, tech
 end
 
 function onInstalled(seed, rarity, permanent)
@@ -76,6 +82,7 @@ function onUninstalled(seed, rarity, permanent)
 end
 
 function getName(seed, rarity)
+    local resistanceType, dmgFactor, tech = getBonuses(seed, rarity, true)
 
     local name = "Shield Ionizer"%_t
     if resistanceType == DamageType.Physical then
@@ -88,7 +95,9 @@ function getName(seed, rarity)
         name = "Solidifying Shield Ionizer"%_t
     end
 
-    local mark = toRomanLiterals(rarity.value + 2)
+    name = tech.nameId .. name
+
+    local mark = toRomanLiterals(tech.rarity + 2)
     return "${name} MK ${mark} /* ex: Plasmatic Shield Ionizer MK III */"%_t % {name = name, mark = mark}
 end
 
@@ -97,25 +106,37 @@ function getBasicName()
 end
 
 function getIcon(seed, rarity)
+    local resistanceType, dmgFactor, tech = getBonuses(seed, rarity, true)
+    if tech.uid == 0700 then
+        return "data/textures/icons/edged-shield.png"
+    end
     return "data/textures/icons/edged-shield.png"
 end
 
 function getEnergy(seed, rarity, permanent)
-    local resistanceType, dmgFactor = getBonuses(seed, rarity, true)
-    return (dmgFactor * 75 + dmgFactor * 2) * 1000 * 537
+    local resistanceType, dmgFactor, tech = getBonuses(seed, rarity, true)
+    return ((dmgFactor * 75 + dmgFactor * 2) * 1000 * 537) * tech.energyFactor
 end
 
 function getPrice(seed, rarity)
-    local resistanceType, dmgFactor = getBonuses(seed, rarity, true)
+    local resistanceType, dmgFactor,tech = getBonuses(seed, rarity, true)
     local price = dmgFactor * 100 * 500 + dmgFactor * 100 * 257
-    return price * 2.5 ^ rarity.value
+    return (price * 2.5 ^ tech.rarity) * tech.coinFactor
 end
 
 function getTooltipLines(seed, rarity, permanent)
 
     local texts = {}
     local bonuses = {}
-    local resistanceType, dmgFactor = getBonuses(seed, rarity, true)
+    local resistanceType, dmgFactor, tech = getBonuses(seed, rarity, true)
+    if tech.uid ~= 0700 then 
+        table.insert(texts, {ltext = "[" .. tech.name .. "]", lcolor = ColorRGB(1, 0.5, 1)}) 
+        if tech.uid == 0902 then
+            table.insert(bonuses, {ltext = "Resistance against"%_t, rtext = "%s", rcolor = getDamageTypeColor(resistanceType), icon = "data/textures/icons/shield-charge.png"})
+            table.insert(bonuses, {ltext = string.format("%s damage"%_t, getDamageTypeName(resistanceType)), rtext = "+???", icon = "data/textures/icons/shield-charge.png", boosted = permanent})
+            return texts, bonuses
+        end
+    end
 
     if permanent then
         table.insert(texts, {ltext = "Resistance against"%_t, rtext = string.format("%s", getDamageTypeName(resistanceType)), rcolor = getDamageTypeColor(resistanceType), icon = "data/textures/icons/shield-charge.png"})
@@ -129,12 +150,15 @@ function getTooltipLines(seed, rarity, permanent)
 end
 
 function getDescriptionLines(seed, rarity, permanent)
-    local resistanceType, dmgFactor = getBonuses(seed, rarity, true)
+    local resistanceType, dmgFactor, tech = getBonuses(seed, rarity, true)
 
     local texts = {}
     table.insert(texts, {ltext = "Ionizes the shield against incoming damage."%_t})
     table.insert(texts, {ltext = "Reduces damage received from"%_t})
     table.insert(texts, {ltext = string.format("%s weapons."%_t, getDamageTypeName(resistanceType))})
+    if tech.uid ~= 0700 then 
+        texts = getLines(tech)
+    end
     return texts
 end
 

@@ -3,7 +3,7 @@ package.path = package.path .. ";data/scripts/lib/?.lua"
 include ("basesystem")
 include ("utility")
 include ("randomext")
-
+include ("enterprise")
 local interestingEntities = {}
 local baseCooldown = 40.0
 local cooldown = 40.0
@@ -22,58 +22,80 @@ Unique = true
 
 function getBonuses(seed, rarity, permanent)
     math.randomseed(seed)
+    local tech = getEnterprise(seed, rarity, 2)
+    if tech.uid == 0700 then tech.nameId = "" end
 
     local highlightRange = 0
     local cooldown = baseCooldown
 
-    if rarity.value >= RarityType.Legendary then
+
+
+    if tech.rarity >= 8 then
+        if permanent then
+            highlightRange = 12500 + math.random() * 1000
+        end
+
+        cooldown = baseCooldown
+    elseif tech.rarity >= 7 then
+        if permanent then
+            highlightRange = 11000 + math.random() * 1000
+        end
+
+        cooldown = baseCooldown
+    elseif tech.rarity >= 6 then
+        if permanent then
+            highlightRange = 9000 + math.random() * 1000
+        end
+
+        cooldown = baseCooldown
+    elseif tech.rarity >= RarityType.Legendary then
         if permanent then
             highlightRange = 8500 + math.random() * 1000
         end
 
         cooldown = baseCooldown
 
-    elseif rarity.value >= RarityType.Exotic then
+    elseif tech.rarity >= RarityType.Exotic then
         if permanent then
             highlightRange = 7000 + math.random() * 1000
         end
 
         cooldown = baseCooldown
 
-    elseif rarity.value >= RarityType.Exceptional then
+    elseif tech.rarity >= RarityType.Exceptional then
         if permanent then
             highlightRange = 5500 + math.random() * 1000
         end
 
         cooldown = baseCooldown
 
-    elseif rarity.value >= RarityType.Rare then
+    elseif tech.rarity >= RarityType.Rare then
         if permanent then
             highlightRange = 4000 + math.random() * 1000
         end
 
         cooldown = baseCooldown
 
-    elseif rarity.value >= RarityType.Uncommon then
+    elseif tech.rarity >= RarityType.Uncommon then
         if permanent then
             highlightRange = 2500 + math.random() * 1000
         end
 
         cooldown = baseCooldown + highlightDuration * 0.5
 
-    elseif rarity.value >= RarityType.Common then
+    elseif tech.rarity >= RarityType.Common then
         if permanent then
             highlightRange = 1000 + math.random() * 1000
         end
 
         cooldown = baseCooldown + highlightDuration
 
-    elseif rarity.value >= RarityType.Petty then
+    elseif tech.rarity >= RarityType.Petty then
         highlightRange = 0
         cooldown = baseCooldown + highlightDuration * 3
     end
 
-    return highlightRange, cooldown
+    return highlightRange, cooldown, tech
 end
 
 function onInstalled(seed, rarity, permanent)
@@ -292,11 +314,15 @@ function onPreRenderHud()
 end
 
 function getName(seed, rarity)
-    local mark = toRomanLiterals(rarity.value + 2)
+    local range, cooldown, tech = getBonuses(seed, rarity, true)
+    local mark = toRomanLiterals(tech.rarity + 2)
 
     local random = Random(Seed(seed))
     local name = randomEntry(random, {"Object Detector"%_t, "Object Finder"%_t})
     local serial = makeSerialNumber(random, 2, nil, nil, "1234567890")
+    if tech.uid ~= 0700 then
+        serial = tech.nameId
+    end
 
     return "C${serial} ${name} T-${mark} /* ex: C-41 Object Finder T-III */"%_t % {serial = serial, mark = mark, name = name}
 end
@@ -306,6 +332,10 @@ function getBasicName()
 end
 
 function getIcon(seed, rarity)
+    local range, cooldown, tech = getBonuses(seed, rarity, true)
+    if tech.uid == 0700 then
+        return "data/textures/icons/movement-sensor.png"
+    end
     return "data/textures/icons/movement-sensor.png"
 end
 
@@ -314,25 +344,31 @@ function getControlAction()
 end
 
 function getEnergy(seed, rarity, permanent)
-    local highlightRange = getBonuses(seed, rarity, true)
+    local range, cooldown, tech = getBonuses(seed, rarity, true)
     highlightRange = math.min(highlightRange, 1500)
 
-    return (highlightRange * 0.0005 * 1000 * 1000 * 1000)
+    return ((highlightRange * 0.0005 * 1000 * 1000 * 1000)) * tech.energyFactor
 end
 
 function getPrice(seed, rarity)
-    local range = getBonuses(seed, rarity, true)
+    local range, cooldown, tech = getBonuses(seed, rarity, true)
     range = math.min(range, 1500)
 
-    local price = (rarity.value + 2) * 750 + range * 1.5;
+    local price = (tech.rarity + 2) * 750 + range * 1.5;
 
-    return price * 2.5 ^ (rarity.value + 1)
+    return (price * 2.5 ^ (tech.rarity + 1)) * tech.coinFactor
 end
 
 function getTooltipLines(seed, rarity, permanent)
     local texts = {}
     local bonuses = nil
-    local range, cooldown = getBonuses(seed, rarity, true)
+    local range, cooldown, tech = getBonuses(seed, rarity, true)
+    if tech.uid ~= 0700 then 
+        table.insert(texts, {ltext = "[" .. tech.name .. "]", lcolor = ColorRGB(1, 0.5, 1)}) 
+        if tech.uid == 0902 then
+            table.insert(texts, {ltext = "[此系统无法加密]", lcolor = ColorRGB(1, 0.5, 1)}) 
+        end
+    end
 
     local toYesNo = function(line, value)
         if value then
@@ -388,6 +424,7 @@ function getTooltipLines(seed, rarity, permanent)
 end
 
 function getDescriptionLines(seed, rarity, permanent)
+    local range, cooldown, tech = getBonuses(seed, rarity, true)
     local texts = {}
 
     table.insert(texts, {ltext = "Detects interesting objects in the sector."%_t})
@@ -395,7 +432,9 @@ function getDescriptionLines(seed, rarity, permanent)
     if rarity > Rarity(RarityType.Petty) then
         table.insert(texts, {ltext = "Highlights objects when permanently installed."%_t})
     end
-
+    if tech.uid ~= 0700 then 
+        texts = getLines(tech)
+    end
     return texts
 end
 

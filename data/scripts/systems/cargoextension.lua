@@ -134,12 +134,12 @@ function getTooltipLines(seed, rarity, permanent)
 
     if perc ~= 0 then
         table.insert(texts, {ltext = "Cargo Hold (relative)"%_t, rtext = string.format("%+i%%", round(perc * 100)), icon = "data/textures/icons/crate.png", boosted = permanent})
-        table.insert(bonuses, {ltext = "Cargo Hold (relative)"%_t, rtext = string.format("%+i%%", round(basePerc * tech.cargoMulti * 100)), icon = "data/textures/icons/crate.png", boosted = permanent})
+        table.insert(bonuses, {ltext = "Cargo Hold (relative)"%_t, rtext = string.format("%+i%%", round(basePerc * 100)), icon = "data/textures/icons/crate.png", boosted = permanent})
     end
 
     if flat ~= 0 then
         table.insert(texts, {ltext = "Cargo Hold"%_t, rtext = string.format("%+i", round(flat)), icon = "data/textures/icons/crate.png", boosted = permanent})
-        table.insert(bonuses, {ltext = "Cargo Hold"%_t, rtext = string.format("%+i", round(baseFlat * tech.cargoMulti)), icon = "data/textures/icons/crate.png", boosted = permanent})
+        table.insert(bonuses, {ltext = "Cargo Hold"%_t, rtext = string.format("%+i", round(baseFlat )), icon = "data/textures/icons/crate.png", boosted = permanent})
     end
 
     return texts, bonuses

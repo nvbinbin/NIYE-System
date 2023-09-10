@@ -3,24 +3,26 @@ package.path = package.path .. ";data/scripts/lib/?.lua"
 include ("basesystem")
 include ("utility")
 include ("randomext")
-
+include ("enterprise")
 -- optimization so that energy requirement doesn't have to be read every frame
 FixedEnergyRequirement = true
 PermanentInstallationOnly = true
 
 function getBonuses(seed, rarity, permanent)
     math.randomseed(seed)
+    local tech = getEnterprise(seed, rarity, 1)
+    if tech.uid == 0700 then tech.nameId = "" end
 
     -- rarity -1 is -1 / 2 + 1 * 50 = 0.5 * 100 = 50
     -- rarity 5 is 5 / 2 + 1 * 50 = 3.5 * 100 = 350
-    local range = (rarity.value / 2 + 1 + round(getFloat(0.0, 0.4), 1)) * 100
+    local range = (tech.rarity / 2 + 1 + round(getFloat(0.0, 0.4), 1)) * 100
 
     local fighterCargoPickup = 0
-    if rarity.value >= RarityType.Rare then
+    if tech.rarity >= RarityType.Rare then
         fighterCargoPickup = 1
     end
 
-    return range, fighterCargoPickup
+    return range, fighterCargoPickup, tech
 end
 
 function onInstalled(seed, rarity, permanent)
@@ -35,9 +37,13 @@ function onUninstalled(seed, rarity, permanent)
 end
 
 function getName(seed, rarity)
+    local range, fighterCargoPickup, tech = getBonuses(seed, rarity, permanent)
     local serial = makeSerialNumber(seed, 2)
-    local v = rarity.value + 1
+    local v = tech.rarity + 1
     local s2 = makeSerialNumber(seed, 1, nil, nil, "12345")
+    if tech.uid ~= 0700 then
+        serial = tech.nameId
+    end
     return "T-${serial} Transporter Software v${v}.${s2}0 /* ex: T-3F Transporter Software v2.50 */"%_t % {serial = serial, v = v, s2 = s2}
 end
 
@@ -46,6 +52,10 @@ function getBasicName()
 end
 
 function getIcon(seed, rarity)
+    local range, fighterCargoPickup, tech = getBonuses(seed, rarity, permanent)
+    if tech.uid == 0700 then
+        return "data/textures/icons/processor.png"
+    end
     return "data/textures/icons/processor.png"
 end
 
@@ -54,14 +64,23 @@ function getEnergy(seed, rarity, permanent)
 end
 
 function getPrice(seed, rarity)
-    local range, fighterCargoPickup = getBonuses(seed, rarity, true)
-    return range * 250
+    local range, fighterCargoPickup, tech = getBonuses(seed, rarity, true)
+    return (range * 250) * tech.coinFactor
 end
 
 function getTooltipLines(seed, rarity, permanent)
-    local range, fighterCargoPickup = getBonuses(seed, rarity, permanent)
+    local range, fighterCargoPickup, tech = getBonuses(seed, rarity, permanent)
+    local texts = {}
+    if tech.uid ~= 0700 then 
+        table.insert(texts, {ltext = "[" .. tech.name .. "]", lcolor = ColorRGB(1, 0.5, 1)}) 
+        if tech.uid == 0902 then
+            table.insert(texts,{ltext = "Docking Distance"%_t, rtext = "+??? km"%_t, icon = "data/textures/icons/solar-system.png", boosted = permanent})
+            table.insert(texts, {ltext = "Fighter Cargo Pickup"%_t, icon = "data/textures/icons/fighter.png", boosted = permanent})
+            return texts, texts
+        end
+    end
 
-    local texts =
+     texts =
     {
         {ltext = "Docking Distance"%_t, rtext = "+${distance} km"%_t % {distance = range / 100}, icon = "data/textures/icons/solar-system.png", boosted = permanent}
     }
@@ -78,7 +97,7 @@ function getTooltipLines(seed, rarity, permanent)
 end
 
 function getDescriptionLines(seed, rarity, permanent)
-    local range, fighterCargoPickup = getBonuses(seed, rarity, permanent)
+    local range, fighterCargoPickup, tech = getBonuses(seed, rarity, permanent)
 
     local texts =
     {
@@ -89,7 +108,9 @@ function getDescriptionLines(seed, rarity, permanent)
     if fighterCargoPickup > 0 then
         table.insert(texts, {ltext = "Allows fighters to pick up cargo"%_t, rtext = "", icon = ""})
     end
-
+    if tech.uid ~= 0700 then 
+        texts = getLines(tech)
+    end
     return texts
 end
 

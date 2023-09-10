@@ -12,8 +12,10 @@ FixedEnergyRequirement = true
 
 function getLootCollectionRange(seed, rarity, permanent)
     math.randomseed(seed)
+    local tech = getEnterprise(seed, rarity, 2)
+    if tech.uid == 0700 then tech.nameId = "RCN" end
 
-    local range = (rarity.value + 2 + getFloat(0.0, 0.75)) * 2 * (1.3 ^ rarity.value) -- one unit is 10 meters
+    local range = (tech.rarity + 2 + getFloat(0.0, 0.75)) * 2 * (1.3 ^ tech.rarity) -- one unit is 10 meters
 
     if permanent then
         range = range * 3
@@ -21,7 +23,7 @@ function getLootCollectionRange(seed, rarity, permanent)
 
     range = round(range)
 
-    return range
+    return range, tech
 end
 
 function onInstalled(seed, rarity, permanent)
@@ -32,9 +34,10 @@ function onUninstalled(seed, rarity, permanent)
 end
 
 function getName(seed, rarity)
+    local range, tech = getLootCollectionRange(seed, rarity)
     local serial = makeSerialNumber(seed, 2, nil, nil, "0123456789")
-    local mark = toRomanLiterals(rarity.value + 2)
-    return "RCN-${serial} Tractor Beam Upgrade MK ${mark}"%_t % {mark = mark, serial = serial}
+    local mark = toRomanLiterals(tech.rarity + 2)
+    return "${ids}-${serial} 牵引光束升级 MK ${mark}"%_t % {mark = mark, serial = serial, ids = tech.nameId}
 end
 
 function getBasicName()
@@ -42,21 +45,35 @@ function getBasicName()
 end
 
 function getIcon(seed, rarity)
+    local range, tech = getLootCollectionRange(seed, rarity)
+    if tech.uid == 0700 then
+        return "data/textures/icons/tractor.png"
+    end
     return "data/textures/icons/tractor.png"
 end
 
 function getEnergy(seed, rarity, permanent)
-    local range = getLootCollectionRange(seed, rarity)
-    return range * 20 * 1000 * 1000 / (1.1 ^ rarity.value)
+    local range, tech = getLootCollectionRange(seed, rarity)
+    return range * 20 * 1000 * 1000 / (1.1 ^ tech.rarity) * tech.energyFactor
 end
 
 function getPrice(seed, rarity)
-    return 500 * getLootCollectionRange(seed, rarity)
+    local range, tech = getLootCollectionRange(seed, rarity)
+    return (500 * range) * tech.coinFactor
 end
 
 function getTooltipLines(seed, rarity, permanent)
-    local range = getLootCollectionRange(seed, rarity, permanent)
+    local range, tech = getLootCollectionRange(seed, rarity, permanent)
     local baseRange = getLootCollectionRange(seed, rarity, false)
+    local texts = {}
+    local bonuses = {}
+    if tech.uid ~= 0700 then 
+        table.insert(texts, {ltext = "[" .. tech.name .. "]", lcolor = ColorRGB(1, 0.5, 1)}) 
+        if tech.uid == 0902 then
+            table.insert(bonuses, {ltext = "Loot Collection Range"%_t, rtext = "+???", icon = "data/textures/icons/tractor.png"})
+            return texts, bonuses
+        end
+    end
 
     return
     {
@@ -68,10 +85,15 @@ function getTooltipLines(seed, rarity, permanent)
 end
 
 function getDescriptionLines(seed, rarity, permanent)
-    return
-    {
-        {ltext = "Gotta catch 'em all!"%_t, lcolor = ColorRGB(1, 0.5, 0.5)}
-    }
+    local range, tech = getLootCollectionRange(seed, rarity, permanent)
+    if tech.uid == 0700 then
+        return
+        {
+            {ltext = "Gotta catch 'em all!"%_t, lcolor = ColorRGB(1, 0.5, 0.5)}
+        }
+    end
+    local texts = getLines(tech)
+    return texts
 end
 
 function getComparableValues(seed, rarity)

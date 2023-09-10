@@ -12,6 +12,8 @@ FixedEnergyRequirement = true
 
 function getBonuses(seed, rarity, permanent)
     math.randomseed(seed)
+    local tech = getEnterprise(seed, rarity, 2)
+    if tech.uid == 0700 then tech.nameId = "R" end
 
     local reach = 0
     local cdfactor = 0
@@ -19,7 +21,7 @@ function getBonuses(seed, rarity, permanent)
     local radar = 0
     local cdbias = 0
 
-    -- probability for both of them being used
+    -- 双选概率
     local numBonuses = 1
 
     if rarity.value >= 4 then numBonuses = 3
@@ -49,41 +51,41 @@ function getBonuses(seed, rarity, permanent)
     for i = 1, numBonuses do
         local bonus = selectByWeight(random(), bonuses)
         enabled[bonus] = 1
-        bonuses[bonus] = nil -- remove from list so it wont be picked again
+        bonuses[bonus] = nil -- 删除
     end
 
     if enabled[StatsBonuses.HyperspaceCooldown] then
         cdfactor = 5 -- base value, in percent
         -- add flat percentage based on rarity
-        cdfactor = cdfactor + (rarity.value + 1) * 2.5 -- add 0% (worst rarity) to +15% (best rarity)
+        cdfactor = cdfactor + (tech.rarity + 1) * 2.5 -- add 0% (worst rarity) to +15% (best rarity)
 
         -- add randomized percentage, span is based on rarity
-        cdfactor = cdfactor + math.random() * ((rarity.value + 1) * 2.5) -- add random value between 0% (worst rarity) and +15% (best rarity)
+        cdfactor = cdfactor + math.random() * ((tech.rarity + 1) * 2.5) -- add random value between 0% (worst rarity) and +15% (best rarity)
         cdfactor = -cdfactor / 100
     end
 
     if enabled[StatsBonuses.HyperspaceChargeEnergy] then
         efactor = 5 -- base value, in percent
         -- add flat percentage based on rarity
-        efactor = efactor + (rarity.value + 1) * 3 -- add 0% (worst rarity) to +18% (best rarity)
+        efactor = efactor + (tech.rarity + 1) * 3 -- add 0% (worst rarity) to +18% (best rarity)
 
         -- add randomized percentage, span is based on rarity
-        efactor = efactor + math.random() * ((rarity.value + 1) * 4) -- add random value between 0% (worst rarity) and +24% (best rarity)
+        efactor = efactor + math.random() * ((tech.rarity + 1) * 4) -- add random value between 0% (worst rarity) and +24% (best rarity)
         efactor = -efactor / 100
     end
 
     if enabled[StatsBonuses.RadarReach] then
-        radar = math.max(0, getInt(rarity.value, rarity.value * 2.0)) + 1
+        radar = math.max(0, getInt(tech.rarity, tech.rarity * 2.0)) + 1
     end
 
     if permanent then
         if enabled[StatsBonuses.HyperspaceReach] then
             if megaReach then
-                reach = math.max(1, rarity.value + 1) * 2 + rarity.value
+                reach = math.max(1, tech.rarity + 1) * 2 + tech.rarity
                 cdbias = round(math.max(0, (reach - 2) / 4) * 60)
                 cdfactor = 0
             else
-                reach = math.max(0, (rarity.value * rarity.value) / 25 * 8 + random():getFloat(0, 1.0))
+                reach = math.max(0, (tech.rarity * tech.rarity) / 25 * 8 + random():getFloat(0, 1.0))
             end
         end
 
@@ -92,7 +94,7 @@ function getBonuses(seed, rarity, permanent)
         cdfactor = 0
     end
 
-    return round(reach, 1), cdfactor, efactor, round(radar), cdbias
+    return round(reach, 1), cdfactor, efactor, round(radar), cdbias, tech
 end
 
 function onInstalled(seed, rarity, permanent)
@@ -110,14 +112,14 @@ function onUninstalled(seed, rarity, permanent)
 end
 
 function getName(seed, rarity)
-    local reach, cooldown, energy, radar, cdbias = getBonuses(seed, rarity, true)
+    local reach, cooldown, energy, radar, cdbias, tech = getBonuses(seed, rarity, true)
 
     local reachStr = ""
     if reach > 0 then
-        reachStr = "R-" .. math.ceil(reach) .. " "
+        reachStr = tech.nameId .. math.ceil(reach) .. " "
     end
 
-    local mark = toRomanLiterals(rarity.value + 2)
+    local mark = toRomanLiterals(tech.rarity + 2)
 
     local type = "Hyperspace Subsystem"%_t
     if cooldown ~= 0 and efactor ~= 0 then
@@ -141,19 +143,23 @@ function getBasicName()
 end
 
 function getIcon(seed, rarity)
+    local reach, cdfactor, efactor, radar, cdbias, tech = getBonuses(seed, rarity, permanent)
+    if tech.uid == 0700 then
+        return "data/textures/icons/vortex.png"
+    end
     return "data/textures/icons/vortex.png"
 end
 
 function getEnergy(seed, rarity, permanent)
-    local reach, cdfactor, efactor, radar, cdbias = getBonuses(seed, rarity, permanent)
-    return math.abs(cdfactor) * 2.5 * 1000 * 1000 * 1000 + reach * 125 * 1000 * 1000 + radar * 75 * 1000 * 1000
+    local reach, cdfactor, efactor, radar, cdbias, tech = getBonuses(seed, rarity, permanent)
+    return (math.abs(cdfactor) * 2.5 * 1000 * 1000 * 1000 + reach * 125 * 1000 * 1000 + radar * 75 * 1000 * 1000) * tech.energyFactor
 end
 
 function getPrice(seed, rarity)
-    local reach, _, efactor, radar = getBonuses(seed, rarity, false)
+    local reach, _, efactor, radar, _, tech = getBonuses(seed, rarity, false)
     local _, cdfactor, _, _ = getBonuses(seed, rarity, true)
     local price = math.abs(cdfactor) * 100 * 350 + math.abs(efactor) * 100 * 250 + reach * 3000 + radar * 450
-    return price * 2.5 ^ rarity.value
+    return (price * 2.5 ^ tech.rarity) * tech.coinFactor
 end
 
 function getTooltipLines(seed, rarity, permanent)
@@ -162,7 +168,18 @@ function getTooltipLines(seed, rarity, permanent)
     local bonuses = {}
     local reach, _, efactor, radar = getBonuses(seed, rarity, permanent)
     local baseReach, _, _, baseRadar = getBonuses(seed, rarity, false)
-    local betterReach, cdfactor, _, betterRadar, cdbias = getBonuses(seed, rarity, true)
+    local betterReach, cdfactor, _, betterRadar, cdbias, tech = getBonuses(seed, rarity, true)
+    if tech.uid ~= 0700 then 
+        table.insert(texts, {ltext = "[" .. tech.name .. "]", lcolor = ColorRGB(1, 0.5, 1)}) 
+        if tech.uid == 0902 then
+            table.insert(bonuses, {ltext = "Jump Range"%_t, rtext = "+???", icon = "data/textures/icons/star-cycle.png", boosted = permanent})
+            table.insert(bonuses, {ltext = "Radar Range"%_t, rtext = "+???", icon = "data/textures/icons/radar-sweep.png", boosted = permanent})
+            table.insert(bonuses, {ltext = "Hyperspace Cooldown"%_t, rtext = "+???", icon = "data/textures/icons/hourglass.png", boosted = permanent})
+            table.insert(bonuses, {ltext = "Hyperspace Cooldown"%_t, rtext = "+???", icon = "data/textures/icons/hourglass.png", boosted = permanent})
+            table.insert(texts, {ltext = "Hyperspace Charge Energy"%_t, rtext = "+???", icon = "data/textures/icons/electric.png"})
+            return texts, bonuses
+        end
+    end
 
     if reach ~= 0 then
         table.insert(texts, {ltext = "Jump Range"%_t, rtext = string.format("%+g", reach), icon = "data/textures/icons/star-cycle.png", boosted = permanent})
@@ -198,6 +215,18 @@ function getTooltipLines(seed, rarity, permanent)
 
     return texts, bonuses
 end
+function getDescriptionLines(seed, rarity, permanent)
+    local reach, cdfactor, efactor, radar, cdbias, tech = getBonuses(seed, rarity, permanent)
+    if tech.uid == 0700 then
+        return
+        {
+        }
+    end
+
+    local texts = getLines(tech)
+    return texts
+end
+
 
 function getComparableValues(seed, rarity)
 

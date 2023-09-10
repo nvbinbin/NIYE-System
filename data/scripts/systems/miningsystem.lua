@@ -3,7 +3,7 @@ package.path = package.path .. ";data/scripts/lib/?.lua"
 include ("basesystem")
 include ("utility")
 include ("randomext")
-
+include ("enterprise")
 materialLevel = 0
 range = 0
 amount = 0
@@ -13,23 +13,25 @@ FixedEnergyRequirement = true
 
 function getBonuses(seed, rarity, permanent)
     math.randomseed(seed)
+    local tech = getEnterprise(seed, rarity, 2)
+    if tech.uid == 0700 then tech.nameId = "" end
 
     local range = 200 -- base value
     -- add flat range based on rarity
-    range = range + (rarity.value + 1) * 80 -- add 0 (worst rarity) to +480 (best rarity)
+    range = range + (tech.rarity + 1) * 80 -- add 0 (worst rarity) to +480 (best rarity)
     -- add randomized range, span is based on rarity
-    range = range + math.random() * ((rarity.value + 1) * 20) -- add random value between 0 (worst rarity) and 120 (best rarity)
+    range = range + math.random() * ((tech.rarity + 1) * 20) -- add random value between 0 (worst rarity) and 120 (best rarity)
 
-    local material = rarity.value + 1
+    local material = tech.rarity + 1
     if math.random() < 0.25 then
         material = material + 1
     end
 
     local amount = 3
     -- add flat amount based on rarity
-    amount = amount + (rarity.value + 1) * 2 -- add 0 (worst rarity) to +120 (best rarity)
+    amount = amount + (tech.rarity + 1) * 2 -- add 0 (worst rarity) to +120 (best rarity)
     -- add randomized amount, span is based on rarity
-    amount = amount + math.random() * ((rarity.value + 1) * 5) -- add random value between 0 (worst rarity) and 60 (best rarity)
+    amount = amount + math.random() * ((tech.rarity + 1) * 5) -- add random value between 0 (worst rarity) and 60 (best rarity)
 
     if permanent then
         range = range * 1.5
@@ -37,7 +39,7 @@ function getBonuses(seed, rarity, permanent)
         material = material + 1
     end
 
-    return material, range, amount
+    return material, range, amount, tech
 end
 
 function onInstalled(seed, rarity, permanent)
@@ -110,7 +112,7 @@ function onPreRenderHud()
 end
 
 function getName(seed, rarity)
-    local materialLevel, range, amount = getBonuses(seed, rarity, true)
+    local materialLevel, range, amount, tech = getBonuses(seed, rarity, true)
 
     local classes = {}
     classes[RarityType.Legendary] = "Super-Class"%_t
@@ -120,6 +122,9 @@ function getName(seed, rarity)
     classes[RarityType.Uncommon] = "Advanced"%_t
     classes[RarityType.Common] = "Standard"%_t
     classes[RarityType.Petty] = "Damaged"%_t
+    if tech.uid ~= 0700 then 
+        classes[RarityType.Legendary] = tech.nameId%_t
+    end
 
     materialLevel = materialLevel - 1
 
@@ -134,7 +139,7 @@ function getName(seed, rarity)
     materials[MaterialType.Avorion] = "AV"
 
     local name
-    if materialLevel == rarity.value + 2 then
+    if materialLevel >= tech.rarity + 2 then
         name = "Mining Subsystem Plus"%_t
     else
         name = "Mining Subsystem"%_t
@@ -148,30 +153,43 @@ function getBasicName()
 end
 
 function getIcon(seed, rarity)
+    local materialLevel, range, amount, tech = getBonuses(seed, rarity, true)
+    if tech.uid == 0700 then
+        return "data/textures/icons/mining.png"
+    end
     return "data/textures/icons/mining.png"
 end
 
 function getEnergy(seed, rarity, permanent)
-    local materialLevel, range, amount = getBonuses(seed, rarity)
+    local materialLevel, range, amount, tech = getBonuses(seed, rarity)
 
-    return (range * 0.0005 * materialLevel * 1000 * 1000 * 1000) + (amount * 5 * 1000 * 1000)
+    return ((range * 0.0005 * materialLevel * 1000 * 1000 * 1000) + (amount * 5 * 1000 * 1000)) * tech.energyFactor
 end
 
 function getPrice(seed, rarity)
-    local materialLevel, range, amount = getBonuses(seed, rarity)
+    local materialLevel, range, amount, tech = getBonuses(seed, rarity)
 
     local price = materialLevel * 5000 + amount * 750 + range * 1.5;
 
-    return price * 2.5 ^ rarity.value
+    return (price * 2.5 ^ tech.rarity) * tech.coinFactor
 end
 
 function getTooltipLines(seed, rarity, permanent)
     local texts = {}
     local bonuses = {}
 
-    local materialLevel, range, amount = getBonuses(seed, rarity, permanent)
+    local materialLevel, range, amount, tech = getBonuses(seed, rarity, permanent)
     materialLevel = math.max(0, math.min(materialLevel, NumMaterials() - 1))
     local material = Material(materialLevel)
+    if tech.uid ~= 0700 then 
+        table.insert(texts, {ltext = "[" .. tech.name .. "]", lcolor = ColorRGB(1, 0.5, 1)}) 
+        if tech.uid == 0902 then
+            table.insert(bonuses, {ltext = "Material Level"%_t, rtext = "+???", icon = "data/textures/icons/metal-bar.png"})
+            table.insert(bonuses, {ltext = "Range"%_t, rtext = "+???", icon = "data/textures/icons/rss.png"})
+            table.insert(bonuses, {ltext = "Asteroids"%_t, rtext = "+???", icon = "data/textures/icons/rock.png"})
+            return texts, bonuses
+        end
+    end
 
     table.insert(texts, {ltext = "Material"%_t, rtext = material.name%_t, rcolor = material.color, icon = "data/textures/icons/metal-bar.png", boosted = permanent})
     table.insert(texts, {ltext = "Range"%_t, rtext = string.format("%g", round(range / 100, 2)), icon = "data/textures/icons/rss.png", boosted = permanent})
@@ -186,11 +204,14 @@ function getTooltipLines(seed, rarity, permanent)
 end
 
 function getDescriptionLines(seed, rarity, permanent)
+    local materialLevel, range, amount, tech = getBonuses(seed, rarity, permanent)
     local texts = {}
-
-    table.insert(texts, {ltext = "Displays amount of resources in objects"%_t})
-    table.insert(texts, {ltext = "Highlights nearby mineable objects"%_t})
-
+    if tech.uid == 0700 then
+        table.insert(texts, {ltext = "Displays amount of resources in objects"%_t})
+        table.insert(texts, {ltext = "Highlights nearby mineable objects"%_t})
+        return texts
+    end
+    texts = getLines(tech)
     return texts
 end
 

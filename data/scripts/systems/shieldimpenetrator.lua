@@ -3,20 +3,22 @@ package.path = package.path .. ";data/scripts/lib/?.lua"
 include ("basesystem")
 include ("utility")
 include ("randomext")
-
+include ("enterprise")
 -- optimization so that energy requirement doesn't have to be read every frame
 FixedEnergyRequirement = true
 
 function getBonuses(seed, rarity, permanent)
     math.randomseed(seed)
+    local tech = getEnterprise(seed, rarity, 1)
+    if tech.uid == 0700 then tech.nameId = "" end
 
     local durability = 0.25
-    durability = durability + (rarity.value * 0.03) + (0.03 * math.random())
+    durability = durability + (tech.rarity * 0.03) + (0.03 * math.random())
 
     local rechargeTimeFactor = 4.0
-    rechargeTimeFactor = rechargeTimeFactor - (rarity.value * 0.2) - (0.2 * math.random())
+    rechargeTimeFactor = rechargeTimeFactor - (tech.rarity * 0.2) - (0.2 * math.random())
 
-    return durability, rechargeTimeFactor
+    return durability, rechargeTimeFactor, tech
 end
 
 function onInstalled(seed, rarity, permanent)
@@ -34,9 +36,10 @@ function onUninstalled(seed, rarity, permanent)
 end
 
 function getName(seed, rarity)
+    local durability, rechargeTimeFactor, tech = getBonuses(seed, rarity)
     local random = Random(Seed(seed))
     local serial = makeSerialNumber(random, 2)
-    local gen = toGreekNumber(rarity.value + 2)
+    local gen = toGreekNumber(tech.rarity + 2)
     local name = randomEntry(random, {"Shield Reinforcer"%_t, "Shield Impenetrator"%_t})
 
     return "SR-${serial} ${name} Gen. ${gen} /* SR-FL Shield Impenetrator Gen. Delta */"%_t % {serial = serial, gen = gen, name = name}
@@ -47,48 +50,62 @@ function getBasicName()
 end
 
 function getIcon(seed, rarity)
+    local durability, rechargeTimeFactor, tech = getBonuses(seed, rarity, permanent)
+    if tech.uid == 0700 then
+        return "data/textures/icons/bordered-shield.png"
+    end
     return "data/textures/icons/bordered-shield.png"
 end
 
 function getEnergy(seed, rarity, permanent)
-    local durability, rechargeTimeFactor = getBonuses(seed, rarity)
-    return durability * 1.75 * 1000 * 1000 * 1000
+    local durability, rechargeTimeFactor, tech = getBonuses(seed, rarity)
+    return (durability * 1.75 * 1000 * 1000 * 1000) * tech.energyFactor
 end
 
 function getPrice(seed, rarity)
-    local durability, rechargeTimeFactor = getBonuses(seed, rarity)
+    local durability, rechargeTimeFactor, tech = getBonuses(seed, rarity)
     local price = durability * 1000 * 100
-    return price * 2.5 ^ rarity.value
+    return (price * 2.5 ^ tech.rarity) * tech.coinFactor
 end
 
 function getTooltipLines(seed, rarity, permanent)
 
     local texts = {}
-    local durability, rechargeTimeFactor = getBonuses(seed, rarity)
+    local bonuses = {}
+    local durability, rechargeTimeFactor, tech = getBonuses(seed, rarity)
+    if tech.uid ~= 0700 then 
+        table.insert(texts, {ltext = "[" .. tech.name .. "]", lcolor = ColorRGB(1, 0.5, 1)}) 
+        if tech.uid == 0902 then
+            table.insert(bonuses, {ltext = "Impenetrable Shields"%_t, rtext = "Yes"%_t, icon = "data/textures/icons/shield.png", boosted = permanent})
+            table.insert(bonuses, {ltext = "Shield Durability"%_t, rtext = "+???", icon = "data/textures/icons/health-normal.png", boosted = permanent})
+            table.insert(bonuses, {ltext = "Time Until Recharge"%_t, rtext = "+???", icon = "data/textures/icons/recharge-time.png", boosted = permanent})
+            return texts, bonuses
+        end
+    end
 
-    table.insert(texts, {ltext = "Impenetrable Shields"%_t, rtext = "Yes"%_t, icon = "data/textures/icons/shield.png", boosted = permanent})
+    table.insert(bonuses, {ltext = "Impenetrable Shields"%_t, rtext = "Yes"%_t, icon = "data/textures/icons/shield.png", boosted = permanent})
 
     if durability ~= 0 then
-        table.insert(texts, {ltext = "Shield Durability"%_t, rtext = string.format("%+i%%", round(-(1.0 - durability) * 100)), icon = "data/textures/icons/health-normal.png", boosted = permanent})
+        table.insert(bonuses, {ltext = "Shield Durability"%_t, rtext = string.format("%+i%%", round(-(1.0 - durability) * 100)), icon = "data/textures/icons/health-normal.png", boosted = permanent})
     end
     if rechargeTimeFactor ~= 0 then
-        table.insert(texts, {ltext = "Time Until Recharge"%_t, rtext = string.format("%+i%%", round(rechargeTimeFactor * 100)), icon = "data/textures/icons/recharge-time.png", boosted = permanent})
+        table.insert(bonuses, {ltext = "Time Until Recharge"%_t, rtext = string.format("%+i%%", round(rechargeTimeFactor * 100)), icon = "data/textures/icons/recharge-time.png", boosted = permanent})
     end
 
-    if permanent then
-        return texts, texts
-    else
-        return {}, texts
-    end
+    return texts, bonuses
+
 end
 
 function getDescriptionLines(seed, rarity, permanent)
+    local durability, rechargeTimeFactor, tech = getBonuses(seed, rarity)
     local texts = {}
     table.insert(texts, {ltext = "Permanent Installation:"%_t})
     table.insert(texts, {ltext = "Shields can't be penetrated by shots or torpedoes."%_t})
     table.insert(texts, {ltext = "Durability is diverted to reinforce shield membrane."%_t})
     table.insert(texts, {ltext = "Time until recharge after a hit is increased."%_t})
-
+    if tech.uid ~= 0700 then 
+        texts = getLines(tech)
+    end
     return texts
 end
 

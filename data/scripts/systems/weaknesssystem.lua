@@ -5,7 +5,7 @@ include ("utility")
 local SpawnUtility = include ("spawnutility")
 include ("randomext")
 include ("damagetypeutility")
-
+include ("enterprise")
 
 -- static stats
 local weaknessBonus = {}
@@ -17,6 +17,10 @@ weaknessBonus[5] = {hpBonus = 0.3, dmgFactor = 2.5}     -- Exceptional
 weaknessBonus[6] = {hpBonus = 0.3, dmgFactor = 2.25}    -- Exotic
 weaknessBonus[7] = {hpBonus = 0.3, dmgFactor = 2}       -- Legendary
 weaknessBonus[8] = {hpBonus = 0.3, dmgFactor = 1.75}    -- helper
+
+weaknessBonus[9] = {hpBonus = 0.3, dmgFactor = 2}    -- helper
+weaknessBonus[10] = {hpBonus = 0.3, dmgFactor = 2.25}    -- helper
+weaknessBonus[11] = {hpBonus = 0.3, dmgFactor = 2.5}    -- helper
 
 local weaknessTypes =
 {
@@ -37,8 +41,10 @@ Unique = true
 
 function getBonuses(seed, rarity, permanent)
     math.randomseed(seed)
+    local tech = getEnterprise(seed, rarity, 1)
+    if tech.uid == 0700 then tech.nameId = "" end
 
-    local rarityLevel = rarity.value + 2 -- rarity levels start at -1
+    local rarityLevel = tech.rarity + 2 -- rarity levels start at -1
 
     local randomEntry = math.random(1, 4)
     weaknessType = weaknessTypes[randomEntry]
@@ -55,7 +61,7 @@ function getBonuses(seed, rarity, permanent)
         dmgFactor = round(dmgFactor + math.random() * (nextLevelDmg - dmgFactor), 2)
     end
 
-    return weaknessType, hpBonus, dmgFactor
+    return weaknessType, hpBonus, dmgFactor, tech
 end
 
 function onInstalled(seed, rarity, permanent)
@@ -93,10 +99,10 @@ function onUninstalled(seed, rarity, permanent)
 end
 
 function getName(seed, rarity)
-    local weaknessType, hpBonus, dmgFactor = getBonuses(seed, rarity, true)
+    local weaknessType, hpBonus, dmgFactor, tech = getBonuses(seed, rarity, true)
     local designation = getDamageTypeName(weaknessType)
 
-    return "W-${designation}-Hull Polarizer ${rarity}"%_t % {designation = designation, rarity = tostring((rarity.value + 2) * 1000 + seed % 750)}
+    return "W-${designation}-Hull Polarizer ${rarity}"%_t % {designation = designation, rarity = tostring((tech.rarity + 2) * 1000 + seed % 750)}
 end
 
 function getBasicName()
@@ -104,25 +110,39 @@ function getBasicName()
 end
 
 function getIcon(seed, rarity)
+    local weaknessType, hpBonus, dmgFactor, tech = getBonuses(seed, rarity, true)
+    if tech.uid == 0700 then
+        return "data/textures/icons/metal-scales-plus.png"
+    end
     return "data/textures/icons/metal-scales-plus.png"
 end
 
 function getEnergy(seed, rarity, permanent)
-    local weaknessType, hpBonus, dmgFactor = getBonuses(seed, rarity, true)
-    return ((hpBonus + 1) * 75 + dmgFactor * 2) * 1000 * 537
+    local weaknessType, hpBonus, dmgFactor, tech = getBonuses(seed, rarity, true)
+    return (((hpBonus + 1) * 75 + dmgFactor * 2) * 1000 * 537) * tech.energyFactor
 end
 
 function getPrice(seed, rarity)
-    local weaknessType, hpBonus, dmgFactor = getBonuses(seed, rarity, true)
+    local weaknessType, hpBonus, dmgFactor, tech = getBonuses(seed, rarity, true)
     local price = dmgFactor * 100 * 50 + (hpBonus + 1) * 100 * 25
-    return price * 1.8 ^ rarity.value
+    return (price * 1.8 ^ tech.rarity) * tech.coinFactor
 end
 
 function getTooltipLines(seed, rarity, permanent)
 
     local texts = {}
     local bonuses = {}
-    local weaknessType, hpBonus, dmgFactor = getBonuses(seed, rarity, true)
+    local weaknessType, hpBonus, dmgFactor, tech = getBonuses(seed, rarity, true)
+    if tech.uid ~= 0700 then 
+        table.insert(texts, {ltext = "[" .. tech.name .. "]", lcolor = ColorRGB(1, 0.5, 1)}) 
+        if tech.uid == 0902 then
+            table.insert(bonuses, {ltext = "Hull Durability"%_t, rtext = "+???", icon = "data/textures/icons/health-normal.png", boosted = permanent})
+            table.insert(bonuses, {ltext = ""})
+            table.insert(bonuses, {ltext = "Weakness against"%_t, rtext = string.format("%s", getDamageTypeName(weaknessType)), rcolor = getDamageTypeColor(weaknessType), icon = "data/textures/icons/metal-scale.png"})
+            table.insert(bonuses, {ltext = string.format("%s damage received"%_t, getDamageTypeName(weaknessType)), rtext = "+???", icon = "data/textures/icons/metal-scale.png", rcolor = ColorRGB(1, 0, 0)})
+            return texts, bonuses
+        end
+    end
 
     if permanent then
         table.insert(texts, {ltext = "Hull Durability"%_t, rtext = string.format("%+i%%", round((hpBonus) * 100)), icon = "data/textures/icons/health-normal.png", boosted = permanent})
@@ -140,14 +160,16 @@ function getTooltipLines(seed, rarity, permanent)
 end
 
 function getDescriptionLines(seed, rarity, permanent)
-    local weaknessType, hpBonus, dmgFactor = getBonuses(seed, rarity, true)
+    local weaknessType, hpBonus, dmgFactor, tech = getBonuses(seed, rarity, true)
 
     local texts = {}
 
     table.insert(texts, {ltext = "Polarizes hull to greatly increase durability."%_t})
     table.insert(texts, {ltext = "A side effect causes the hull to take"%_t})
     table.insert(texts, {ltext = string.format("more damage from %s weapons."%_t, getDamageTypeName(weaknessType))})
-
+    if tech.uid ~= 0700 then 
+        texts = getLines(tech)
+    end
     return texts
 end
 
