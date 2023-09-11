@@ -5,9 +5,7 @@ include ("utility")
 include ("randomext")
 
 include ("enterprise")
--- 牵引光束
-
--- optimization so that energy requirement doesn't have to be read every frame
+-- 牵引光束升级
 FixedEnergyRequirement = true
 
 function getLootCollectionRange(seed, rarity, permanent)
@@ -46,10 +44,8 @@ end
 
 function getIcon(seed, rarity)
     local range, tech = getLootCollectionRange(seed, rarity)
-    if tech.uid == 0700 then
-        return "data/textures/icons/tractor.png"
-    end
-    return "data/textures/icons/tractor.png"
+
+    return makeIcon("tractor", tech)
 end
 
 function getEnergy(seed, rarity, permanent)
@@ -58,7 +54,7 @@ function getEnergy(seed, rarity, permanent)
 end
 
 function getPrice(seed, rarity)
-    local range, tech = getLootCollectionRange(seed, rarity)
+    local range, tech = getLootCollectionRange(seed, rarity, true)
     return (500 * range) * tech.coinFactor
 end
 
@@ -70,7 +66,7 @@ function getTooltipLines(seed, rarity, permanent)
     if tech.uid ~= 0700 then 
         table.insert(texts, {ltext = "[" .. tech.name .. "]", lcolor = ColorRGB(1, 0.5, 1)}) 
         if tech.uid == 0902 then
-            table.insert(bonuses, {ltext = "Loot Collection Range"%_t, rtext = "+???", icon = "data/textures/icons/tractor.png"})
+            texts, bonuses = churchTip(texts, bonuses,"Loot Collection Range", "+???", "data/textures/icons/tractor.png", permanent)
             return texts, bonuses
         end
     end
@@ -92,7 +88,7 @@ function getDescriptionLines(seed, rarity, permanent)
             {ltext = "Gotta catch 'em all!"%_t, lcolor = ColorRGB(1, 0.5, 0.5)}
         }
     end
-    local texts = getLines(tech)
+    local texts = getLines(seed, tech)
     return texts
 end
 

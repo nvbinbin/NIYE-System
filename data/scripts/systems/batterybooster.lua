@@ -4,7 +4,8 @@ include ("basesystem")
 include ("utility")
 include ("randomext")
 include ("enterprise")
--- optimization so that energy requirement doesn't have to be read every frame
+
+-- 能量电池
 FixedEnergyRequirement = true
 
 function getBonuses(seed, rarity, permanent)
@@ -17,40 +18,38 @@ function getBonuses(seed, rarity, permanent)
     if tech.uid == 0700 then tech.nameId = "W" end
     ------------------------------------
 
-    local energy = 15 -- base value, in percent
-    -- add flat percentage based on rarity
-    energy = energy + (tech.rarity + 1) * 15 -- add 0% (worst rarity) to +80% (best rarity)
+    local energy = 15 -- 基础值 电池容量
+    local charge = 15 -- 基础值 充能速度
 
-    -- add randomized percentage, span is based on rarity
-    energy = energy + tech.batteryEnergyResult * ((tech.rarity + 1) * 10) -- add random value between 0% (worst rarity) and +60% (best rarity)
-    energy = energy * 0.8
-    energy = energy / 100
-
-    local charge = 15 -- base value, in percent
-    -- add flat percentage based on rarity
-    charge = charge + (tech.rarity + 1) * 4 -- add 0% (worst rarity) to +24% (best rarity)
-
-    -- add randomized percentage, span is based on rarity
-    charge = charge + tech.batteryChargeResult * ((tech.rarity + 1) * 4) -- add random value between 0% (worst rarity) and +24% (best rarity)
-    charge = charge * 0.8
-    charge = charge / 100
+    -- 基础算法 --
+    energy = energy + (tech.rarity + 1) * 15 
+    energy = energy + tech.batteryEnergyResult * ((tech.rarity + 1) * 10) 
+    
+    charge = charge + (tech.rarity + 1) * 4 
+    charge = charge + tech.batteryChargeResult * ((tech.rarity + 1) * 4)
+    
+    
+    energy = energy * 0.8 / 100
+    charge = charge * 0.8 / 100
 
     if permanent then
         charge = charge * 1.5
         energy = energy * 1.5
     end
 
-    -- 异域以上必定双享
-    -- when rarity.value >= 4, always both
-    -- when rarity.value <= 0 always only one
-    local probability = math.max(0, tech.rarity * 0.25)
+    -- 每级25%额外概率 异域以上必定双享
+    local probability = math.max(0, tech.rarity * 0.25) -- 4 级就是 1 了
     if math.random() > probability then
-        -- only 1 will be used
+        -- 随机处死一个
         if math.random() < 0.5 then
             energy = 0
         else
             charge = 0
         end
+    end
+    if not permanent and tech.onlyPerm then
+        charge = 0
+        energy = 0
     end
 
     return energy, charge, tech
@@ -70,23 +69,39 @@ end
 function getName(seed, rarity)
     local energy, charge, tech = getBonuses(seed, rarity, true)
     local name = ""
-    if charge > 0 then
+    local ty
+    local cha = false
 
-        if energy > 0 then
-            name = getGrade(tech.batteryEnergyResult, tech, 100) .." ".. "Fast-Charge Battery Booster"%_t
+    if charge > 0 then -- 是否有充能速度
+
+        if energy > 0 then -- 是否有电池容量
+            -- 充能和容量都有
+            if tech.batteryEnergyResult > tech.batteryChargeResult then
+                ty = tech.batteryEnergyResult 
+            else 
+                ty = tech.batteryChargeResult 
+                cha = true
+            end
+            name = getGrade(ty, tech, 100) .."-".. "Fast-Charge Battery Booster"%_t -- 快速充能电池强化
         else
-            name = getGrade(tech.batteryChargeResult, tech, 100) .." ".. "Fast-Charge Battery Upgrade"%_t
+            -- 只有充能
+            ty = tech.batteryChargeResult
+            cha = true
+            name = getGrade(ty, tech, 100) .."-".. "Fast-Charge Battery Upgrade"%_t -- 快速充能电池升级：
         end
     else
-        name = getGrade(tech.batteryChargeResult, tech, 100) .." ".. "Battery Booster"%_t
+        -- 只有容量
+        ty = tech.batteryEnergyResult
+        name = getGrade(ty, tech, 100) .."-".. "Battery Booster"%_t -- 电池强化
     end
 
-    local serial = makeSerialNumber(seed, 1, "W", "", "4A")
-    if tech.uid ~= 0700 then serial = tech.nameId end
+    local serial = makeSerialNumber(seed, 1, tech.nameId, "", "4A")
     serial = serial .. makeSerialNumber(seed, 1, "", "", "T7")
-    serial = serial .. makeSerialNumber(seed, 1, "", "-T", "T7")
-    
-
+    if cha then
+        serial = serial .. makeSerialNumber(seed, 1, "", "-C", "T7")
+    else
+        serial = serial .. makeSerialNumber(seed, 1, "", "-E", "Y8")
+    end
 
     return "${serial} ${name} R-${rarity} /* ex: W477-T Fast-Charge Battery Upgrade R-III */"%_t % {serial = serial, name = name, rarity = toRomanLiterals(rarity.value+2)}
 end
@@ -98,10 +113,7 @@ end
 function getIcon(seed, rarity)
     local energy, charge, tech = getBonuses(seed, rarity, true)
 
-    if tech.uid == 0700 then
-        return "data/textures/icons/battery-pack-alt.png"
-    end
-    return "data/textures/icons/battery-pack-alt.png"
+    return makeIcon("battery-pack-alt", tech)
 end
 
 function getEnergy(seed, rarity, permanent)
@@ -109,9 +121,9 @@ function getEnergy(seed, rarity, permanent)
 end
 
 function getPrice(seed, rarity)
-    local energy, charge, tech = getBonuses(seed, rarity)
+    local energy, charge, tech = getBonuses(seed, rarity, true)
     local price = energy * 100 * 250 + charge * 100 * 150;
-    return (price * 3.0 ^ rarity.value) * tech.coinFactor
+    return (price * 3.0 ^ tech.rarity) * tech.coinFactor
 end
 
 function getTooltipLines(seed, rarity, permanent)
@@ -123,8 +135,8 @@ function getTooltipLines(seed, rarity, permanent)
     if tech.uid ~= 0700 then 
         table.insert(texts, {ltext = "[" .. tech.name .. "]", lcolor = ColorRGB(1, 0.5, 1)}) 
         if tech.uid == 0902 then
-            table.insert(bonuses, {ltext = "Energy Capacity"%_t, rtext = "+???", icon = "data/textures/icons/battery-pack-alt.png", boosted = permanent})
-            table.insert(bonuses, {ltext = "Recharge Rate"%_t, rtext = "+???", icon = "data/textures/icons/power-unit.png", boosted = permanent})
+            texts, bonuses = churchTip(texts, bonuses,"Energy Capacity", "+???", "data/textures/icons/battery-pack-alt.png", permanent)
+            texts, bonuses = churchTip(texts, bonuses,"Recharge Rate", "+???", "data/textures/icons/power-unit.png", permanent)
             return texts, bonuses
         end
     end
@@ -147,7 +159,7 @@ function getDescriptionLines(seed, rarity, permanent)
     if tech.uid == 0700 then
         return {}
     end
-    local texts = getLines(tech)
+    local texts = getLines(seed, tech)
     return texts
 end
 

@@ -6,14 +6,14 @@ include ("randomext")
 include ("utility")
 include ("enterprise")
 
--- optimization so that energy requirement doesn't have to be read every frame
+-- 民用栏位
 FixedEnergyRequirement = true
 
 
 function getNumTurrets(seed, rarity, permanent)
     math.randomseed(seed)
 
-    local tech = getEnterprise(seed, rarity, 1)
+    local tech = getEnterprise(seed, rarity, 2)
     if tech.uid == 0700 then tech.nameId = "C" end
 
     local baseTurrets = math.max(1, tech.rarity + 1)
@@ -22,12 +22,15 @@ function getNumTurrets(seed, rarity, permanent)
     local pdcs = 0
     local autos = 0
 
-
     if permanent then
         turrets = baseTurrets + math.max(1, (tech.rarity + 1) / 2)
         pdcs = baseTurrets / 2
         autos = math.max(0, getInt(math.max(0, tech.rarity - 1), turrets - 1))
-        
+    end
+    if not permanent and tech.onlyPerm then
+        turrets = 0
+        pdcs = 0
+        autos = 0
     end
 
     return turrets, pdcs, autos, tech
@@ -47,14 +50,12 @@ end
 function getName(seed, rarity)
     local turrets, pdcs, autos, tech = getNumTurrets(seed, rarity, true)
     local ids = tech.nameId
+    local num = turrets + pdcs + autos
+    local name = "民用炮塔火控跃增系统"
+    if tech.uid ~= 0700 then name = "民用火控处理系统" end
+    if tech.uid == 0902 then num = "000" end
 
-    if tech.uid == 0700 then
-        return "Civil Turret Control Subsystem ${ids}-TCS-${num}"%_t % {num = turrets + pdcs + autos, ids = ids}
-    end
-    if tech.uid == 0902 then
-        return "民用炮塔火控处理系统 ${ids}-TCS-${num}"%_t % {num = "???", ids = ids}
-    end
-    return "民用炮塔火控处理系统 ${ids}-TCS-${num}"%_t % {num = turrets + pdcs + autos, ids = ids}
+    return "${name} ${ids}-TCS-${num}"%_t % {name = name, num = num, ids = ids}
 end
 
 function getBasicName()
@@ -62,24 +63,22 @@ function getBasicName()
 end
 
 function getIcon(seed, rarity)
-    local turrets, pdcs, autos, tech = getNumTurrets(seed, rarity, permanent)
-    if tech.uid == 0700 then
-        return "data/textures/icons/turret.png"
-    end
-    return "data/textures/icons/NYturret.png"
+    local _, _, _, tech = getNumTurrets(seed, rarity, permanent)
+
+    return makeIcon("civturret", tech)
 end
 
 function getEnergy(seed, rarity, permanent)
     local turrets, pdcs, autos, tech = getNumTurrets(seed, rarity, permanent)
-    return (turrets * 200 * 1000 * 1000 / (1.2 ^ rarity.value)) * tech.energyFactor
+    return (turrets * 200 * 1000 * 1000 / (1.2 ^ tech.rarity)) * tech.energyFactor
 end
 
 function getPrice(seed, rarity)
-    local turrets, _, _, tech= getNumTurrets(seed, rarity, false)
-    local _, _, autos = getNumTurrets(seed, rarity, true)
+    local turrets, _, _, _= getNumTurrets(seed, rarity, false)
+    local _, _, autos, tech = getNumTurrets(seed, rarity, true)
 
     local price = 5000 * (turrets + autos * 0.5)
-    return (price * 2.5 ^ rarity.value) * tech.coinFactor
+    return (price * 2.5 ^ tech.rarity) * tech.coinFactor
 end
 
 function getTooltipLines(seed, rarity, permanent)
@@ -91,29 +90,26 @@ function getTooltipLines(seed, rarity, permanent)
     if tech.uid ~= 0700 then 
         table.insert(texts, {ltext = "[" .. tech.name .. "]", lcolor = ColorRGB(1, 0.5, 1)}) 
         if tech.uid == 0902 then
-            table.insert(bonuses, {ltext = "Unarmed Turret Slots"%_t, rtext = "+???", icon = "data/textures/icons/turret.png"})
-            table.insert(bonuses, {ltext = "Defensive Turret Slots"%_t, rtext = "+???", icon = "data/textures/icons/turret.png"})
-            table.insert(bonuses, {ltext = "Auto-Turret Slots"%_t, rtext = "+???", icon = "data/textures/icons/turret.png"})
-
+            texts, bonuses = churchTip(texts, bonuses,"Unarmed Turret Slots", "+???", "data/textures/icons/turret.png", permanent)
+            texts, bonuses = churchTip(texts, bonuses,"Defensive Turret Slots", "+???", "data/textures/icons/turret.png", permanent)
+            texts, bonuses = churchTip(texts, bonuses,"Auto-Turret Slots", "+???", "data/textures/icons/turret.png", permanent)
             return texts, bonuses
         end
     end
 
     table.insert(texts, {ltext = "Unarmed Turret Slots"%_t, rtext = "+" .. turrets, icon = "data/textures/icons/turret.png", boosted = permanent})
-    if permanent then
-        if pdcs > 0 then
+    table.insert(bonuses, {ltext = "Unarmed Turret Slots"%_t, rtext = "+" .. maxTurrets - turrets, icon = "data/textures/icons/turret.png"})
+
+    if pdcs > 0 then
+        if permanent then
             table.insert(texts, {ltext = "Defensive Turret Slots"%_t, rtext = "+" .. pdcs, icon = "data/textures/icons/turret.png", boosted = permanent})
         end
-        if autos > 0 then
-            table.insert(texts, {ltext = "Auto-Turret Slots"%_t, rtext = "+" .. autos, icon = "data/textures/icons/turret.png", boosted = permanent})
-        end
-    end
-
-    table.insert(bonuses, {ltext = "Unarmed Turret Slots"%_t, rtext = "+" .. maxTurrets - turrets, icon = "data/textures/icons/turret.png"})
-    if pdcs > 0 then
         table.insert(bonuses, {ltext = "Defensive Turret Slots"%_t, rtext = "+" .. pdcs, icon = "data/textures/icons/turret.png"})
     end
     if autos > 0 then
+        if permanent then
+            table.insert(texts, {ltext = "Auto-Turret Slots"%_t, rtext = "+" .. autos, icon = "data/textures/icons/turret.png", boosted = permanent})
+        end
         table.insert(bonuses, {ltext = "Auto-Turret Slots"%_t, rtext = "+" .. autos, icon = "data/textures/icons/turret.png"})
     end
 
@@ -129,9 +125,9 @@ function getDescriptionLines(seed, rarity, permanent)
             {ltext = "Adds slots for unarmed turrets"%_t, rtext = "", icon = ""}
         }
     end
-    local texts = getLines(tech)
-    return texts
 
+    local texts = getLines(seed, tech)
+    return texts
 end
 
 function getComparableValues(seed, rarity)

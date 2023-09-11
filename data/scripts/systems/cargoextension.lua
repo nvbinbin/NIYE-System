@@ -5,6 +5,7 @@ include ("utility")
 include ("randomext")
 include ("enterprise")
 
+-- 货箱
 -- 优化：让能量需求不需要每帧读取
 FixedEnergyRequirement = true
 
@@ -37,10 +38,7 @@ function getBonuses(seed, rarity, permanent)
         perc = 0
         flat = 0
     end
-    if permanent then 
-        perc = perc * 1.5
-        flat = flat * 1.5
-    end
+    
 
     -- 异域级别以上的卡拥有 5% 的概率成为调度系统 / 厂牌的卡片必定为调度系统
     local unite
@@ -50,11 +48,11 @@ function getBonuses(seed, rarity, permanent)
         unite = true 
     end 
 
-    if math.random() < 0.5 then
+    if math.random() < 0.5 then -- 折损固定值
         if not unite then flat = 0 tech.cargoPerc = true
         else tech.cargoPerc = true multiFlat = 0.4 end -- 1：保留百分数
          
-    else 
+    else  -- 折损百分比
         if not unite then perc = 0 
         else multiPerc = 0.4 end -- 2：保留绝对数
         
@@ -62,9 +60,14 @@ function getBonuses(seed, rarity, permanent)
 
     ---数据整合 / 平衡补正 ---
     perc = (perc * multiPerc) / 100
-    flat = round(flat * multiFlat)
+    flat = flat * multiFlat
 
-    return perc, flat, tech
+    if permanent then 
+        perc = perc * 1.5
+        flat = flat * 1.5
+    end
+
+    return perc, round(flat), tech
 end
 
 function onInstalled(seed, rarity, permanent)
@@ -80,16 +83,18 @@ end
 function getName(seed, rarity)
     local perc, flat, tech = getBonuses(seed, rarity, true)
     local name = "科技货舱拓展"
-    if perc ~= 0 and flat ~= 0 then name =  "货舱调度系统" end
+    if perc > 0 and flat > 0 then name =  "货舱调度系统" end
+    local ids = tech.nameId
     local dist
 
-    if tech.cargoPerc then name = name .. "SC" dist = tech.cargoPercResult 
-    else name = name .. "TC" dist = tech.cargoFlatResult end
-
+    if tech.cargoPerc then 
+        ids = ids .. "-SC" dist = tech.cargoPercResult 
+    else 
+        ids = ids .. "-TC" dist = tech.cargoFlatResult 
+    end
     local grade = getGrade(dist, tech, 100)
 
-    
-    return "${id}-${grade}-${name} MK ${mark} "%_t % {id = tech.nameId, name = name, grade = grade, mark = toRomanLiterals(tech.rarity + 2)}
+    return "${id}-${grade}-${name} MK ${mark} "%_t % {id = ids, name = name, grade = grade, mark = toRomanLiterals(tech.rarity + 2)}
 end
 
 function getBasicName()
@@ -97,11 +102,10 @@ function getBasicName()
 end
 
 function getIcon(seed, rarity)
-    local perc, flat, tech = getBonuses(seed, rarity, permanent)
-    if perc ~= 0 and flat ~= 0 then
-        return "data/textures/icons/NYcargo.png"
-    end
-    return "data/textures/icons/cargo-hold.png"
+    local perc, flat, tech = getBonuses(seed, rarity, true)
+
+    if perc > 0 and flat > 0 then return makeIcon("nycargo-hold", tech) end
+    return makeIcon("cargo-hold", tech)
 end
 
 function getEnergy(seed, rarity, permanent)
@@ -110,9 +114,9 @@ function getEnergy(seed, rarity, permanent)
 end
 
 function getPrice(seed, rarity)
-    local perc, flat, tech = getBonuses(seed, rarity)
+    local perc, flat, tech = getBonuses(seed, rarity, true)
     local price = perc * 100 * 450 + flat * 75
-    return (price * 2.5 ^ rarity.value) * tech.coinFactor
+    return (price * 2.5 ^ tech.rarity) * tech.coinFactor
 end
 
 function getTooltipLines(seed, rarity, permanent)
@@ -121,25 +125,26 @@ function getTooltipLines(seed, rarity, permanent)
     local bonuses = {}
     local perc, flat, tech = getBonuses(seed, rarity, permanent)
     local basePerc, baseFlat, _ = getBonuses(seed, rarity, false)
+    local maxPerc, maxFlat, _ = getBonuses(seed, rarity, true)
 
 
     if tech.uid ~= 0700 then 
         table.insert(texts, {ltext = "[" .. tech.name .. "]", lcolor = ColorRGB(1, 0.5, 1)}) 
         if tech.uid == 0902 then
-            table.insert(bonuses, {ltext = "Cargo Hold (relative)"%_t, rtext = "???"%_t, icon = "data/textures/icons/crate.png", boosted = permanent})
-            table.insert(bonuses, {ltext = "Cargo Hold"%_t, rtext = "???"%_t, icon = "data/textures/icons/crate.png", boosted = permanent})
+            texts, bonuses = churchTip(texts, bonuses,"Cargo Hold (relative)", "+???", "data/textures/icons/crate.png", permanent)
+            texts, bonuses = churchTip(texts, bonuses,"Cargo Hold", "+???", "data/textures/icons/crate.png", permanent)
             return texts, bonuses
         end
     end
 
     if perc ~= 0 then
         table.insert(texts, {ltext = "Cargo Hold (relative)"%_t, rtext = string.format("%+i%%", round(perc * 100)), icon = "data/textures/icons/crate.png", boosted = permanent})
-        table.insert(bonuses, {ltext = "Cargo Hold (relative)"%_t, rtext = string.format("%+i%%", round(basePerc * 100)), icon = "data/textures/icons/crate.png", boosted = permanent})
+        table.insert(bonuses, {ltext = "Cargo Hold (relative)"%_t, rtext = string.format("%+i%%", round((maxPerc - basePerc) * 100)), icon = "data/textures/icons/crate.png", boosted = permanent})
     end
 
     if flat ~= 0 then
         table.insert(texts, {ltext = "Cargo Hold"%_t, rtext = string.format("%+i", round(flat)), icon = "data/textures/icons/crate.png", boosted = permanent})
-        table.insert(bonuses, {ltext = "Cargo Hold"%_t, rtext = string.format("%+i", round(baseFlat )), icon = "data/textures/icons/crate.png", boosted = permanent})
+        table.insert(bonuses, {ltext = "Cargo Hold"%_t, rtext = string.format("%+i", round(maxFlat - baseFlat )), icon = "data/textures/icons/crate.png", boosted = permanent})
     end
 
     return texts, bonuses
@@ -150,25 +155,25 @@ function getDescriptionLines(seed, rarity, permanent)
     if tech.uid == 0700 then
         return{{ltext = "It's bigger on the inside!"%_t, lcolor = ColorRGB(1, 0.5, 0.5)}}
     end
-    local texts = getLines(tech)
+    local texts = getLines(seed, tech)
     return texts
 end
 
 
 function getComparableValues(seed, rarity)
     local perc, flat, tech = getBonuses(seed, rarity, false)
-    local basePerc, baseFlat, _ = getBonuses(seed, rarity, false)
+    local basePerc, baseFlat, _ = getBonuses(seed, rarity, true)
 
     local base = {}
     local bonus = {}
     if perc ~= 0 then
         table.insert(base, {name = "Cargo Hold (relative)"%_t, key = "cargo_hold_relative", value = round(perc * 100), comp = UpgradeComparison.MoreIsBetter})
-        table.insert(bonus, {name = "Cargo Hold (relative)"%_t, key = "cargo_hold_relative", value = round(basePerc * tech.cargoMulti * 100), comp = UpgradeComparison.MoreIsBetter})
+        table.insert(bonus, {name = "Cargo Hold (relative)"%_t, key = "cargo_hold_relative", value = round((basePerc - perc) * 100), comp = UpgradeComparison.MoreIsBetter})
     end
 
     if flat ~= 0 then
         table.insert(base, {name = "Cargo Hold"%_t, key = "cargo_hold", value = round(flat), comp = UpgradeComparison.MoreIsBetter})
-        table.insert(bonus, {name = "Cargo Hold"%_t, key = "cargo_hold", value = round(baseFlat * tech.cargoMulti), comp = UpgradeComparison.MoreIsBetter})
+        table.insert(bonus, {name = "Cargo Hold"%_t, key = "cargo_hold", value = round(baseFlat - flat), comp = UpgradeComparison.MoreIsBetter})
     end
 
     return base, bonus

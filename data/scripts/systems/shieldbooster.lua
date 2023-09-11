@@ -14,7 +14,7 @@ rechargeDelay = 300
 rechargeTime = 5
 rechargeAmount = 0.35
 
--- optimization so that energy requirement doesn't have to be read every frame
+-- 复活强化护盾
 FixedEnergyRequirement = true
 
 function getUpdateInterval()
@@ -48,6 +48,9 @@ function getBonuses(seed, rarity, permanent)
     math.randomseed(seed)
     local tech = getEnterprise(seed, rarity, 1)
     if tech.uid == 0700 then tech.nameId = "" end
+    -----  我是王者荣耀3000小时玩家  -----
+    tech.rechargeShieldResult = math.random(tech.minRandom, tech.maxRandom) / 100
+    ------------------------------------
 
     local durability = 5000 -- add base 5.000 hp to shield
     durability = durability + (tech.rarity + 1) * 10000 -- add 0 hp (worst rarity) to 65.000 hp (best rarity) to shield
@@ -58,13 +61,11 @@ function getBonuses(seed, rarity, permanent)
     recharge = recharge + tech.rarity * 2 -- add -2% (worst rarity) to +10% (best rarity)
 
     -- add randomized percentage, span is based on rarity
-    recharge = recharge + math.random() * (tech.rarity * 2) -- add random value between -2% (worst rarity) and +10% (best rarity)
+    recharge = recharge + tech.rechargeShieldResult * (tech.rarity * 2) -- add random value between -2% (worst rarity) and +10% (best rarity)
     recharge = recharge * 0.8
     recharge = recharge / 100
 
     -- probability for both of them being used
-    -- when rarity.value >= 4, always both
-    -- when rarity.value <= 0 always only one
     local probability = math.max(0, tech.rarity * 0.25)
     if math.random() > probability then
         -- only 1 will be used
@@ -85,6 +86,10 @@ function getBonuses(seed, rarity, permanent)
             emergencyRecharge = 1
         end
     end
+    if not permanent and tech.onlyPerm then
+        durability = 0
+        recharge = 0
+    end
 
     return durability, recharge, emergencyRecharge, tech
 end
@@ -100,6 +105,7 @@ function onInstalled(seed, rarity, permanent)
     else
         -- delete this function so it won't be called by the game
         -- -> saves performance
+        -- 删除函数以节省性能开销
         updateServer = nil
     end
 
@@ -115,7 +121,7 @@ function getName(seed, rarity)
     local random = Random(Seed(seed))
     local name = randomEntry(random, {"Shield Booster"%_t, "Shielder"%_t, "Protector"%_t})
     local serial = makeSerialNumber(random, 2)
-    local rarityStr = tostring((tech.rarity + 2) * 1000)
+    local rarityStr = tostring((tech.rarity + 2) * 1000) .. getGrade(tech.rechargeShieldResult, tech, 100)
     local vars = {name = name, serial = serial, rarity = rarityStr}
     if tech.uid ~= 0700 then
         serial = tech.nameId
@@ -134,19 +140,17 @@ end
 
 function getIcon(seed, rarity)
     local durability, recharge, emergencyRecharge, tech = getBonuses(seed, rarity)
-    if tech.uid == 0700 then
-        return "data/textures/icons/shield.png"
-    end
-    return "data/textures/icons/shield.png"
+
+    return makeIcon("fixshield", tech)
 end
 
 function getEnergy(seed, rarity, permanent)
-    local durability, recharge, emergencyRecharge, tech = getBonuses(seed, rarity)
+    local durability, recharge, emergencyRecharge, tech = getBonuses(seed, rarity, true)
     return (((durability / 9000) + recharge * 2) * 1000 * 1000 * 1000) * tech.energyFactor
 end
 
 function getPrice(seed, rarity)
-    local durability, recharge, emergencyRecharge, tech = getBonuses(seed, rarity)
+    local durability, recharge, emergencyRecharge, tech = getBonuses(seed, rarity, true)
     local price = durability / 5 + recharge * 100 * 250 + emergencyRecharge * 15000
     return (price * 2.5 ^ tech.rarity) * tech.coinFactor
 end
@@ -161,10 +165,10 @@ function getTooltipLines(seed, rarity, permanent)
     if tech.uid ~= 0700 then 
         table.insert(texts, {ltext = "[" .. tech.name .. "]", lcolor = ColorRGB(1, 0.5, 1)}) 
         if tech.uid == 0902 then
-            table.insert(bonuses, {ltext = "Shield Durability"%_t, rtext = "+???", icon = "data/textures/icons/health-normal.png"})
-            table.insert(bonuses, {ltext = "Shield Recharge Rate"%_t, rtext = "+???", icon = "data/textures/icons/shield-charge.png"})
-            table.insert(bonuses, {ltext = "Emergency Recharge"%_t, rtext = "+???", icon = "data/textures/icons/shield-charge.png", boosted = permanent})
-            table.insert(bonuses, {ltext = "Recharge Upon Depletion"%_t, rtext = "+???", icon = "data/textures/icons/shield-charge.png", })
+            texts, bonuses = churchTip(texts, bonuses,"Shield Durability", "+???", "data/textures/icons/health-normal.png", permanent)
+            texts, bonuses = churchTip(texts, bonuses,"Shield Recharge Rate", "+???", "data/textures/icons/shield-charge.png", permanent)
+            texts, bonuses = churchTip(texts, bonuses,"Emergency Recharge", "+???", "data/textures/icons/shield-charge.png", permanent)
+            texts, bonuses = churchTip(texts, bonuses,"Recharge Upon Depletion", "+???", "data/textures/icons/shield-charge.png", permanent)
             return texts, bonuses
         end
     end
@@ -200,7 +204,7 @@ function getDescriptionLines(seed, rarity, permanent)
         table.insert(texts, {ltext = plural_t("This effect can only occur once every minute.", "This effect can only occur once every ${i} minutes.", round(rechargeDelay / 60))})
     end
     if tech.uid ~= 0700 then 
-        texts = getLines(tech)
+        texts = getLines(seed, tech)
     end
     return texts
 end

@@ -111,10 +111,8 @@ end
 
 function getIcon(seed, rarity)
     local weaknessType, hpBonus, dmgFactor, tech = getBonuses(seed, rarity, true)
-    if tech.uid == 0700 then
-        return "data/textures/icons/metal-scales-plus.png"
-    end
-    return "data/textures/icons/metal-scales-plus.png"
+
+    return makeIcon("metal-scales-plus", tech)
 end
 
 function getEnergy(seed, rarity, permanent)
@@ -136,11 +134,7 @@ function getTooltipLines(seed, rarity, permanent)
     if tech.uid ~= 0700 then 
         table.insert(texts, {ltext = "[" .. tech.name .. "]", lcolor = ColorRGB(1, 0.5, 1)}) 
         if tech.uid == 0902 then
-            table.insert(bonuses, {ltext = "Hull Durability"%_t, rtext = "+???", icon = "data/textures/icons/health-normal.png", boosted = permanent})
-            table.insert(bonuses, {ltext = ""})
-            table.insert(bonuses, {ltext = "Weakness against"%_t, rtext = string.format("%s", getDamageTypeName(weaknessType)), rcolor = getDamageTypeColor(weaknessType), icon = "data/textures/icons/metal-scale.png"})
-            table.insert(bonuses, {ltext = string.format("%s damage received"%_t, getDamageTypeName(weaknessType)), rtext = "+???", icon = "data/textures/icons/metal-scale.png", rcolor = ColorRGB(1, 0, 0)})
-            return texts, bonuses
+            table.insert(texts, {ltext = "[此系统无法加密]", lcolor = ColorRGB(1, 0.5, 1)}) 
         end
     end
 
@@ -168,7 +162,7 @@ function getDescriptionLines(seed, rarity, permanent)
     table.insert(texts, {ltext = "A side effect causes the hull to take"%_t})
     table.insert(texts, {ltext = string.format("more damage from %s weapons."%_t, getDamageTypeName(weaknessType))})
     if tech.uid ~= 0700 then 
-        texts = getLines(tech)
+        texts = getLines(seed, tech)
     end
     return texts
 end

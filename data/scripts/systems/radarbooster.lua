@@ -34,6 +34,10 @@ function getBonuses(seed, rarity, permanent)
         radar = radar * 1.5
         hiddenRadar = hiddenRadar * 2
     end
+    if not permanent and tech.onlyPerm then
+        radar = 0
+        hiddenRadar = 0
+    end
 
     return round(radar), round(hiddenRadar), tech
 end
@@ -82,10 +86,8 @@ end
 
 function getIcon(seed, rarity)
     local radar, hiddenRadar, tech = getBonuses(seed, rarity, true)
-    if tech.uid == 0700 then
-        return "data/textures/icons/radar-sweep.png"
-    end
-    return "data/textures/icons/radar-sweep.png"
+
+    return makeIcon("radar-sweep", tech)
 end
 
 function getEnergy(seed, rarity, permanent)
@@ -94,7 +96,7 @@ function getEnergy(seed, rarity, permanent)
 end
 
 function getPrice(seed, rarity)
-    local radar, hiddenRadar, tech = getBonuses(seed, rarity)
+    local radar, hiddenRadar, tech = getBonuses(seed, rarity, true)
     local price = radar * 3000 + hiddenRadar * 5000
     return (price * 2.5 ^ tech.rarity) * tech.coinFactor
 end
@@ -108,8 +110,8 @@ function getTooltipLines(seed, rarity, permanent)
     if tech.uid ~= 0700 then 
         table.insert(texts, {ltext = "[" .. tech.name .. "]", lcolor = ColorRGB(1, 0.5, 1)}) 
         if tech.uid == 0902 then
-            table.insert(bonuses, {ltext = "Radar Range"%_t, rtext = "+???", icon = "data/textures/icons/radar-sweep.png"})
-            table.insert(bonuses, {ltext = "Deep Scan Range"%_t, rtext = "+???", icon = "data/textures/icons/radar-sweep.png"})
+            texts, bonuses = churchTip(texts, bonuses,"Radar Range", "+???", "data/textures/icons/radar-sweep.png", permanent)
+            texts, bonuses = churchTip(texts, bonuses,"Deep Scan Range", "+???", "data/textures/icons/radar-sweep.png", permanent)
             return texts, bonuses
         end
     end
@@ -131,13 +133,13 @@ function getDescriptionLines(seed, rarity, permanent)
     local texts = {}
     local radar, hiddenRadar, tech = getBonuses(seed, rarity)
 
+    texts = getLines(seed, tech)
+
     if hiddenRadar ~= 0 then
         table.insert(texts, {ltext = "Shows sectors with mass /* continues with 'as yellow blips on the map' */"%_t})
         table.insert(texts, {ltext = "as yellow blips on the map /* continued from 'Shows sectors with mass '*/"%_t})
     end
-    if tech.uid ~= 0700 then 
-        texts = getLines(tech)
-    end
+    
     return texts
 end
 

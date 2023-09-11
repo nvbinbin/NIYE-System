@@ -4,7 +4,7 @@ include ("basesystem")
 include ("utility")
 include ("randomext")
 include ("enterprise")
--- optimization so that energy requirement doesn't have to be read every frame
+-- 内部防御
 FixedEnergyRequirement = true
 
 function getNumDefenseWeapons(seed, rarity, permanent)
@@ -12,15 +12,17 @@ function getNumDefenseWeapons(seed, rarity, permanent)
     local tech = getEnterprise(seed, rarity, 1)
     if tech.uid == 0700 then tech.nameId = "IDWS" end
 
+    def = 0
+
     if permanent then
         if rarity.value <= 2 then
-            return (tech.rarity + 2) * 5 + getInt(0, 3), tech
+            def = (tech.rarity + 2) * 5 + getInt(0, 3)
         else
-            return tech.rarity * 10 + getInt(0, 8), tech
+            def = tech.rarity * 10 + getInt(0, 8)
         end
     end
 
-    return 0, tech
+    return def, tech
 end
 
 function onInstalled(seed, rarity, permanent)
@@ -35,30 +37,31 @@ end
 
 function getName(seed, rarity)
     local num, tech = getNumDefenseWeapons(seed, rarity, true)
-    return "内部防御武器系统 ${id}-${num}"%_t % {id = tech.nameId, num = getNumDefenseWeapons(seed, rarity, true)}
+    local n = getNumDefenseWeapons(seed, rarity, true)
+    if tech.uid == 0902 then n = "000" end
+
+    return "${id}-舰内防御武器系统 -${num}"%_t % {id = tech.nameId, num = n}
 end
 
 function getBasicName()
-    return "内部防御武器系统 /* generic name for 'Internal Defense Weapons System IDWS-${num}' */"%_t
+    return "舰内防御武器系统 /* generic name for 'Internal Defense Weapons System IDWS-${num}' */"%_t
 end
 
 function getIcon(seed, rarity)
     local num, tech = getNumDefenseWeapons(seed, rarity, true)
-    if tech.uid == 0700 then
-        return "data/textures/icons/shotgun.png"
-    end
-    return "data/textures/icons/shotgun.png"
+
+    return makeIcon("shotgun", tech)
 end
 
 function getEnergy(seed, rarity, permanent)
-    local num, tech = getNumDefenseWeapons(seed, rarity, true)
-    return (num * 75 * 1000 * 1000 / (1.2 ^ rarity.value)) * tech.energyFactor
+    local num, tech = getNumDefenseWeapons(seed, rarity, permanent)
+    return (num * 75 * 1000 * 1000 / (1.2 ^ tech.rarity)) * tech.energyFactor
 end
 
 function getPrice(seed, rarity)
     local num, tech = getNumDefenseWeapons(seed, rarity, true)
     local price = 500 * num;
-    return (price * 2 ^ rarity.value) * tech.coinFactor
+    return (price * 2 ^ tech.rarity) * tech.coinFactor
 end
 
 function getTooltipLines(seed, rarity, permanent)
@@ -68,10 +71,11 @@ function getTooltipLines(seed, rarity, permanent)
     if tech.uid ~= 0700 then 
         table.insert(texts, {ltext = "[" .. tech.name .. "]", lcolor = ColorRGB(1, 0.5, 1)}) 
         if tech.uid == 0902 then
-            table.insert(bonuses, {ltext = "Internal Defense Weapons"%_t, rtext = "+???", boosted = permanent, icon = "data/textures/icons/shotgun.png", boosted = permanent})
+            texts, bonuses = churchTip(texts, bonuses,"Internal Defense Weapons", "+???", "data/textures/icons/shotgun.png", permanent)
             return texts, bonuses
         end
     end
+
     table.insert(bonuses, {ltext = "Internal Defense Weapons"%_t, rtext = "+" .. num, boosted = permanent, icon = "data/textures/icons/shotgun.png", boosted = permanent})
 
     return texts , bonuses
@@ -87,7 +91,7 @@ function getDescriptionLines(seed, rarity, permanent)
         }
     end
 
-    local texts = getLines(tech)
+    local texts = getLines(seed, tech)
     return texts
     
 end

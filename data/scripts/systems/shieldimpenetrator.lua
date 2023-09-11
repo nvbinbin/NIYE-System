@@ -4,19 +4,20 @@ include ("basesystem")
 include ("utility")
 include ("randomext")
 include ("enterprise")
--- optimization so that energy requirement doesn't have to be read every frame
+-- 护盾加固发生器
 FixedEnergyRequirement = true
 
 function getBonuses(seed, rarity, permanent)
     math.randomseed(seed)
     local tech = getEnterprise(seed, rarity, 1)
-    if tech.uid == 0700 then tech.nameId = "" end
+    if tech.uid == 0700 then tech.nameId = "SR" end
 
     local durability = 0.25
     durability = durability + (tech.rarity * 0.03) + (0.03 * math.random())
 
     local rechargeTimeFactor = 4.0
     rechargeTimeFactor = rechargeTimeFactor - (tech.rarity * 0.2) - (0.2 * math.random())
+
 
     return durability, rechargeTimeFactor, tech
 end
@@ -42,7 +43,7 @@ function getName(seed, rarity)
     local gen = toGreekNumber(tech.rarity + 2)
     local name = randomEntry(random, {"Shield Reinforcer"%_t, "Shield Impenetrator"%_t})
 
-    return "SR-${serial} ${name} Gen. ${gen} /* SR-FL Shield Impenetrator Gen. Delta */"%_t % {serial = serial, gen = gen, name = name}
+    return "${ids}-${serial} ${name} Gen. ${gen} /* SR-FL Shield Impenetrator Gen. Delta */"%_t % {ids = tech.nameId, serial = serial, gen = gen, name = name}
 end
 
 function getBasicName()
@@ -51,10 +52,8 @@ end
 
 function getIcon(seed, rarity)
     local durability, rechargeTimeFactor, tech = getBonuses(seed, rarity, permanent)
-    if tech.uid == 0700 then
-        return "data/textures/icons/bordered-shield.png"
-    end
-    return "data/textures/icons/bordered-shield.png"
+
+    return makeIcon("bordered-shield", tech)
 end
 
 function getEnergy(seed, rarity, permanent)
@@ -63,7 +62,7 @@ function getEnergy(seed, rarity, permanent)
 end
 
 function getPrice(seed, rarity)
-    local durability, rechargeTimeFactor, tech = getBonuses(seed, rarity)
+    local durability, rechargeTimeFactor, tech = getBonuses(seed, rarity, true)
     local price = durability * 1000 * 100
     return (price * 2.5 ^ tech.rarity) * tech.coinFactor
 end
@@ -76,9 +75,9 @@ function getTooltipLines(seed, rarity, permanent)
     if tech.uid ~= 0700 then 
         table.insert(texts, {ltext = "[" .. tech.name .. "]", lcolor = ColorRGB(1, 0.5, 1)}) 
         if tech.uid == 0902 then
-            table.insert(bonuses, {ltext = "Impenetrable Shields"%_t, rtext = "Yes"%_t, icon = "data/textures/icons/shield.png", boosted = permanent})
-            table.insert(bonuses, {ltext = "Shield Durability"%_t, rtext = "+???", icon = "data/textures/icons/health-normal.png", boosted = permanent})
-            table.insert(bonuses, {ltext = "Time Until Recharge"%_t, rtext = "+???", icon = "data/textures/icons/recharge-time.png", boosted = permanent})
+            texts, bonuses = churchTip(texts, bonuses,"Impenetrable Shields", "Yes", "data/textures/icons/shield.png", permanent)
+            texts, bonuses = churchTip(texts, bonuses,"Shield Durability", "+???", "data/textures/icons/health-normal.png", permanent)
+            texts, bonuses = churchTip(texts, bonuses,"Time Until Recharge", "+???", "data/textures/icons/recharge-time.png", permanent)
             return texts, bonuses
         end
     end
@@ -104,7 +103,7 @@ function getDescriptionLines(seed, rarity, permanent)
     table.insert(texts, {ltext = "Durability is diverted to reinforce shield membrane."%_t})
     table.insert(texts, {ltext = "Time until recharge after a hit is increased."%_t})
     if tech.uid ~= 0700 then 
-        texts = getLines(tech)
+        texts = getLines(seed, tech)
     end
     return texts
 end

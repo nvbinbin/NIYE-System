@@ -5,39 +5,42 @@ include ("utility")
 include ("randomext")
 include ("enterprise")
 -- 加速引擎强化
--- optimization so that energy requirement doesn't have to be read every frame
 FixedEnergyRequirement = true
 
 function getBonuses(seed, rarity, permanent)
     math.randomseed(seed)
     local tech = getEnterprise(seed, rarity, 2)
-    if tech.uid == 0700 then tech.nameId = "" end
+    if tech.uid == 0700 then tech.nameId = "V" end
     -----  我是王者荣耀3000小时玩家  -----
     tech.engineVfactorResult = math.random(tech.minRandom, tech.maxRandom) / 100 -- 航速
     tech.engineAfactorResult = math.random(tech.minRandom, tech.maxRandom) / 100 -- 加速
     ------------------------------------
 
     local vfactor = 3 -- base value, in percent
+    local afactor = 6 -- base value, in percent
+
     -- add flat percentage based on rarity
     vfactor = vfactor + (tech.rarity + 1) * 3 -- add 0% (worst rarity) to +18% (best rarity)
 
     -- add randomized percentage, span is based on rarity
     vfactor = vfactor + tech.engineVfactorResult * ((tech.rarity + 1) * 4) -- add random value between 0% (worst rarity) and +24% (best rarity)
-    vfactor = vfactor * 0.8
-    vfactor = vfactor / 100
+    vfactor = vfactor * 0.8 / 100
 
-    local afactor = 6 -- base value, in percent
+    
     -- add flat percentage based on rarity
     afactor = afactor + (tech.rarity + 1) * 5 -- add 0% (worst rarity) to +30% (best rarity)
 
     -- add randomized percentage, span is based on rarity
     afactor = afactor + tech.engineAfactorResult * ((tech.rarity + 1) * 4) -- add random value between 0% (worst rarity) and +24% (best rarity)
-    afactor = afactor * 0.8
-    afactor = afactor / 100
+    afactor = afactor * 0.8 / 100
 
     if permanent then
         vfactor = vfactor * 1.5
         afactor = afactor * 1.5
+    end
+    if not permanent and tech.onlyPerm then
+        vfactor = 0
+        afactor = 0
     end
 
     -- probability for both of them being used 异域++
@@ -69,10 +72,7 @@ end
 
 function getName(seed, rarity)
     local vel, acc, tech = getBonuses(seed, rarity, true)
-    local serial = makeSerialNumber(seed, 2, "V-", "0")
-    if tech.uid ~= 0700 then
-        serial = tech.nameId
-    end
+    local serial = makeSerialNumber(seed, 2, tech.nameId .. "-", "0")
 
     local name = ""
     if vel > 0 then
@@ -98,10 +98,7 @@ end
 
 function getIcon(seed, rarity)
     local vel, acc, tech = getBonuses(seed, rarity, permanent)
-    if tech.uid == 0700 then
-        return "data/textures/icons/rocket-thruster.png"
-    end
-    return "data/textures/icons/rocket-thruster.png"
+    return makeIcon("rocket-thruster", tech)
 end
 
 function getEnergy(seed, rarity, permanent)
@@ -110,7 +107,7 @@ function getEnergy(seed, rarity, permanent)
 end
 
 function getPrice(seed, rarity)
-    local vel, acc, tech = getBonuses(seed, rarity)
+    local vel, acc, tech = getBonuses(seed, rarity, true)
     local price = vel * 100 * 500 + acc * 100 * 500
     return (price * 2.5 ^ tech.rarity) * tech.coinFactor
 end
@@ -124,8 +121,8 @@ function getTooltipLines(seed, rarity, permanent)
     if tech.uid ~= 0700 then 
         table.insert(texts, {ltext = "[" .. tech.name .. "]", lcolor = ColorRGB(1, 0.5, 1)}) 
         if tech.uid == 0902 then
-            table.insert(bonuses, {ltext = "Velocity"%_t, rtext = "+???", icon = "data/textures/icons/speedometer.png"})
-            table.insert(bonuses, {ltext = "Acceleration"%_t, rtext = "+???", icon = "data/textures/icons/acceleration.png"})
+            texts, bonuses = churchTip(texts, bonuses,"Velocity", "+???", "data/textures/icons/speedometer.png", permanent)
+            texts, bonuses = churchTip(texts, bonuses,"Acceleration", "+???", "data/textures/icons/acceleration.png", permanent)
             return texts, bonuses
         end
     end
@@ -149,7 +146,7 @@ function getDescriptionLines(seed, rarity, permanent)
         return {}
     end
 
-    local texts = getLines(tech)
+    local texts = getLines(seed, tech)
     return texts
 end
 

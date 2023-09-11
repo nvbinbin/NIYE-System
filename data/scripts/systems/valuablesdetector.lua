@@ -94,6 +94,10 @@ function getBonuses(seed, rarity, permanent)
         highlightRange = 0
         cooldown = baseCooldown + highlightDuration * 3
     end
+    if not permanent and tech.onlyPerm then
+        highlightRange = 0
+        cooldown = 0
+    end
 
     return highlightRange, cooldown, tech
 end
@@ -332,11 +336,9 @@ function getBasicName()
 end
 
 function getIcon(seed, rarity)
-    local range, cooldown, tech = getBonuses(seed, rarity, true)
-    if tech.uid == 0700 then
-        return "data/textures/icons/movement-sensor.png"
-    end
-    return "data/textures/icons/movement-sensor.png"
+    local _, _, tech = getBonuses(seed, rarity, permanent)
+
+    return makeIcon("movement-sensor", tech)
 end
 
 function getControlAction()
@@ -433,7 +435,7 @@ function getDescriptionLines(seed, rarity, permanent)
         table.insert(texts, {ltext = "Highlights objects when permanently installed."%_t})
     end
     if tech.uid ~= 0700 then 
-        texts = getLines(tech)
+        texts = getLines(seed, tech)
     end
     return texts
 end

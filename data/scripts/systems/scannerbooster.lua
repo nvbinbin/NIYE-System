@@ -11,7 +11,9 @@ FixedEnergyRequirement = true
 function getBonuses(seed, rarity, permanent)
     math.randomseed(seed)
     local tech = getEnterprise(seed, rarity, 2)
-    if tech.uid == 0700 then tech.nameId = "" end
+    if tech.uid == 0700 then tech.nameId = "T" end
+    tech.scannerResult = math.random(tech.minRandom, tech.maxRandom) / 100
+
     local scanner = 1
 
     scanner = 5 -- base value, in percent
@@ -19,11 +21,14 @@ function getBonuses(seed, rarity, permanent)
     scanner = scanner + (tech.rarity + 2) * 15 -- add +15% (worst rarity) to +105% (best rarity)
 
     -- add randomized percentage, span is based on rarity
-    scanner = scanner + math.random() * ((tech.rarity + 1) * 15) -- add random value between +0% (worst rarity) and +90% (best rarity)
+    scanner = scanner + tech.scannerResult * ((tech.rarity + 1) * 15) -- add random value between +0% (worst rarity) and +90% (best rarity)
     scanner = scanner / 100
 
     if permanent then
         scanner = scanner * 2
+    end
+    if not permanent and tech.onlyPerm then
+        scanner = 0
     end
 
     return scanner, tech
@@ -44,8 +49,9 @@ function getName(seed, rarity)
 
     local rarityStr = tostring(tech.rarity + 2)
     local serial = tostring(round(scanner * 100))
+    local name = getGrade(tech.scannerResult, tech, 100) .. " 探测器强化"
 
-    return "T-${rarity}-${serial} Scanner Booster /* ex: T-5-12D Scanner Booster */"%_t % {rarity = rarityStr, serial = serial}
+    return "${ids}-${rarity}-${serial} ${name} /* ex: T-5-12D Scanner Booster */"%_t % {ids = tech.nameId, rarity = rarityStr, serial = serial, name = name}
 end
 
 function getBasicName()
@@ -54,10 +60,8 @@ end
 
 function getIcon(seed, rarity)
     local scanner, tech = getBonuses(seed, rarity, true)
-    if tech.uid == 0700 then
-        return "data/textures/icons/signal-range.png"
-    end
-    return "data/textures/icons/signal-range.png"
+
+    return makeIcon("signal-range", tech)
 end
 
 function getEnergy(seed, rarity, permanent)
@@ -82,7 +86,7 @@ function getTooltipLines(seed, rarity, permanent)
     if tech.uid ~= 0700 then 
         table.insert(texts, {ltext = "[" .. tech.name .. "]", lcolor = ColorRGB(1, 0.5, 1)}) 
         if tech.uid == 0902 then
-            table.insert(bonuses, {ltext = "Scanner Range"%_t, rtext = "+???", icon = "data/textures/icons/signal-range.png"})
+            texts, bonuses = churchTip(texts, bonuses,"Scanner Range", "+???", "data/textures/icons/signal-range.png", permanent)
             return texts, bonuses
         end
     end
@@ -104,7 +108,7 @@ function getDescriptionLines(seed, rarity, permanent)
             {ltext = "see cargo, exact HP, etc. of other ships /* continued from 'Increases the distance from which you can'*/"%_t, rtext = "", icon = ""}
         }
     end
-    local texts = getLines(tech)
+    local texts = getLines(seed, tech)
     return texts
 end
 

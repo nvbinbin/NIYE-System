@@ -5,7 +5,8 @@ include ("basesystem")
 include ("utility")
 include ("randomext")
 include ("enterprise")
--- optimization so that energy requirement doesn't have to be read every frame
+
+-- 自动栏位
 FixedEnergyRequirement = true
 
 
@@ -19,6 +20,9 @@ function getNumTurrets(seed, rarity, permanent)
 
     if permanent then
          turrets = turrets * 2 
+    end
+    if not permanent and tech.onlyPerm then
+        turrets = 0
     end
 
     return turrets, tech
@@ -36,14 +40,12 @@ end
 function getName(seed, rarity)
     local turrets, tech = getNumTurrets(seed, rarity, true)
     local ids = tech.nameId
+    local num = turrets
+    local name = "自动炮塔火控跃增系统"
+    if tech.uid ~= 0700 then name = "自动火控处理系统" end
+    if tech.uid == 0902 then num = "000" end
 
-    if tech.uid == 0700 then
-        return "Auto-Turret Control Subsystem ${ids}-TCS-${num}"%_t % {num = turrets, ids = ids}
-    end
-    if tech.uid == 0902 then
-        return "自动炮塔火控处理系统 ${ids}-TCS-${num}"%_t % {num = "???", ids = ids}
-    end
-    return "自动炮塔火控处理系统 ${ids}-TCS-${num}"%_t % {num = turrets, ids = ids}
+    return "${name} ${ids}-TCS-${num}"%_t % {name = name, num = num, ids = ids}
 
 end
 
@@ -52,22 +54,20 @@ function getBasicName()
 end
 
 function getIcon(seed, rarity)
-    local turrets, tech = getNumTurrets(seed, rarity, permanent)
-    if tech.uid == 0700 then
-        return "data/textures/icons/turret.png"
-    end
-    return "data/textures/icons/NYturret.png"
+    local _, tech = getNumTurrets(seed, rarity, permanent)
+
+    return makeIcon("autoturret", tech)
 end
 
 function getEnergy(seed, rarity, permanent)
     local num, tech = getNumTurrets(seed, rarity, permanent)
-    return (num * 200 * 1000 * 1000 / (1.2 ^ rarity.value)) * tech.energyFactor
+    return (num * 200 * 1000 * 1000 / (1.2 ^ tech.rarity)) * tech.energyFactor
 end
 
 function getPrice(seed, rarity)
     local num, tech = getNumTurrets(seed, rarity, true)
     local price = 5000 * num;
-    return (price * 2.5 ^ rarity.value) * tech.coinFactor
+    return (price * 2.5 ^ tech.rarity) * tech.coinFactor
 end
 
 function getTooltipLines(seed, rarity, permanent)
@@ -78,10 +78,9 @@ function getTooltipLines(seed, rarity, permanent)
     local bonuses = {}
 
     if tech.uid ~= 0700 then 
-        table.insert(texts, {ltext = tech.tip, lcolor = ColorRGB(1, 0.5, 1)}) 
-
+        table.insert(texts, {ltext = "[" .. tech.name .. "]", lcolor = ColorRGB(1, 0.5, 1)}) 
         if tech.uid == 0902 then
-            table.insert(bonuses, {ltext = "Auto-Turret Slots"%_t, rtext = "+???", icon = "data/textures/icons/turret.png"})
+            texts, bonuses = churchTip(texts, bonuses,"Auto-Turret Slots", "+???", "data/textures/icons/turret.png", permanent)
             return texts, bonuses
         end
     end
@@ -102,7 +101,7 @@ function getDescriptionLines(seed, rarity, permanent)
         }
     end
 
-    local texts = getLines(tech)
+    local texts = getLines(seed, tech)
     return texts
 end
 

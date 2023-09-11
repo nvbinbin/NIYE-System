@@ -6,7 +6,6 @@ include ("utility")
 include ("randomext")
 include ("enterprise")
 -- 能量护盾转换器
--- optimization so that energy requirement doesn't have to be read every frame
 
 FixedEnergyRequirement = true
 
@@ -36,6 +35,9 @@ function getBonuses(seed, rarity, permanent)
     if permanent then
         amplification = amplification * 3.5
     end
+    if not permanent and tech.onlyPerm then
+        amplification = 0
+    end
 
     return amplification, energy, tech
 end
@@ -58,6 +60,7 @@ function getName(seed, rarity)
     local mark = toRomanLiterals(tech.rarity + 2)
     local ids = tech.nameId
     local grade = getGrade(tech.amplificationResult, tech, 100)
+
     return "${ids} -${grade}能量护盾转换器MK ${mark}"%_t % {mark = mark, ids = ids, grade = grade}
 end
 
@@ -67,17 +70,14 @@ end
 
 function getIcon(seed, rarity)
     local amplification, energy, tech = getBonuses(seed, rarity, permanent)
-    if tech.uid == 0700 then
-        return "data/textures/icons/shield.png"
-    end
-    return "data/textures/icons/shield.png"
+
+    return makeIcon("shield", tech)
 end
 
 function getPrice(seed, rarity)
-    local amplification, energy, tech = getBonuses(seed, rarity, permanent)
-    local amplification = getBonuses(seed, rarity)
+    local amplification, energy, tech = getBonuses(seed, rarity, true)
     local price = 150 * 1000 * amplification;
-    return (price * 2.0 ^ rarity.value) * tech.coinFactor
+    return (price * 2.0 ^ tech.rarity) * tech.coinFactor
 end
 
 function getTooltipLines(seed, rarity, permanent)
@@ -88,8 +88,8 @@ function getTooltipLines(seed, rarity, permanent)
     if tech.uid ~= 0700 then 
         table.insert(texts, {ltext = "[" .. tech.name .. "]", lcolor = ColorRGB(1, 0.5, 1)}) 
         if tech.uid == 0902 then
-            table.insert(bonuses, {ltext = "Shield Durability"%_t, rtext = "+???", icon = "data/textures/icons/health-normal.png"})
-            table.insert(texts, {ltext = "Generated Energy"%_t, rtext = "±???", icon = "data/textures/icons/electric.png"})
+            texts, bonuses = churchTip(texts, bonuses,"Shield Durability", "+???", "data/textures/icons/crate.png", permanent)
+            texts, bonuses = churchTip(texts, bonuses,"Generated Energy", "+???", "data/textures/icons/crate.png", permanent)
             return texts, bonuses
         end
     end
@@ -111,7 +111,7 @@ function getDescriptionLines(seed, rarity, permanent)
         }
     end
 
-    local texts = getLines(tech)
+    local texts = getLines(seed, tech)
     return texts
 end
 

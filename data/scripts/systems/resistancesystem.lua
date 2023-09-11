@@ -55,6 +55,9 @@ function getBonuses(seed, rarity, permanent)
         nextLevel = resistanceBonus[rarityLevel+1].dmgFactor
         dmgFactor = dmgFactor + math.random() * (nextLevel - dmgFactor - 0.01)
     end
+    if not permanent and tech.onlyPerm then
+        dmgFactor = 0
+    end
 
     return resistanceType, dmgFactor, tech
 end
@@ -107,10 +110,8 @@ end
 
 function getIcon(seed, rarity)
     local resistanceType, dmgFactor, tech = getBonuses(seed, rarity, true)
-    if tech.uid == 0700 then
-        return "data/textures/icons/edged-shield.png"
-    end
-    return "data/textures/icons/edged-shield.png"
+
+    return makeIcon("edged-shield", tech)
 end
 
 function getEnergy(seed, rarity, permanent)
@@ -132,9 +133,7 @@ function getTooltipLines(seed, rarity, permanent)
     if tech.uid ~= 0700 then 
         table.insert(texts, {ltext = "[" .. tech.name .. "]", lcolor = ColorRGB(1, 0.5, 1)}) 
         if tech.uid == 0902 then
-            table.insert(bonuses, {ltext = "Resistance against"%_t, rtext = "%s", rcolor = getDamageTypeColor(resistanceType), icon = "data/textures/icons/shield-charge.png"})
-            table.insert(bonuses, {ltext = string.format("%s damage"%_t, getDamageTypeName(resistanceType)), rtext = "+???", icon = "data/textures/icons/shield-charge.png", boosted = permanent})
-            return texts, bonuses
+            table.insert(texts, {ltext = "[此系统无法加密]", lcolor = ColorRGB(1, 0.5, 1)}) 
         end
     end
 
@@ -157,7 +156,7 @@ function getDescriptionLines(seed, rarity, permanent)
     table.insert(texts, {ltext = "Reduces damage received from"%_t})
     table.insert(texts, {ltext = string.format("%s weapons."%_t, getDamageTypeName(resistanceType))})
     if tech.uid ~= 0700 then 
-        texts = getLines(tech)
+        texts = getLines(seed, tech)
     end
     return texts
 end

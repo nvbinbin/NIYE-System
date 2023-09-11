@@ -1,62 +1,62 @@
 
 meta =
 {
-    -- ID of your mod; Make sure this is unique!
-    -- Will be used for identifying the mod in dependency lists
-    -- Will be changed to workshop ID (ensuring uniqueness) when you upload the mod to the workshop
+    -- 您的mod的ID；确保这是独一无二的！
+    -- 将用于识别依赖项列表中的mod
+    -- 当您将mod上传到车间时，将更改为车间ID（确保唯一性）
     id = "3024105678",
 
-    -- Name of your mod; You may want this to be unique, but it's not absolutely necessary.
-    -- This is an additional helper attribute for you to easily identify your mod in the Mods() list
-    name = "[2.3] - 逆夜的卡堆",
+    -- 您的mod名称；你可能希望这是独一无二的，但这并不是绝对必要的。
+    -- 这是一个额外的辅助属性，您可以在Mods（）列表中轻松识别您的mod
+    name = "[2.3] - 顶级企业",
 
-    -- Title of your mod that will be displayed to players
-    title = "[2.3] - 逆夜的卡堆",
+    -- 将显示给玩家的mod的标题
+    title = "[2.3] - 顶级企业",
 
-    -- Type of your mod, either "mod" or "factionpack"
+    -- 你的mod类型 "mod" or "factionpack"
     type = "mod",
 
-    -- Description of your mod that will be displayed to players
+    -- 将显示给玩家的mod的描述
     description = "神秘的公司带来了超越原版的卡片等级……",
 
-    -- Insert all authors into this list
+    -- 将所有作者插入此列表
     authors = {"逆夜"},
 
-    -- Version of your mod, should be in format 1.0.0 (major.minor.patch) or 1.0 (major.minor)
-    -- This will be used to check for unmet dependencies or incompatibilities, and to check compatibility between clients and dedicated servers with mods.
-    -- If a client with an unmatching major or minor mod version wants to log into a server, login is prohibited.
-    -- Unmatching patch version still allows logging into a server. This works in both ways (server or client higher or lower version).
-    version = "0.4",
+    -- 你的mod版本，应该是1.0.0（major.minor.patch）或1.0（major.minor）格式
+    -- 这将用于检查未满足的依赖项或不兼容性，并检查客户端和具有mod的专用服务器之间的兼容性。
+    -- 如果主要或次要mod版本不匹配的客户端想要登录服务器，则禁止登录。
+    -- 不匹配的修补程序版本仍然允许登录到服务器。这有两种方式（服务器或客户端的更高版本或更低版本）。
+    version = "1.0",
 
-    -- If your mod requires dependencies, enter them here. The game will check that all dependencies given here are met.
-    -- Possible attributes:
-    -- id: The ID of the other mod as stated in its modinfo.lua
-    -- min, max, exact: version strings that will determine minimum, maximum or exact version required (exact is only syntactic sugar for min == max)
-    -- optional: set to true if this mod is only an optional dependency (will only influence load order, not requirement checks)
-    -- incompatible: set to true if your mod is incompatible with the other one
-    -- Example:
-    -- dependencies = {
-    --      {id = "Avorion", min = "0.17", max = "0.21"}, -- we can only work with Avorion between versions 0.17 and 0.21
-    --      {id = "SomeModLoader", min = "1.0", max = "2.0"}, -- we require SomeModLoader, and we need its version to be between 1.0 and 2.0
-    --      {id = "AnotherMod", max = "2.0"}, -- we require AnotherMod, and we need its version to be 2.0 or lower
-    --      {id = "IncompatibleMod", incompatible = true}, -- we're incompatible with IncompatibleMod, regardless of its version
-    --      {id = "IncompatibleModB", exact = "2.0", incompatible = true}, -- we're incompatible with IncompatibleModB, but only exactly version 2.0
-    --      {id = "OptionalMod", min = "0.2", optional = true}, -- we support OptionalMod optionally, starting at version 0.2
+    --如果你的mod需要依赖项，请在这里输入。游戏将检查是否满足此处给出的所有依赖项。
+    --可能的属性：
+    --id：另一个mod的id，如其modinfo.loa中所述
+    --min，max，exact：版本字符串，用于确定所需的最小、最大或精确版本（exact只是min==max的语法糖）
+    --可选：如果此mod只是一个可选依赖项，则设置为true（只会影响加载顺序，而不会影响需求检查）
+    --不兼容：如果你的mod与另一个不兼容，则设置为true
+    --示例：
+    --依赖项={
+    --｛id=“Avorion”，min=“0.17”，max=“0.21”｝，--我们只能在版本0.17和0.21之间使用Avorion
+    --｛id=“SomeModLoader”，min=“1.0”，max=“2.0”｝，--我们需要SomeModLoader，并且我们需要它的版本介于1.0和2.0之间
+    --｛id=“AnotherMod”，max=“2.0”｝，--我们需要AntherMod，并且我们需要其版本为2.0或更低
+    --｛id=“CompatibleMod”，compatible=true｝，--我们与不兼容Mod不兼容，无论其版本如何
+    --｛id=“CompatibleModB”，exact=“2.0”，compatible=true｝，--我们与不兼容ModB不兼容，但仅限于2.0版本
+    --｛id=“OptionalMod”，min=“0.2”，optional=true｝，--我们可选地支持OptionalMod，从版本0.2开始
     -- },
     dependencies = {
         {id = "Avorion", min = "2.3", max = "2.*"}
     },
 
-    -- Set to true if the mod only has to run on the server. Clients will get notified that the mod is running on the server, but they won't download it to themselves
+    -- 如果mod只需要在服务器上运行，则设置为true。客户端会收到mod正在服务器上运行的通知，但他们不会自己下载
     serverSideOnly = false,
 
-    -- Set to true if the mod only has to run on the client, such as UI mods
+    -- 如果mod只需要在客户端上运行，例如UI mods，则设置为true
     clientSideOnly = false,
 
-    -- Set to true if the mod changes the savegame in a potentially breaking way, as in it adds scripts or mechanics that get saved into database and no longer work once the mod gets disabled
-    -- logically, if a mod is client-side only, it can't alter savegames, but Avorion doesn't check for that at the moment
+    -- 如果mod以潜在的破坏性方式更改保存游戏，则设置为true，因为它添加了保存到数据库中的脚本或机制，一旦mod被禁用，这些脚本或机制就不再工作
+    -- 从逻辑上讲，如果一个mod只是客户端的，它就不能改变保存游戏，但Avorion目前没有检查这一点
     saveGameAltering = true,
 
-    -- Contact info for other users to reach you in case they have questions
+    -- 其他用户的联系信息，以便在他们有问题时与您联系
     contact = "cniye@qq.com",
 }

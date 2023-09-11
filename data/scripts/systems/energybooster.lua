@@ -18,32 +18,36 @@ function getBonuses(seed, rarity, permanent)
     ------------------------------------
 
     local energy = 15 -- base value, in percent
+    local charge = 15 -- base value, in percent
+
+
     -- add flat percentage based on rarity
     energy = energy + (tech.rarity + 1) * 10 -- add 0% (worst rarity) to +60% (best rarity)
 
     -- add randomized percentage, span is based on rarity
     energy = energy + tech.boosterEnergyResult * ((tech.rarity + 1) * 8) -- add random value between 0% (worst rarity) and +48% (best rarity)
-    energy = energy * 0.8
-    energy = energy / 100
-
-    local charge = 15 -- base value, in percent
+    
     -- add flat percentage based on rarity
     charge = charge + (tech.rarity + 1) * 4 -- add 0% (worst rarity) to +24% (best rarity)
 
     -- add randomized percentage, span is based on rarity
     charge = charge + tech.boosterChargeResult * ((tech.rarity + 1) * 4) -- add random value between 0% (worst rarity) and +24% (best rarity)
-    charge = charge * 0.8
-    charge = charge / 100
+
+
+    energy = energy * 0.8 / 100
+    charge = charge * 0.8 / 100
 
     if permanent then
         energy = energy * 1.5
         charge = charge * 1.5
     end
+    if not permanent and tech.onlyPerm then
+        charge = 0
+        energy = 0
+    end
 
-    -- 异域以上必定双享
-    -- when rarity.value >= 4, always both
-    -- when rarity.value <= 0 always only one
-    local probability = math.max(0, rarity.value * 0.25)
+    -- 每级25%额外概率 异域以上必定双享
+    local probability = math.max(0, tech.rarity * 0.25)
     if math.random() > probability then
         -- only 1 will be used
         if math.random() < 0.5 then
@@ -70,16 +74,29 @@ end
 function getName(seed, rarity)
     local energy, charge, tech = getBonuses(seed, rarity, permanent)
 
-    local serial = makeSerialNumber(seed, 1, "V", "L", "0O")
-    if tech.uid ~= 0700 then serial = tech.nameId end
-    serial = serial .. makeSerialNumber(seed, 1, "", "-T", "T7")
+    local ty = tech.boosterChargeResult
+    local cha = true
+    local name = getGrade(ty, tech, 100) .. "Generator Subsystem"%_t -- 只有充能
 
-    local name = "Generator Subsystem"%_t
+    if energy > 0 and charge > 0 then -- 双持
+        if tech.boosterChargeResult > tech.boosterEnergyResult then
+            ty = tech.boosterChargeResult
+        else
+            ty = tech.boosterEnergyResult
+            cha = false
+        end
+        name = getGrade(ty, tech, 100) .. "Generator Booster"%_t
+    elseif energy > 0 then -- 只有容量
+        ty = tech.boosterEnergyResult
+        cha = false
+        name = getGrade(ty, tech, 100) .. "Generator Enhancer"%_t
+    end
 
-    if energy > 0 and charge > 0 then
-        name = getGrade(tech.boosterChargeResult, tech, 100) .. "Generator Booster"%_t
-    elseif energy > 0 then
-        name = getGrade(tech.boosterEnergyResult, tech, 100) .. "Generator Enhancer"%_t
+    local serial = makeSerialNumber(seed, 1, tech.nameId, "L", "0O")
+    if cha then
+        serial = serial .. makeSerialNumber(seed, 1, "", "-C", "T7")
+    else
+        serial = serial .. makeSerialNumber(seed, 1, "", "-E", "Y8")
     end
 
     return "${serial} ${name} R-${rarity} /* ex: V0L7-T Generator Booster R-Zeta */"%_t % {serial = serial, name = name, rarity = toGreekNumber(rarity.value+2)}
@@ -92,10 +109,7 @@ end
 function getIcon(seed, rarity)
     local energy, charge, tech = getBonuses(seed, rarity, true)
 
-    if tech.uid == 0700 then
-        return "data/textures/icons/electric.png"
-    end
-    return "data/textures/icons/electric.png"
+    return makeIcon("electric", tech)
 end
 
 function getEnergy(seed, rarity, permanent)
@@ -103,9 +117,9 @@ function getEnergy(seed, rarity, permanent)
 end
 
 function getPrice(seed, rarity)
-    local energy, charge, tech = getBonuses(seed, rarity)
+    local energy, charge, tech = getBonuses(seed, rarity, true)
     local price = energy * 100 * 400 + charge * 100 * 300
-    return (price * 2.5 ^ rarity.value) * tech.coinFactor
+    return (price * 2.5 ^ tech.rarity) * tech.coinFactor
 end
 
 function getTooltipLines(seed, rarity, permanent)
@@ -118,8 +132,8 @@ function getTooltipLines(seed, rarity, permanent)
     if tech.uid ~= 0700 then 
         table.insert(texts, {ltext = "[" .. tech.name .. "]", lcolor = ColorRGB(1, 0.5, 1)}) 
         if tech.uid == 0902 then
-            table.insert(bonuses, {ltext = "Generated Energy"%_t, rtext = "+???", icon = "data/textures/icons/electric.png"})
-            table.insert(bonuses, {ltext = "Recharge Rate"%_t, rtext = "+???", icon = "data/textures/icons/power-unit.png"})
+            texts, bonuses = churchTip(texts, bonuses,"Generated Energy", "+???", "data/textures/icons/electric.png", permanent)
+            texts, bonuses = churchTip(texts, bonuses,"Recharge Rate", "+???", "data/textures/icons/power-unit.png", permanent)
             return texts, bonuses
         end
     end
@@ -142,7 +156,7 @@ function getDescriptionLines(seed, rarity, permanent)
     if tech.uid == 0700 then
         return {}
     end
-    local texts = getLines(tech)
+    local texts = getLines(seed, tech)
     return texts
 end
 

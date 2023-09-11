@@ -13,10 +13,55 @@ FixedEnergyRequirement = true
 
 ]]
 
+------------------------------------------------------------------------------------------------------------
+-- 这段函数用于给暗金教会随机增加一个乱码描述XDD
+--------------------------------------------------------------------------------------
 
-
-function churchText(seed)
+function makeText(seed,num)
+    math.randomseed(seed)
+    -- 暗金教会正在施法
+    local chars = {"天","地","玄","黄","宇","宙","洪","荒","金","木","水","火","土","乾","坤","震","艮","离","坎","兑","巽","口","口","口","口","口","口","口","锟","斤","拷","锟","斤","拷","锟","斤","拷","锟","斤","拷","锟","斤","拷","锟","斤","拷","锟","斤","拷","口","口","口","口","口","口"}
+    local result = ""
+  for i = 1, num do
+    local index = math.random(1,#chars)
+    local char = chars[index]
+    result = result .. char
+  end
+  return result
 end
+
+function churchText(seed, tech)
+    math.randomseed(seed)
+    -- 暗金教会开始施法
+    local str = ""
+    str = str .. makeSerialNumber(seed, 2, nil, "-", "QWERTYUIOPASDFGHJKLZXCVBNM")
+    str = str .. makeSerialNumber(seed, 3, nil, "-", "1234567890")
+    str = str .. makeText(seed, 6)
+    table.insert(tech.text, str)
+
+end
+-- 传入表单会增加性能开销
+function churchTip(texts, bonuses, ltext, rtext, icon, permanent)
+    if permanent then
+        table.insert(texts, {ltext = ltext, rtext = rtext, icon = icon})
+    else
+        table.insert(bonuses, {ltext = ltext, rtext = rtext, icon = icon})
+    end
+    return texts, bonuses
+end
+
+
+-------------------------------------------------------------------------------------------------------
+function makeIcon(name, tech)
+    local icon = "data/textures/icons/" .. name
+    if tech.uid == 0700 then
+        icon = icon .. ".png"
+    else
+        icon = icon .. toRomanLiterals(tech.rarity - 5) .. ".png"
+    end
+    return icon
+end
+
 
 --[[
                                     奖池系统已被移除
@@ -192,22 +237,22 @@ function getEnterprise(seed, rarity, useType)
 end
 
 function getGrade(dist, tech,num) 
-     if tech.uid == 0902 then return " 错误 - " end -- 直接返回
+     if tech.uid == 0902 then return "错误" end -- 直接返回
       dist = dist * num
 
-     local grade = " 未验证 - " 
+     local grade = "未验证" 
 
      local vals = {
-         " 淘汰 - ", 
-         " 粗劣 - ", 
-         " 普通 - ", 
-         " 优良 - ", 
-         " 罕见 - ", 
-         " 稀有 - ", 
-         " 完美 - ", 
-         " 无暇 - ", 
-         " 极限 - ", 
-         " 奇迹 - " 
+         "淘汰", 
+         "粗劣", 
+         "普通", 
+         "优良", 
+         "罕见", 
+         "稀有", 
+         "完美", 
+         "无暇", 
+         "极限", 
+         "奇迹" 
      } 
 
      local last = 0
@@ -223,26 +268,29 @@ function getGrade(dist, tech,num)
      return grade 
  end
 
-function getLines(tech)
+function getLines(seed, tech)
+    math.randomseed(seed)
     local texts = {}
     local wlin = false
     local colors
+    -- 暗金乱码植入
+    if tech.uid == 0902 then churchText(seed, tech) end 
     
     if next(tech.text) ~= nil then
 
         for i, v in pairs(tech.text) do
-        table.insert(texts, {ltext = tech.text[i]%_t, lcolor = ColorRGB(1, 0.5, 0.6)})
+        table.insert(texts, {ltext = tech.text[i], lcolor = ColorRGB(1, 0.5, 0.6)})
         end
-        table.insert(texts, {ltext = ""%_t})
+        table.insert(texts, {ltext = ""})
     end
     if next(tech.perfor) ~= nil then
 
-        table.insert(texts, {ltext = "厂牌特性："%_t, lcolor = ColorRGB(0.9, 0.5, 0.3)})
+        table.insert(texts, {ltext = "厂牌特性：", lcolor = ColorRGB(0.9, 0.5, 0.3)})
         for i, v in pairs(tech.perfor) do
             if tech.perfor[i].type == 0 then colors = ColorRGB(0.8, 0.8, 0.8) end
             if tech.perfor[i].type == 1 then colors = ColorRGB(0.4, 0.8, 0.4) end
             if tech.perfor[i].type == 2 then colors = ColorRGB(0.8, 0.4, 0.4) end
-            table.insert(texts, {ltext = " -  " .. tech.perfor[i].name%_t, lcolor = colors})
+            table.insert(texts, {ltext = " -  " .. tech.perfor[i].name, lcolor = colors})
         end
     end
 

@@ -38,6 +38,11 @@ function getBonuses(seed, rarity, permanent)
         amount = amount * 1.5
         material = material + 1
     end
+    if not permanent and tech.onlyPerm then
+        range = 0
+        amount = 0
+        material = 0
+    end
 
     return material, range, amount, tech
 end
@@ -154,10 +159,8 @@ end
 
 function getIcon(seed, rarity)
     local materialLevel, range, amount, tech = getBonuses(seed, rarity, true)
-    if tech.uid == 0700 then
-        return "data/textures/icons/mining.png"
-    end
-    return "data/textures/icons/mining.png"
+
+    return makeIcon("mining", tech)
 end
 
 function getEnergy(seed, rarity, permanent)
@@ -167,7 +170,7 @@ function getEnergy(seed, rarity, permanent)
 end
 
 function getPrice(seed, rarity)
-    local materialLevel, range, amount, tech = getBonuses(seed, rarity)
+    local materialLevel, range, amount, tech = getBonuses(seed, rarity, true)
 
     local price = materialLevel * 5000 + amount * 750 + range * 1.5;
 
@@ -184,9 +187,9 @@ function getTooltipLines(seed, rarity, permanent)
     if tech.uid ~= 0700 then 
         table.insert(texts, {ltext = "[" .. tech.name .. "]", lcolor = ColorRGB(1, 0.5, 1)}) 
         if tech.uid == 0902 then
-            table.insert(bonuses, {ltext = "Material Level"%_t, rtext = "+???", icon = "data/textures/icons/metal-bar.png"})
-            table.insert(bonuses, {ltext = "Range"%_t, rtext = "+???", icon = "data/textures/icons/rss.png"})
-            table.insert(bonuses, {ltext = "Asteroids"%_t, rtext = "+???", icon = "data/textures/icons/rock.png"})
+            texts, bonuses = churchTip(texts, bonuses,"Material Level", "+???", "data/textures/icons/metal-bar.png", permanent)
+            texts, bonuses = churchTip(texts, bonuses,"Range", "+???", "data/textures/icons/rss.png", permanent)
+            texts, bonuses = churchTip(texts, bonuses,"Asteroids", "+???", "data/textures/icons/rock.png", permanent)
             return texts, bonuses
         end
     end
@@ -206,12 +209,11 @@ end
 function getDescriptionLines(seed, rarity, permanent)
     local materialLevel, range, amount, tech = getBonuses(seed, rarity, permanent)
     local texts = {}
+    texts = getLines(seed, tech)
     if tech.uid == 0700 then
         table.insert(texts, {ltext = "Displays amount of resources in objects"%_t})
         table.insert(texts, {ltext = "Highlights nearby mineable objects"%_t})
-        return texts
     end
-    texts = getLines(tech)
     return texts
 end
 

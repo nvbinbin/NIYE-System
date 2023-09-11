@@ -53,10 +53,8 @@ end
 
 function getIcon(seed, rarity)
     local range, fighterCargoPickup, tech = getBonuses(seed, rarity, permanent)
-    if tech.uid == 0700 then
-        return "data/textures/icons/processor.png"
-    end
-    return "data/textures/icons/processor.png"
+
+    return makeIcon("processor", tech)
 end
 
 function getEnergy(seed, rarity, permanent)
@@ -71,29 +69,30 @@ end
 function getTooltipLines(seed, rarity, permanent)
     local range, fighterCargoPickup, tech = getBonuses(seed, rarity, permanent)
     local texts = {}
+    local bonuses = {}
     if tech.uid ~= 0700 then 
         table.insert(texts, {ltext = "[" .. tech.name .. "]", lcolor = ColorRGB(1, 0.5, 1)}) 
         if tech.uid == 0902 then
-            table.insert(texts,{ltext = "Docking Distance"%_t, rtext = "+??? km"%_t, icon = "data/textures/icons/solar-system.png", boosted = permanent})
+            texts, bonuses = churchTip(texts, bonuses,"Docking Distance", "+??? km", "data/textures/icons/solar-system.png", permanent)
+            texts, bonuses = churchTip(texts, bonuses,"Fighter Cargo Pickup", "", "data/textures/icons/fighter.png", permanent)
+            return texts, bonuses
+        end
+    end
+    
+    if permanent then
+        table.insert(texts, {ltext = "Docking Distance"%_t, rtext = "+${distance} km"%_t % {distance = range / 100}, icon = "data/textures/icons/solar-system.png", boosted = permanent}) 
+        if fighterCargoPickup > 0 then
             table.insert(texts, {ltext = "Fighter Cargo Pickup"%_t, icon = "data/textures/icons/fighter.png", boosted = permanent})
-            return texts, texts
+        end
+    else
+        table.insert(bonuses, {ltext = "Docking Distance"%_t, rtext = "+${distance} km"%_t % {distance = range / 100}, icon = "data/textures/icons/solar-system.png", boosted = permanent}) 
+        if fighterCargoPickup > 0 then
+            table.insert(bonuses, {ltext = "Fighter Cargo Pickup"%_t, icon = "data/textures/icons/fighter.png", boosted = permanent})
         end
     end
 
-     texts =
-    {
-        {ltext = "Docking Distance"%_t, rtext = "+${distance} km"%_t % {distance = range / 100}, icon = "data/textures/icons/solar-system.png", boosted = permanent}
-    }
+    return texts, bonuses
 
-    if fighterCargoPickup > 0 then
-        table.insert(texts, {ltext = "Fighter Cargo Pickup"%_t, icon = "data/textures/icons/fighter.png", boosted = permanent})
-    end
-
-    if not permanent then
-        return {}, texts
-    else
-        return texts, texts
-    end
 end
 
 function getDescriptionLines(seed, rarity, permanent)
@@ -109,7 +108,7 @@ function getDescriptionLines(seed, rarity, permanent)
         table.insert(texts, {ltext = "Allows fighters to pick up cargo"%_t, rtext = "", icon = ""})
     end
     if tech.uid ~= 0700 then 
-        texts = getLines(tech)
+        texts = getLines(seed, tech)
     end
     return texts
 end

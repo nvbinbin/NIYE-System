@@ -5,9 +5,8 @@ include ("utility")
 include ("randomext")
 include ("enterprise")
 
--- 超空间
+-- 超空间跃迁
 
--- optimization so that energy requirement doesn't have to be read every frame
 FixedEnergyRequirement = true
 
 function getBonuses(seed, rarity, permanent)
@@ -54,7 +53,7 @@ function getBonuses(seed, rarity, permanent)
         bonuses[bonus] = nil -- 删除
     end
 
-    if enabled[StatsBonuses.HyperspaceCooldown] then
+    if enabled[StatsBonuses.HyperspaceCooldown] then -- 跃迁冷却
         cdfactor = 5 -- base value, in percent
         -- add flat percentage based on rarity
         cdfactor = cdfactor + (tech.rarity + 1) * 2.5 -- add 0% (worst rarity) to +15% (best rarity)
@@ -64,7 +63,7 @@ function getBonuses(seed, rarity, permanent)
         cdfactor = -cdfactor / 100
     end
 
-    if enabled[StatsBonuses.HyperspaceChargeEnergy] then
+    if enabled[StatsBonuses.HyperspaceChargeEnergy] then -- 超空间跃迁能量
         efactor = 5 -- base value, in percent
         -- add flat percentage based on rarity
         efactor = efactor + (tech.rarity + 1) * 3 -- add 0% (worst rarity) to +18% (best rarity)
@@ -74,14 +73,14 @@ function getBonuses(seed, rarity, permanent)
         efactor = -efactor / 100
     end
 
-    if enabled[StatsBonuses.RadarReach] then
+    if enabled[StatsBonuses.RadarReach] then -- 雷达范围
         radar = math.max(0, getInt(tech.rarity, tech.rarity * 2.0)) + 1
     end
 
     if permanent then
-        if enabled[StatsBonuses.HyperspaceReach] then
+        if enabled[StatsBonuses.HyperspaceReach] then -- 超空间雷达
             if megaReach then
-                reach = math.max(1, tech.rarity + 1) * 2 + tech.rarity
+                reach = math.max(1, tech.rarity + 1) * 2 + tech.rarity -- 跃迁范围
                 cdbias = round(math.max(0, (reach - 2) / 4) * 60)
                 cdfactor = 0
             else
@@ -93,6 +92,13 @@ function getBonuses(seed, rarity, permanent)
     else
         cdfactor = 0
     end
+    if not permanent and tech.onlyPerm then
+        reach = 0
+        cdbias = 0
+        cdfactor = 0
+        efactor = 0
+    end
+
 
     return round(reach, 1), cdfactor, efactor, round(radar), cdbias, tech
 end
@@ -121,13 +127,13 @@ function getName(seed, rarity)
 
     local mark = toRomanLiterals(tech.rarity + 2)
 
-    local type = "Hyperspace Subsystem"%_t
+    local type = "Hyperspace Subsystem"%_t --超空间跃增系统
     if cooldown ~= 0 and efactor ~= 0 then
-        type = "Hyperspace Booster"%_t
+        type = "Hyperspace Booster"%_t -- 超空间强化
     elseif cooldown ~= 0 then
-        type = "Hyperspace Accelerator"%_t
+        type = "Hyperspace Accelerator"%_t -- 超空间加速器
     elseif efactor ~= 0 then
-        type = "Hyperspace Enhancer"%_t
+        type = "Hyperspace Enhancer"%_t -- 超空间增强
     end
 
     local prefix = ""
@@ -144,10 +150,8 @@ end
 
 function getIcon(seed, rarity)
     local reach, cdfactor, efactor, radar, cdbias, tech = getBonuses(seed, rarity, permanent)
-    if tech.uid == 0700 then
-        return "data/textures/icons/vortex.png"
-    end
-    return "data/textures/icons/vortex.png"
+
+    return makeIcon("vortex", tech)
 end
 
 function getEnergy(seed, rarity, permanent)
@@ -156,8 +160,8 @@ function getEnergy(seed, rarity, permanent)
 end
 
 function getPrice(seed, rarity)
-    local reach, _, efactor, radar, _, tech = getBonuses(seed, rarity, false)
-    local _, cdfactor, _, _ = getBonuses(seed, rarity, true)
+    local reach, _, efactor, radar, _ = getBonuses(seed, rarity, false)
+    local _, cdfactor, _, _, _, tech= getBonuses(seed, rarity, true)
     local price = math.abs(cdfactor) * 100 * 350 + math.abs(efactor) * 100 * 250 + reach * 3000 + radar * 450
     return (price * 2.5 ^ tech.rarity) * tech.coinFactor
 end
@@ -172,11 +176,10 @@ function getTooltipLines(seed, rarity, permanent)
     if tech.uid ~= 0700 then 
         table.insert(texts, {ltext = "[" .. tech.name .. "]", lcolor = ColorRGB(1, 0.5, 1)}) 
         if tech.uid == 0902 then
-            table.insert(bonuses, {ltext = "Jump Range"%_t, rtext = "+???", icon = "data/textures/icons/star-cycle.png", boosted = permanent})
-            table.insert(bonuses, {ltext = "Radar Range"%_t, rtext = "+???", icon = "data/textures/icons/radar-sweep.png", boosted = permanent})
-            table.insert(bonuses, {ltext = "Hyperspace Cooldown"%_t, rtext = "+???", icon = "data/textures/icons/hourglass.png", boosted = permanent})
-            table.insert(bonuses, {ltext = "Hyperspace Cooldown"%_t, rtext = "+???", icon = "data/textures/icons/hourglass.png", boosted = permanent})
-            table.insert(texts, {ltext = "Hyperspace Charge Energy"%_t, rtext = "+???", icon = "data/textures/icons/electric.png"})
+            texts, bonuses = churchTip(texts, bonuses,"Jump Range", "+???", "data/textures/icons/star-cycle.png", permanent)
+            texts, bonuses = churchTip(texts, bonuses,"Radar Range", "+???", "data/textures/icons/radar-sweep.png", permanent)
+            texts, bonuses = churchTip(texts, bonuses,"Hyperspace Cooldown", "+???", "data/textures/icons/hourglass.png", permanent)
+            texts, bonuses = churchTip(texts, bonuses,"Hyperspace Charge Energy", "data/textures/icons/electric.png", permanent)
             return texts, bonuses
         end
     end
@@ -223,7 +226,7 @@ function getDescriptionLines(seed, rarity, permanent)
         }
     end
 
-    local texts = getLines(tech)
+    local texts = getLines(seed, tech)
     return texts
 end
 

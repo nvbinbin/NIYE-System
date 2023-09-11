@@ -25,6 +25,9 @@ function getBonuses(seed, rarity, permanent)
         production = math.max(0, lerp(random():getFloat(0, 1), 0, 1, tech.rarity - 1, tech.rarity)) * 1000
         production = round(production / 100) * 100
     end
+    if not permanent and tech.onlyPerm then
+        production = 0
+    end
 
     return squads, production, tech
 end
@@ -93,6 +96,12 @@ function getName(seed, rarity)
         rarityName = "Six-headed"%_t
     elseif rarity == Rarity(5) then
         rarityName = "Seven-headed"%_t
+    elseif tech.rarity == 6 then
+        rarityName = "八头蛇"%_t
+    elseif tech.rarity == 7 then
+        rarityName = "九头蛇"%_t
+    elseif tech.rarity == 8 then
+        rarityName = "九头蛇EX"%_t
     end
 
     local rnd = Random(Seed(seed))
@@ -108,21 +117,19 @@ end
 
 function getIcon(seed, rarity)
     local squads, production, tech = getBonuses(seed, rarity, permanent)
-    if tech.uid == 0700 then
-        return "data/textures/icons/fighter.png"
-    end
-    return "data/textures/icons/fighter.png"
+
+    return makeIcon("fighter", tech)
 end
 
 function getEnergy(seed, rarity, permanent)
     local squads = getNumSquads(seed, rarity, permanent)
-    local _, production, tech = getBonuses(seed, rarity, permanent)
+    local _, production, tech = getBonuses(seed, rarity, true)
     return (squads * 600 * 1000 * 1000 / (1.1 ^ tech.rarity)) * tech.energyFactor
 end
 
 function getPrice(seed, rarity)
     local squads = getNumSquads(seed, rarity, true)
-    local _, production, tech = getBonuses(seed, rarity, permanent)
+    local _, production, tech = getBonuses(seed, rarity, true)
     local price = 25000 * (squads)
     return (price * 1.5 ^ tech.rarity) * tech.coinFactor
 end
@@ -140,8 +147,8 @@ function getTooltipLines(seed, rarity, permanent)
     if tech.uid ~= 0700 then 
         table.insert(texts, {ltext = "[" .. tech.name .. "]", lcolor = ColorRGB(1, 0.5, 1)}) 
         if tech.uid == 0902 then
-            table.insert(bonuses, {ltext = "Fighter Squadrons"%_t, rtext = "+???", icon = "data/textures/icons/fighter.png"})
-            table.insert(bonuses, {ltext = "Production Speedup"%_t, rtext = "+???", icon = "data/textures/icons/gears.png"})
+            texts, bonuses = churchTip(texts, bonuses,"Fighter Squadrons", "+???", "data/textures/icons/fighter.png", permanent)
+            texts, bonuses = churchTip(texts, bonuses,"Production Speedup", "+???", "data/textures/icons/gears.png", permanent)
             return texts, bonuses
         end
     end
@@ -179,7 +186,7 @@ function getDescriptionLines(seed, rarity, permanent)
 
         }
     end
-    local texts = getLines(tech)
+    local texts = getLines(seed, tech)
     return texts
 end
 
