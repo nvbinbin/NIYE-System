@@ -8,16 +8,16 @@ meta =
 
     -- Name of your mod; You may want this to be unique, but it's not absolutely necessary.
     -- This is an additional helper attribute for you to easily identify your mod in the Mods() list
-    name = "[2.3] - 顶级企业",
+    name = "[2.4] - 顶级企业",
 
     -- Title of your mod that will be displayed to players
-    title = "[2.3] - 顶级企业",
+    title = "[2.4] - 顶级企业",
 
     -- Type of your mod, either "mod" or "factionpack"
     type = "mod",
 
     -- Description of your mod that will be displayed to players
-    description = "神秘的公司带来了超越原版的卡片等级……",
+    description = "神秘的企业带来了超乎寻常的技术提升",
 
     -- Insert all authors into this list
     authors = {"逆夜"},
@@ -26,7 +26,7 @@ meta =
     -- This will be used to check for unmet dependencies or incompatibilities, and to check compatibility between clients and dedicated servers with mods.
     -- If a client with an unmatching major or minor mod version wants to log into a server, login is prohibited.
     -- Unmatching patch version still allows logging into a server. This works in both ways (server or client higher or lower version).
-    version = "1.0",
+    version = "1.1",
 
     -- If your mod requires dependencies, enter them here. The game will check that all dependencies given here are met.
     -- Possible attributes:
