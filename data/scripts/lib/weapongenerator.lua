@@ -1,53 +1,100 @@
+-- 定义一个package.path变量，用于指定lua模块的搜索路径，将"data/scripts/lib/?.lua"添加到原有的路径中
 package.path = package.path .. ";data/scripts/lib/?.lua"
 
+-- 使用include函数，加载galaxy, randomext和weapontype三个模块，这些模块提供了一些关于星系，随机数和武器类型的函数
 include("galaxy")
 include("randomext")
 include("weapontype")
 
+-- 定义一个WeaponGenerator表，用于存储生成不同类型武器的函数
 local WeaponGenerator = {}
 
+-- 定义一个WeaponGenerator.generateBolter函数，用于生成螺栓武器
+-- 参数：
+-- rand: 一个Random对象，用于生成随机数
+-- dps: 一个数字，表示武器的每秒伤害
+-- tech: 一个数字，表示武器的科技等级
+-- material: 一个Material枚举值，表示武器的材料
+-- rarity: 一个Rarity枚举值，表示武器的稀有度
+-- 返回值：
+-- 一个Weapon对象，表示生成的螺栓武器
 function WeaponGenerator.generateBolter(rand, dps, tech, material, rarity)
+    -- 创建一个Weapon对象，并将其赋值给局部变量weapon
     local weapon = Weapon()
+    -- 调用Weapon对象的setProjectile方法，设置武器为发射弹射物的类型
     weapon:setProjectile()
 
+    -- 使用rand对象的getFloat方法，生成一个0.1到0.3之间的随机数，作为武器的开火间隔，并赋值给局部变量fireDelay
     local fireDelay = rand:getFloat(0.1, 0.3)
+    -- 使用rand对象的getFloat方法，生成一个650到700之间的随机数，作为武器的射程，并赋值给weapon对象的reach属性
     local reach = rand:getFloat(650, 700)
+    -- 计算武器的单次伤害，等于每秒伤害乘以开火间隔，并赋值给局部变量damage
     local damage = dps * fireDelay
+    -- 使用rand对象的getFloat方法，生成一个800到1000之间的随机数，作为弹射物的速度，并赋值给局部变量velocity
     local velocity = rand:getFloat(800, 1000)
+    -- 计算弹射物的最大飞行时间，等于射程除以速度，并赋值给局部变量maximumTime
     local maximumTime = reach / velocity
 
+    -- 将弹射物的速度赋值给weapon对象的pvelocity属性
     weapon.pvelocity = velocity
+    -- 将开火间隔赋值给weapon对象的fireDelay属性
     weapon.fireDelay = fireDelay
+    -- 将射程赋值给weapon对象的reach属性
     weapon.reach = reach
+    -- 使用rand对象的getInt方法，生成一个随机整数，作为武器的外观种子，并赋值给weapon对象的appearanceSeed属性
     weapon.appearanceSeed = rand:getInt()
+    -- 将WeaponAppearance.Bolter枚举值赋值给weapon对象的appearance属性，表示武器的外观类型为螺栓武器
     weapon.appearance = WeaponAppearance.Bolter
+    -- 将"Bolter /* Weapon Name*/"%_T字符串赋值给weapon对象的name属性，表示武器的名称为螺栓武器
     weapon.name = "Bolter /* Weapon Name*/"%_T
+    -- 将"Bolter /* Weapon Prefix*/"%_T字符串赋值给weapon对象的prefix属性，表示武器的前缀为螺栓
     weapon.prefix = "Bolter /* Weapon Prefix*/"%_T
+    -- 将"data/textures/icons/bolter.png"字符串赋值给weapon对象的icon属性，表示武器的图标文件路径
     weapon.icon = "data/textures/icons/bolter.png" -- previously sentry-gun.png
+    -- 将"bolter"字符串赋值给weapon对象的sound属性，表示武器的开火音效
     weapon.sound = "bolter"
+    -- 使用rand对象的getFloat方法，生成一个0到0.03之间的随机数，从0.99中减去，作为武器的精度，并赋值给weapon对象的accuracy属性
     weapon.accuracy = 0.99 - rand:getFloat(0, 0.03)
 
+    -- 将单次伤害赋值给weapon对象的damage属性
     weapon.damage = damage
+    -- 将DamageType.AntiMatter枚举值赋值给weapon对象的damageType属性，表示武器的伤害类型为反物质
     weapon.damageType = DamageType.AntiMatter
+    -- 将ImpactParticles.Physical枚举值赋值给weapon对象的impactParticles属性，表示武器的碰撞粒子效果为物理
     weapon.impactParticles = ImpactParticles.Physical
+    -- 将1赋值给weapon对象的impactSound属性，表示武器的碰撞音效
     weapon.impactSound = 1
 
     -- 100 % chance for antimatter
+    -- 100%的概率为武器添加反物质伤害
+    -- 调用WeaponGenerator表的addAntiMatterDamage方法，传入rand, weapon, rarity, 2.5, 0.15, 0.2，根据稀有度和一些系数为武器添加反物质伤害
     WeaponGenerator.addAntiMatterDamage(rand, weapon, rarity, 2.5, 0.15, 0.2)
 
+    -- 使用rand对象的getFloat方法，生成一个0.15到0.25之间的随机数，作为弹射物的大小，并赋值给weapon对象的psize属性
     weapon.psize = rand:getFloat(0.15, 0.25)
+    -- 将弹射物的最大飞行时间赋值给weapon对象的pmaximumTime属性
     weapon.pmaximumTime = maximumTime
+    -- 创建一个Color对象，并将其赋值给局部变量color
     local color = Color()
+    -- 调用Color对象的setHSV方法，使用rand对象的getFloat方法生成一个10到60之间的随机数，以及0.7和1作为参数，设置color对象的颜色为一个随机的黄色
     color:setHSV(rand:getFloat(10, 60), 0.7, 1)
+    -- 将color对象赋值给weapon对象的pcolor属性，表示弹射物的颜色
     weapon.pcolor = color
 
+    -- 使用rand对象的test方法，以0.05的概率判断是否为武器添加多发特性
     if rand:test(0.05) then
+        -- 定义一个局部变量shots，是一个包含2, 2, 2, 2, 2, 3, 4的表，表示可能的多发数量
         local shots = {2, 2, 2, 2, 2, 3, 4}
+        -- 使用rand对象的getInt方法，生成一个1到表长度之间的随机整数，作为索引，从shots表中取出一个值，赋值给weapon对象的shotsFired属性，表示武器的每次开火发射的弹射物数量
         weapon.shotsFired = shots[rand:getInt(1, #shots)]
+        -- 将武器的单次伤害乘以1.5，再除以多发数量，重新赋值给weapon对象的damage属性，表示武器的每个弹射物的伤害
         weapon.damage = weapon.damage * 1.5 / weapon.shotsFired
     end
 
+    -- 调用WeaponGenerator表的adaptWeapon方法，传入rand, weapon, tech, material, rarity，根据科技等级，材料和稀有度调整武器的属性
     WeaponGenerator.adaptWeapon(rand, weapon, tech, material, rarity)
+
+    -- 将武器的伤害
 
     weapon.recoil = weapon.damage * 16
 
