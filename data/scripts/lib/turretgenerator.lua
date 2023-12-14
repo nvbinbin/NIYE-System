@@ -1,45 +1,92 @@
+-- 设置包路径，添加data/scripts/lib目录下的所有lua文件
 package.path = package.path .. ";data/scripts/lib/?.lua"
 
+-- 引入galaxy模块，用于处理银河系相关的数据和函数
 include("galaxy")
+-- 引入randomext模块，用于生成随机数和概率分布
 include("randomext")
+-- 引入weapongenerator模块，用于生成武器
 local WeaponGenerator = include ("weapongenerator")
+-- 引入weapontype模块，用于定义武器的类型和属性
 include("weapontype")
 
+-- 定义一个TurretGenerator表，用于存放炮塔生成器的函数和数据
 local TurretGenerator =  {}
 
+-- 定义一个generatorFunction表，用于存放不同类型武器的生成函数
 local generatorFunction = {}
 
+-- 定义一个generateSeeded函数，用于根据给定的种子和参数生成一个炮塔
+-- 参数：
+-- seed: 一个整数，用于初始化随机数生成器
+-- weaponType: 一个WeaponType枚举值，表示武器的类型
+-- dps: 一个数字，表示武器的每秒伤害
+-- tech: 一个数字，表示武器的科技等级
+-- rarity: 一个Rarity枚举值，表示武器的稀有度
+-- material: 一个Material枚举值，表示武器的材质
+-- coaxialAllowed: 一个布尔值，表示武器是否允许同轴模式
+-- 返回值：
+-- 一个Turret对象，表示生成的炮塔
 function TurretGenerator.generateSeeded(seed, weaponType, dps, tech, rarity, material, coaxialAllowed)
+    -- 调用generateTurret函数，传入一个Random对象和其他参数，返回生成的炮塔
     return TurretGenerator.generateTurret(Random(seed), weaponType, dps, tech, material, rarity, coaxialAllowed)
 end
 
+-- 定义一个generateTurret函数，用于根据给定的随机数生成器和参数生成一个炮塔
+-- 参数：
+-- rand: 一个Random对象，用于生成随机数
+-- type: 一个WeaponType枚举值，表示武器的类型
+-- dps: 一个数字，表示武器的每秒伤害
+-- tech: 一个数字，表示武器的科技等级
+-- material: 一个Material枚举值，表示武器的材质
+-- rarity: 一个Rarity枚举值，表示武器的稀有度
+-- coaxialAllowed: 一个布尔值，表示武器是否允许同轴模式
+-- 返回值：
+-- 一个Turret对象，表示生成的炮塔
 function TurretGenerator.generateTurret(rand, type, dps, tech, material, rarity, coaxialAllowed)
+    -- 如果rarity参数为空，则根据一个概率分布生成一个Rarity枚举值
     if rarity == nil then
+        -- 调用rand的getValueOfDistribution函数，传入6个数字作为权重，返回一个1到6的整数
         local index = rand:getValueOfDistribution(32, 32, 16, 8, 4, 1)
+        -- 根据index的值，创建一个Rarity枚举值，注意index要减1，因为Rarity的值从0开始
         rarity = Rarity(index - 1)
     end
 
+    -- 如果coaxialAllowed参数为空，则默认为true
     if coaxialAllowed == nil then coaxialAllowed = true end
 
-    return generatorFunction[type](rand, dps, tech, material, rarity, coaxialAllowed)
+    -- 从generatorFunction表中根据type的值，获取对应的武器生成函数
+    -- 调用该函数，传入rand和其他参数，返回生成的炮塔
+    return generatorFunctiontype
 end
 
 
+-- 定义一个scales表，用于存放不同类型武器的尺寸和占用槽位的规则
 local scales = {}
+-- 为WeaponType.ChainGun类型的武器设置规则
+-- 规则是一个表的列表，每个表包含四个字段：from, to, size, usedSlots
+-- from和to表示科技等级的范围，size表示武器的尺寸，usedSlots表示武器占用的槽位数
+-- 例如，{from = 0, to = 15, size = 0.5, usedSlots = 1}表示科技等级在0到15之间的武器，尺寸为0.5，占用1个槽位
 scales[WeaponType.ChainGun] = {
     {from = 0, to = 15, size = 0.5, usedSlots = 1},
     {from = 16, to = 31, size = 1.0, usedSlots = 2},
     {from = 32, to = 52, size = 1.5, usedSlots = 3},
 }
 
+-- 为WeaponType.PointDefenseChainGun类型的武器设置规则
+-- 规则只有一项，表示科技等级在0到52之间的武器，尺寸为0.5，占用1个槽位
 scales[WeaponType.PointDefenseChainGun] = {
     {from = 0, to = 52, size = 0.5, usedSlots = 1},
 }
 
+-- 为WeaponType.PointDefenseLaser类型的武器设置规则
+-- 规则只有一项，表示科技等级在0到52之间的武器，尺寸为0.5，占用1个槽位
 scales[WeaponType.PointDefenseLaser] = {
     {from = 0, to = 52, size = 0.5, usedSlots = 1},
 }
 
+-- 为WeaponType.Bolter类型的武器设置规则
+-- 规则有四项，分别表示科技等级在0到18，19到33，34到45，46到52之间的武器，尺寸分别为0.5，1.0，1.5，2.0，占用槽位分别为1，2，3，4
 scales[WeaponType.Bolter] = {
     {from = 0, to = 18, size = 0.5, usedSlots = 1},
     {from = 19, to = 33, size = 1.0, usedSlots = 2},
@@ -47,6 +94,8 @@ scales[WeaponType.Bolter] = {
     {from = 46, to = 52, size = 2.0, usedSlots = 4},
 }
 
+-- 为WeaponType.Laser类型的武器设置规则
+-- 规则有五项，分别表示科技等级在0到24，25到35，36到46，47到49，50到52之间的武器，尺寸分别为0.5，1.0，1.5，2.0，3.5，占用槽位分别为1，2，3，4，6
 scales[WeaponType.Laser] = {
     {from = 0, to = 24, size = 0.5, usedSlots = 1},
     {from = 25, to = 35, size = 1.0, usedSlots = 2},
@@ -55,6 +104,8 @@ scales[WeaponType.Laser] = {
     {from = 50, to = 52, size = 3.5, usedSlots = 6},
 }
 
+-- 为WeaponType.MiningLaser类型的武器设置规则
+-- 规则有五项，分别表示科技等级在0到12，13到25，26到35，36到45，46到52之间的武器，尺寸分别为0.5，1.0，1.5，2.5，3.0，占用槽位分别为1，2，3，4，5
 scales[WeaponType.MiningLaser] = {
     {from = 0, to = 12, size = 0.5, usedSlots = 1},
     {from = 13, to = 25, size = 1.0, usedSlots = 2},
@@ -62,8 +113,12 @@ scales[WeaponType.MiningLaser] = {
     {from = 36, to = 45, size = 2.5, usedSlots = 4},
     {from = 46, to = 52, size = 3.0, usedSlots = 5},
 }
+-- 为WeaponType.RawMiningLaser类型的武器设置规则
+-- 规则和WeaponType.MiningLaser类型的武器相同，直接引用scales[WeaponType.MiningLaser]
 scales[WeaponType.RawMiningLaser] = scales[WeaponType.MiningLaser]
 
+-- 为WeaponType.SalvagingLaser类型的武器设置规则
+-- 规则有五项，分别表示科技等级在0到12，13到25，26到35，36到45，46到52之间的武器，尺寸分别为0.5，1.0，1.5，2.5，3.0，占用槽位分别为1，2，3，4，5
 scales[WeaponType.SalvagingLaser] = {
     {from = 0, to = 12, size = 0.5, usedSlots = 1},
     {from = 13, to = 25, size = 1.0, usedSlots = 2},
@@ -71,8 +126,12 @@ scales[WeaponType.SalvagingLaser] = {
     {from = 36, to = 45, size = 2.5, usedSlots = 4},
     {from = 46, to = 52, size = 3.0, usedSlots = 5},
 }
+-- 为WeaponType.RawSalvagingLaser类型的武器设置规则
+-- 规则和WeaponType.SalvagingLaser类型的武器相同，直接引用scales[WeaponType.SalvagingLaser]
 scales[WeaponType.RawSalvagingLaser] = scales[WeaponType.SalvagingLaser]
 
+-- 为WeaponType.PlasmaGun类型的武器设置规则
+-- 规则有四项，分别表示科技等级在0到30，31到39，40到48，49到52之间的武器，尺寸分别为0.5，1.0，1.5，2.0，占用槽位分别为1，2，3，4
 scales[WeaponType.PlasmaGun] = {
     {from = 0, to = 30, size = 0.5, usedSlots = 1},
     {from = 31, to = 39, size = 1.0, usedSlots = 2},
@@ -80,6 +139,8 @@ scales[WeaponType.PlasmaGun] = {
     {from = 49, to = 52, size = 2.0, usedSlots = 4},
 }
 
+-- 为WeaponType.RocketLauncher类型的武器设置规则
+-- 规则有四项，分别表示科技等级在0到32，33到40，41到48，49到52之间的武器，尺寸分别为1.0，1.5，2.0，3.0，占用槽位分别为2，3，4，5
 scales[WeaponType.RocketLauncher] = {
     {from = 0, to = 32, size = 1.0, usedSlots = 2},
     {from = 33, to = 40, size = 1.5, usedSlots = 3},
@@ -87,6 +148,9 @@ scales[WeaponType.RocketLauncher] = {
     {from = 49, to = 52, size = 3.0, usedSlots = 5},
 }
 
+-- 为WeaponType.Cannon类型的武器设置规则
+-- 规则有四项，分别表示科技等级在0到28，29到38，39到49，50到52之间的武器，尺寸分别为1.5，2.0，3.0，3.5，占用槽位分别为3，4，5，6
+-- 注意，最后一项是为同轴模式的武器设置的，尺寸和科技等级都比正常的武器高1
 scales[WeaponType.Cannon] = {
     {from = 0, to = 28, size = 1.5, usedSlots = 3},
     {from = 29, to = 38, size = 2.0, usedSlots = 4},
@@ -95,6 +159,9 @@ scales[WeaponType.Cannon] = {
     {from = 50, to = 52, size = 3.5, usedSlots = 6},
 }
 
+-- 为WeaponType.RailGun类型的武器设置规则
+-- 规则有五项，分别表示科技等级在0到28，29到35，36到42，43到49，50到52之间的武器，尺寸分别为1.0，1.5，2.0，3.0，3.5，占用槽位分别为2，3，4，5，6
+-- 注意，最后一项是为同轴模式的武器设置的，尺寸和科技等级都比正常的武器高1
 scales[WeaponType.RailGun] = {
     {from = 0, to = 28, size = 1.0, usedSlots = 2},
     {from = 29, to = 35, size = 1.5, usedSlots = 3},
@@ -104,12 +171,17 @@ scales[WeaponType.RailGun] = {
     {from = 50, to = 52, size = 3.5, usedSlots = 6},
 }
 
+-- 为WeaponType.RepairBeam类型的武器设置规则
+-- 规则有三项，分别表示科技等级在0到28，29到40，41到52之间的武器，尺寸分别为0.5，1.0，1.5，占用槽位分别为1，2，3
 scales[WeaponType.RepairBeam] = {
     {from = 0, to = 28, size = 0.5, usedSlots = 1},
     {from = 29, to = 40, size = 1.0, usedSlots = 2},
     {from = 41, to = 52, size = 1.5, usedSlots = 3},
 }
 
+-- 为WeaponType.LightningGun类型的武器设置规则
+-- 规则有五项，分别表示科技等级在0到36，37到42，43到46，47到50，51到52之间的武器，尺寸分别为1.0，1.5，2.0，3.0，3.5，占用槽位分别为2，3，4，5，6
+-- 注意，最后一项是为同轴模式的武器设置的，尺寸和科技等级都比正常的武器高1
 scales[WeaponType.LightningGun] = {
     {from = 0, to = 36, size = 1.0, usedSlots = 2},
     {from = 37, to = 42, size = 1.5, usedSlots = 3},
@@ -119,6 +191,8 @@ scales[WeaponType.LightningGun] = {
     {from = 51, to = 52, size = 3.5, usedSlots = 6},
 }
 
+-- 为WeaponType.TeslaGun类型的武器设置规则
+-- 规则有四项，分别表示科技等级在0到25，26到36，37到49，50到52之间的武器，尺寸分别为0.5，1.0，1.5，3.5，占用槽位分别为1，2，3，6
 scales[WeaponType.TeslaGun] = {
     {from = 0, to = 25, size = 0.5, usedSlots = 1},
     {from = 26, to = 36, size = 1.0, usedSlots = 2},
@@ -126,6 +200,8 @@ scales[WeaponType.TeslaGun] = {
     {from = 50, to = 52, size = 3.5, usedSlots = 6},
 }
 
+-- 为WeaponType.ForceGun类型的武器设置规则
+-- 规则有四项，分别表示科技等级在0到15，16到30，31到44，45到52之间的武器，尺寸分别为1.0，2.0，3.0，4.0，占用槽位分别为2，3，4，6
 scales[WeaponType.ForceGun] = {
     {from = 0, to = 15, size = 1.0, usedSlots = 2},
     {from = 16, to = 30, size = 2.0, usedSlots = 3},
@@ -133,6 +209,8 @@ scales[WeaponType.ForceGun] = {
     {from = 45, to = 52, size = 4.0, usedSlots = 6},
 }
 
+-- 为WeaponType.PulseCannon类型的武器设置规则
+-- 规则有四项，分别表示科技等级在0到25，26到36，37到47，48到52之间的武器，尺寸分别为0.5，1.0，1.5，2.0，占用槽位分别为1，2，3，4
 scales[WeaponType.PulseCannon] = {
     {from = 0, to = 25, size = 0.5, usedSlots = 1},
     {from = 26, to = 36, size = 1.0, usedSlots = 2},
@@ -140,122 +218,231 @@ scales[WeaponType.PulseCannon] = {
     {from = 48, to = 52, size = 2.0, usedSlots = 4},
 }
 
+-- 为WeaponType.AntiFighter类型的武器设置规则
+-- 规则只有一项，表示科技等级在0到52之间的武器，尺寸为0.5，占用1个槽位
 scales[WeaponType.AntiFighter] = {
     {from = 0, to = 52, size = 0.5, usedSlots = 1},
 }
 
 
+
+-- 定义一个dpsToRequiredCrew函数，用于根据武器的每秒伤害计算所需的船员数量
+-- 参数：
+-- dps: 一个数字，表示武器的每秒伤害
+-- 返回值：
+-- 一个整数，表示所需的船员数量
 function TurretGenerator.dpsToRequiredCrew(dps)
+    -- 根据一个公式计算所需的船员数量，向下取整
     local value = math.floor(1 + (dps / 1400))
+    -- 再加上一个最小值，最多为4，也要向下取整
     value = value + math.min(4, math.floor(dps / 100))
 
+    -- 返回计算结果
     return value
 end
 
+-- 定义一个attachWeapons函数，用于将武器附加到炮塔上
+-- 参数：
+-- rand: 一个Random对象，用于生成随机数
+-- turret: 一个Turret对象，表示要附加武器的炮塔
+-- weapon: 一个Weapon对象，表示要附加的武器
+-- numWeapons: 一个整数，表示要附加的武器数量
+-- 返回值：
+-- 无
 function TurretGenerator.attachWeapons(rand, turret, weapon, numWeapons)
+    -- 清除炮塔上原有的武器
     turret:clearWeapons()
 
+    -- 调用createWeaponPlaces函数，传入rand和numWeapons，返回一个位置的列表
     local places = {TurretGenerator.createWeaponPlaces(rand, numWeapons)}
 
+    -- 遍历位置列表，对每个位置
     for _, position in pairs(places) do
+        -- 将武器的本地位置设置为位置乘以炮塔的尺寸
         weapon.localPosition = position * turret.size
+        -- 将武器添加到炮塔上
         turret:addWeapon(weapon)
     end
 end
 
+-- 定义一个createWeaponPlaces函数，用于根据武器数量生成武器的位置
+-- 参数：
+-- rand: 一个Random对象，用于生成随机数
+-- numWeapons: 一个整数，表示武器的数量
+-- 返回值：
+-- 一个或多个vec3对象，表示武器的位置
 function TurretGenerator.createWeaponPlaces(rand, numWeapons)
+    -- 如果武器数量为1，则返回一个原点的位置
     if numWeapons == 1 then
         return vec3(0, 0, 0)
 
+    -- 如果武器数量为2，则根据一个随机的情况生成两个位置
     elseif numWeapons == 2 then
+        -- 生成一个0或1的随机整数，作为情况
         local case = rand:getInt(0, 1)
+        -- 生成一个0.1到0.4之间的随机浮点数，作为距离
         local dist = rand:getFloat(0.1, 0.4)
+        -- 如果情况为0，则返回两个位置，分别在x轴的正负方向上
         if case == 0 then
             return vec3(dist, 0, 0), vec3(-dist, 0, 0)
+        -- 如果情况为1，则返回两个位置，分别在y轴的正负方向上，同时加上0.2的偏移量
         else
             return vec3(0, dist + 0.2, 0), vec3(0, -dist + 0.2, 0)
         end
 
+    -- 如果武器数量为3，则根据一个随机的情况生成三个位置
     elseif numWeapons == 3 then
+        -- 生成一个0或1的随机整数，作为情况
         local case = rand:getInt(0, 1)
+        -- 如果情况为0，则返回三个位置，分别在x轴的正负方向上，以及y轴的正方向上
         if case == 0 then
             return vec3(0.4, 0, 0), vec3(0, 0.2, 0), vec3(-0.4, 0, 0)
+        -- 如果情况为1，则返回三个位置，分别在x轴的正负方向上，以及y轴的原点
         else
             return vec3(0.4, 0, 0), vec3(0, 0, 0), vec3(-0.4, 0, 0)
         end
 
+    -- 如果武器数量为4，则返回四个位置，分别在x轴和y轴的正负方向上，形成一个矩形
     elseif numWeapons == 4 then
         return vec3(0.4, -0.2, 0), vec3(-0.4, 0.2, 0), vec3(0.4, 0.2, 0), vec3(-0.4, -0.2, 0)
     end
 end
 
+
+-- 定义一个createStandardCooling函数，用于为炮塔设置标准的冷却方式
+-- 参数：
+-- turret: 一个Turret对象，表示要设置冷却方式的炮塔
+-- coolingTime: 一个数字，表示炮塔从最高热量降到0所需的时间，单位为秒
+-- shootingTime: 一个数字，表示炮塔从0热量升到最高热量所需的时间，单位为秒
+-- 返回值：
+-- 无
 function TurretGenerator.createStandardCooling(turret, coolingTime, shootingTime)
+    -- 调用turret的updateStaticStats函数，更新炮塔的静态属性，如每秒射击次数等
     turret:updateStaticStats()
 
+    -- 定义一个局部变量maxHeat，表示炮塔的最高热量，固定为10
     local maxHeat = 10
 
+    -- 根据coolingTime计算炮塔的冷却速率，即每秒降低的热量
+    -- 冷却速率必须小于加热速率，否则炮塔永远不会过热
     local coolingRate = maxHeat / coolingTime -- must be smaller than heating rate or the weapon will never overheat
+    -- 根据shootingTime计算炮塔的加热差值，即每秒增加的热量
     local heatDelta = maxHeat / shootingTime
+    -- 根据加热差值和冷却速率计算炮塔的加热速率，即每秒实际增加的热量
     local heatingRate = heatDelta + coolingRate
+    -- 根据加热速率和每秒射击次数计算炮塔的每次射击增加的热量
     local heatPerShot = heatingRate / turret.firingsPerSecond
 
+    -- 设置炮塔的冷却类型为CoolingType.Standard，表示标准冷却方式
     turret.coolingType = CoolingType.Standard
+    -- 设置炮塔的最高热量为maxHeat
     turret.maxHeat = maxHeat
+    -- 设置炮塔的每次射击增加的热量为heatPerShot，如果heatPerShot为空，则设置为0
     turret.heatPerShot = heatPerShot or 0
+    -- 设置炮塔的冷却速率为coolingRate，如果coolingRate为空，则设置为0
     turret.coolingRate = coolingRate or 0
 
 end
 
+-- 定义一个createBatteryChargeCooling函数，用于为炮塔设置电池充电的冷却方式
+-- 参数：
+-- turret: 一个Turret对象，表示要设置冷却方式的炮塔
+-- rechargeTime: 一个数字，表示炮塔从0充电到最大充电所需的时间，单位为秒
+-- shootingTime: 一个数字，表示炮塔从最大充电消耗到0所需的时间，单位为秒
+-- 返回值：
+-- 无
 function TurretGenerator.createBatteryChargeCooling(turret, rechargeTime, shootingTime)
+    -- 调用turret的updateStaticStats函数，更新炮塔的静态属性，如每秒射击次数等
     turret:updateStaticStats()
 
+    -- 定义一个局部变量maxCharge，表示炮塔的最大充电
     local maxCharge
+    -- 如果炮塔的每秒伤害大于0，则将最大充电设置为每秒伤害乘以10
     if turret.dps > 0 then
         maxCharge = turret.dps * 10
+    -- 否则，将最大充电设置为5
     else
         maxCharge = 5
     end
 
+    -- 根据rechargeTime计算炮塔的充电速率，即每秒增加的充电
+    -- 充电速率必须小于消耗速率，否则炮塔永远不会耗尽能量
     local rechargeRate = maxCharge / rechargeTime -- must be smaller than consumption rate or the weapon will never run out of energy
+    -- 根据shootingTime计算炮塔的消耗差值，即每秒减少的充电
     local consumptionDelta = maxCharge / shootingTime
+    -- 根据消耗差值和充电速率计算炮塔的消耗速率，即每秒实际减少的充电
     local consumptionRate = consumptionDelta + rechargeRate
 
+    -- 根据消耗速率和每秒射击次数计算炮塔的每次射击消耗的充电
     local consumptionPerShot = consumptionRate / turret.firingsPerSecond
 
+    -- 设置炮塔的冷却类型为CoolingType.BatteryCharge，表示电池充电方式
     turret.coolingType = CoolingType.BatteryCharge
+    -- 设置炮塔的最大热量为maxCharge，注意这里的热量实际上是充电
     turret.maxHeat = maxCharge
+    -- 设置炮塔的每次射击增加的热量为consumptionPerShot，注意这里的热量实际上是充电，如果consumptionPerShot为空，则设置为0
     turret.heatPerShot = consumptionPerShot or 0
+    -- 设置炮塔的冷却速率为rechargeRate，注意这里的冷却实际上是充电，如果rechargeRate为空，则设置为0
     turret.coolingRate = rechargeRate or 0
 end
 
+
+-- 定义一个scale函数，用于根据武器类型和科技等级调整炮塔的尺寸、槽位、转速和武器属性
+-- 参数：
+-- rand: 一个Random对象，用于生成随机数
+-- turret: 一个Turret对象，表示要调整的炮塔
+-- type: 一个WeaponType枚举值，表示武器的类型
+-- tech: 一个数字，表示武器的科技等级
+-- turnSpeedFactor: 一个数字，表示炮塔转速的系数
+-- coaxialPossible: 一个布尔值，表示炮塔是否可以是同轴的，默认为true
+-- 返回值：
+-- 一个数字，表示炮塔的实际科技等级
 function TurretGenerator.scale(rand, turret, type, tech, turnSpeedFactor, coaxialPossible)
+    -- 如果coaxialPossible参数为空，则将其设置为true
+    -- 避免使用coaxialPossible = coaxialPossible or true，因为这样会把false也设置为true
     if coaxialPossible == nil then coaxialPossible = true end -- avoid coaxialPossible = coaxialPossible or true, as it will set it to true if "false" is passed
 
+    -- 定义一个局部变量scaleTech，表示用于计算炮塔尺寸的科技等级，初始值为tech
     local scaleTech = tech
+    -- 以50%的概率，将scaleTech设置为1到tech之间的一个随机整数
     if rand:test(0.5) then
         scaleTech = math.floor(math.max(1, scaleTech * rand:getFloat(0, 1)))
     end
 
+    -- 调用TurretGenerator的getScale函数，传入type和scaleTech，返回一个尺寸对象和一个科技等级
     local scale, lvl = TurretGenerator.getScale(type, scaleTech)
 
+    -- 如果coaxialPossible为true，则根据尺寸对象的usedSlots属性和一个随机数判断炮塔是否为同轴的
+    -- 如果usedSlots大于等于5，并且随机数小于0.25，则炮塔为同轴的
     if coaxialPossible then
         turret.coaxial = (scale.usedSlots >= 5) and rand:test(0.25)
+    -- 如果coaxialPossible为false，则炮塔不为同轴的
     else
         turret.coaxial = false
     end
 
+    -- 设置炮塔的尺寸为尺寸对象的size属性
     turret.size = scale.size
+    -- 设置炮塔的槽位为尺寸对象的usedSlots属性
     turret.slots = scale.usedSlots
+    -- 设置炮塔的转速为炮塔尺寸、turnSpeedFactor和一个随机数的乘积
+    -- 炮塔尺寸越大，转速越低
     turret.turningSpeed = lerp(turret.size, 0.5, 3, 1, 0.5) * rand:getFloat(0.8, 1.2) * turnSpeedFactor
 
+    -- 定义一个局部变量coaxialDamageScale，表示同轴武器的伤害系数
+    -- 如果炮塔为同轴的，则为3，否则为1
     local coaxialDamageScale = turret.coaxial and 3 or 1
 
+    -- 调用turret的getWeapons函数，返回一个武器对象的列表
     local weapons = {turret:getWeapons()}
+    -- 遍历武器列表，对每个武器对象
     for _, weapon in pairs(weapons) do
+        -- 将武器的本地位置乘以炮塔的尺寸
         weapon.localPosition = weapon.localPosition * scale.size
 
+        -- 如果尺寸对象的usedSlots属性大于1，则根据usedSlots和coaxialDamageScale调整武器的各项属性
         if scale.usedSlots > 1 then
-            -- scale damage, etc. linearly with amount of used slots
+            -- 线性地调整武器的伤害、修复、力量等属性
             if weapon.damage ~= 0 then
                 weapon.damage = weapon.damage * scale.usedSlots * coaxialDamageScale
             end
@@ -280,80 +467,116 @@ function TurretGenerator.scale(rand, turret, type, tech, turnSpeedFactor, coaxia
                 weapon.holdingForce = weapon.holdingForce * scale.usedSlots * coaxialDamageScale
             end
 
+            -- 定义一个局部变量increase，表示武器的射程增加的比例
             local increase = 0
+            -- 如果武器类型为采矿激光或拆解激光，则射程增加的比例更大
             if type == WeaponType.MiningLaser or type == WeaponType.SalvagingLaser then
+                -- 采矿和拆解激光的射程增加的比例为尺寸对象的size属性加上0.5再减去1
                 -- mining and salvaging laser reach is scaled more
                 increase = (scale.size + 0.5) - 1
+            -- 如果武器类型为其他，则射程增加的比例较小
             else
+                -- 其他类型的武器的射程增加的比例为尺寸对象的usedSlots属性减去1再乘以0.15
                 -- scale reach a little
                 increase = (scale.usedSlots - 1) * 0.15
             end
 
+            -- 将武器的射程乘以1加上increase
             weapon.reach = weapon.reach * (1 + increase)
 
+            -- 定义一个局部变量shotSizeFactor，表示武器的射击大小的系数，为尺寸对象的size属性乘以2
             local shotSizeFactor = scale.size * 2
+            -- 如果武器是弹射物，则调整弹射物的大小和速度
             if weapon.isProjectile then
+                -- 定义一个局部变量velocityIncrease，表示弹射物的速度增加的比例，为尺寸对象的usedSlots属性减去1再乘以0.25
                 local velocityIncrease = (scale.usedSlots - 1) * 0.25
 
+                -- 将弹射物的大小乘以shotSizeFactor
                 weapon.psize = weapon.psize * shotSizeFactor
+                -- 将弹射物的速度乘以1加上velocityIncrease
                 weapon.pvelocity = weapon.pvelocity * (1 + velocityIncrease)
             end
+            -- 如果武器是光束，则调整光束的宽度
             if weapon.isBeam then weapon.bwidth = weapon.bwidth * shotSizeFactor end
         end
     end
 
+    -- 调用turret的clearWeapons函数，清除炮塔上的武器
     turret:clearWeapons()
+    -- 遍历武器列表，对每个武器对象
     for _, weapon in pairs(weapons) do
+        -- 调用turret的addWeapon函数，将武器添加到炮塔上
         turret:addWeapon(weapon)
     end
 
+    -- 返回科技等级
     return lvl
 end
 
+
+-- 定义一个getScale函数，用于根据武器类型和科技等级获取炮塔的尺寸对象和等级
+-- 参数：
+-- type: 一个WeaponType枚举值，表示武器的类型
+-- tech: 一个数字，表示武器的科技等级
+-- 返回值：
+-- 一个尺寸对象，包含from, to, size, usedSlots四个属性，分别表示科技等级的范围，炮塔的尺寸和槽位
+-- 一个数字，表示炮塔的等级
 function TurretGenerator.getScale(type, tech)
+    -- 遍历scales表中type对应的子表，每个子表是一个尺寸对象，同时记录其等级
     for lvl, scale in pairs(scales[type]) do
+        -- 如果tech在尺寸对象的from和to之间，则返回该尺寸对象和等级
         if tech >= scale.from and tech <= scale.to then return scale, lvl end
     end
 
+    -- 如果没有找到合适的尺寸对象，则返回一个默认的尺寸对象
     return {from = 0, to = 0, size = 1, usedSlots = 1}
 end
 
 
+-- 定义一个局部变量i，初始值为0
 local i = 0
+-- 定义一个局部函数c，用于返回i的值并将i加1
 local function c() i = i + 1 return i end
 
+-- 定义一个Specialty表，用于存储不同的武器特性
 local Specialty =
 {
-    HighDamage = c(),
-    HighRange = c(),
-    HighFireRate = c(),
-    HighAccuracy = c(),
-    BurstFireEnergy = c(),
-    BurstFire = c(),
-    HighEfficiency = c(), -- only applicable to salvage and mining laser
-    HighShootingTime = c(),
-    LessEnergyConsumption = c(),
-    IonizedProjectile = c(),
+    HighDamage = c(), -- 高伤害
+    HighRange = c(), -- 高射程
+    HighFireRate = c(), -- 高射速
+    HighAccuracy = c(), -- 高精度
+    BurstFireEnergy = c(), -- 能量爆发
+    BurstFire = c(), -- 物理爆发
+    HighEfficiency = c(), -- 高效率，只适用于采矿和拆解激光
+    HighShootingTime = c(), -- 高射击时间
+    LessEnergyConsumption = c(), -- 低能耗
+    IonizedProjectile = c(), -- 离子弹射物
 }
 
+-- 将i和c设置为nil，释放内存
 i = nil
 c = nil
 
+-- 将Specialty表赋值给TurretGenerator的Specialty属性，方便其他模块使用
 TurretGenerator.Specialty = Specialty
 
+-- 定义一个局部变量possibleSpecialties，用于存储不同类型的武器可能拥有的特性和概率
 local possibleSpecialties = {}
+-- 激光武器可能拥有低能耗，高伤害，高射程三种特性，各自的概率为0.2，0.25，0.2
 possibleSpecialties[WeaponType.Laser] = {
     {specialty = Specialty.LessEnergyConsumption, probability = 0.2},
     {specialty = Specialty.HighDamage, probability = 0.25},
     {specialty = Specialty.HighRange, probability = 0.2},
 }
 
+-- 特斯拉武器可能拥有低能耗，高伤害，高射程三种特性，各自的概率为0.2，0.2，0.1
 possibleSpecialties[WeaponType.TeslaGun] = {
     {specialty = Specialty.LessEnergyConsumption, probability = 0.2},
     {specialty = Specialty.HighDamage, probability = 0.2},
     {specialty = Specialty.HighRange, probability = 0.1},
 }
 
+-- 闪电武器可能拥有低能耗，高伤害，高射程，高射速，高精度五种特性，各自的概率为0.15，0.15，0.2，0.2，0.15
 possibleSpecialties[WeaponType.LightningGun] = {
     {specialty = Specialty.LessEnergyConsumption, probability = 0.15},
     {specialty = Specialty.HighDamage, probability = 0.15},
@@ -362,26 +585,32 @@ possibleSpecialties[WeaponType.LightningGun] = {
     {specialty = Specialty.HighAccuracy, probability = 0.15},
 }
 
+-- 采矿激光武器可能拥有高效率，高伤害，高射程三种特性，各自的概率为0.3，0.1，0.1
 possibleSpecialties[WeaponType.MiningLaser] = {
     {specialty = Specialty.HighEfficiency, probability = 0.3},
     {specialty = Specialty.HighDamage, probability = 0.1},
     {specialty = Specialty.HighRange, probability = 0.1},
 }
+-- 原始采矿激光武器和采矿激光武器的可能特性相同
 possibleSpecialties[WeaponType.RawMiningLaser] = possibleSpecialties[WeaponType.MiningLaser]
 
+-- 拆解激光武器可能拥有高效率，高伤害，高射程三种特性，各自的概率为0.3，0.1，0.1
 possibleSpecialties[WeaponType.SalvagingLaser] = {
     {specialty = Specialty.HighEfficiency, probability = 0.3},
     {specialty = Specialty.HighDamage, probability = 0.1},
     {specialty = Specialty.HighRange, probability = 0.1},
 }
+-- 原始拆解激光武器和拆解激光武器的可能特性相同
 possibleSpecialties[WeaponType.RawSalvagingLaser] = possibleSpecialties[WeaponType.SalvagingLaser]
 
+-- 修复光束武器可能拥有低能耗，高伤害，高射程三种特性，各自的概率为0.2，0.2，0.1
 possibleSpecialties[WeaponType.RepairBeam] = {
     {specialty = Specialty.LessEnergyConsumption, probability = 0.2},
     {specialty = Specialty.HighDamage, probability = 0.2},
     {specialty = Specialty.HighRange, probability = 0.1},
 }
 
+-- 等离子武器可能拥有低能耗，高伤害，高射速，高射程，高精度，能量爆发六种特性，各自的概率为0.2，0.1，0.1，0.1，0.1，0.1
 possibleSpecialties[WeaponType.PlasmaGun] = {
     {specialty = Specialty.LessEnergyConsumption, probability = 0.2},
     {specialty = Specialty.HighDamage, probability = 0.1},
@@ -391,6 +620,8 @@ possibleSpecialties[WeaponType.PlasmaGun] = {
     {specialty = Specialty.BurstFireEnergy, probability = 0.1},
 }
 
+
+-- 炮弹武器可能拥有高射击时间，高射程，高伤害，高精度四种特性，各自的概率为0.2，0.1，0.1，0.1
 possibleSpecialties[WeaponType.Cannon] = {
     {specialty = Specialty.HighShootingTime, probability = 0.2},
     {specialty = Specialty.HighRange, probability = 0.1},
@@ -398,6 +629,7 @@ possibleSpecialties[WeaponType.Cannon] = {
     {specialty = Specialty.HighAccuracy, probability = 0.1},
 }
 
+-- 连发炮武器可能拥有高伤害，高射程，离子弹射物，高射速，高精度，物理爆发六种特性，各自的概率为0.1，0.1，0.05，0.2，0.2，0.1
 possibleSpecialties[WeaponType.ChainGun] = {
     {specialty = Specialty.HighDamage, probability = 0.1},
     {specialty = Specialty.HighRange, probability = 0.1},
@@ -407,14 +639,17 @@ possibleSpecialties[WeaponType.ChainGun] = {
     {specialty = Specialty.BurstFire, probability = 0.1},
 }
 
+-- 近防连发炮武器可能拥有高射程一种特性，概率为0.1
 possibleSpecialties[WeaponType.PointDefenseChainGun] = {
     {specialty = Specialty.HighRange, probability = 0.1},
 }
 
+-- 近防激光武器可能拥有高射程一种特性，概率为0.1
 possibleSpecialties[WeaponType.PointDefenseLaser] = {
     {specialty = Specialty.HighRange, probability = 0.1},
 }
 
+-- 螺栓武器可能拥有高射击时间，高射速，高精度，高伤害，物理爆发，高射程六种特性，各自的概率为0.25，0.15，0.15，0.1，0.15，0.1
 possibleSpecialties[WeaponType.Bolter] = {
     {specialty = Specialty.HighShootingTime, probability = 0.25},
     {specialty = Specialty.HighFireRate, probability = 0.15},
@@ -424,6 +659,7 @@ possibleSpecialties[WeaponType.Bolter] = {
     {specialty = Specialty.HighRange, probability = 0.1},
 }
 
+-- 磁轨炮武器可能拥有高射击时间，高伤害，高射程，高精度，高射速五种特性，各自的概率为0.25，0.1，0.25，0.25，0.1
 possibleSpecialties[WeaponType.RailGun] = {
     {specialty = Specialty.HighShootingTime, probability = 0.25},
     {specialty = Specialty.HighDamage, probability = 0.1},
@@ -432,6 +668,7 @@ possibleSpecialties[WeaponType.RailGun] = {
     {specialty = Specialty.HighFireRate, probability = 0.10},
 }
 
+-- 火箭发射器武器可能拥有高射击时间，高伤害，高射速，高射程，物理爆发五种特性，各自的概率为0.2，0.15，0.15，0.25，0.1
 possibleSpecialties[WeaponType.RocketLauncher] = {
     {specialty = Specialty.HighShootingTime, probability = 0.2},
     {specialty = Specialty.HighDamage, probability = 0.15},
@@ -440,10 +677,12 @@ possibleSpecialties[WeaponType.RocketLauncher] = {
     {specialty = Specialty.BurstFire, probability = 0.1},
 }
 
+-- 推力枪武器可能拥有高射程一种特性，概率为0.2
 possibleSpecialties[WeaponType.ForceGun] = {
     {specialty = Specialty.HighRange, probability = 0.2},
 }
 
+-- 脉冲炮武器可能拥有高射击时间，高伤害，高射速，高精度，高射程，能量爆发六种特性，各自的概率为0.2，0.15，0.15，0.15，0.15，0.3
 possibleSpecialties[WeaponType.PulseCannon] = {
     {specialty = Specialty.HighShootingTime, probability = 0.2},
     {specialty = Specialty.HighDamage, probability = 0.15},
@@ -453,13 +692,23 @@ possibleSpecialties[WeaponType.PulseCannon] = {
     {specialty = Specialty.BurstFire, probability = 0.3},
 }
 
+-- 反战斗机武器可能拥有高射程，高射速，高伤害三种特性，各自的概率为0.1，0.1，0.1
 possibleSpecialties[WeaponType.AntiFighter] = {
     {specialty = Specialty.HighRange, probability = 0.1},
     {specialty = Specialty.HighFireRate, probability = 0.1},
     {specialty = Specialty.HighDamage, probability = 0.1},
 }
 
--- customSpecialties needs to be a table or nil
+
+-- 定义一个addSpecialties函数，用于为炮塔添加特性
+-- 参数：
+-- rand: 一个Random对象，用于生成随机数
+-- turret: 一个Turret对象，表示要添加特性的炮塔
+-- type: 一个WeaponType枚举值，表示武器的类型
+-- customSpecialties: 一个表或nil，表示自定义的特性和概率，如果不为空，则覆盖possibleSpecialties表中的内容
+-- forbiddenSpecialties: 一个表或nil，表示禁止的特性，如果不为空，则从possibleSpecialties表中排除这些特性
+-- 返回值：
+-- 无
 function TurretGenerator.addSpecialties(rand, turret, type, customSpecialties, forbiddenSpecialties)
 
     customSpecialties = customSpecialties or {}
