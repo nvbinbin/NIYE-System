@@ -4,7 +4,7 @@ include ("basesystem")
 include("utility")
 include("randomext")
 include("callable")
-
+include("churchtip")
 FixedEnergyRequirement = true
 
 --[[
@@ -12,82 +12,6 @@ FixedEnergyRequirement = true
 这里是顶级企业的函数库，使用include引用对游戏进行修改。
 
 ]]
-
-----------------------------------------------
--- 这段函数用于给暗金教会随机增加一个乱码描述XDD
-----------------------------------------------
-local chars = {
-    ["口"] = 2,
-    ["鍒"] = 0.5,
-    ["板"] = 0.5,
-    ["簳"] = 0.5,
-    ["浠"] = 0.5,
-    ["涔"] = 0.5,
-    ["堟"] = 0.5,
-    ["椂"] = 0.5,
-    ["鍊"] = 0.5,
-    ["椤"] = 0.5,
-    ["紑"] = 0.5,
-    ["03"] = 0.5,
-    ["15"] = 0.5,
-    ["16"] = 0.5,
-    ["18"] = 0.5,
-    ["20"] = 0.5,
-    ["05"] = 0.5,
-    ["24"] = 0.5,
-    ["??"] = 0.5,
-    ["锟"] = 0.5,
-    ["斤"] = 0.5,
-    ["拷"] = 0.5
-}
--- 获取权重信息
-function getMaxWeight(t)
-    local wt = {}
-    -- 初始化权重
-    local sum = 0
-    for k, v in pairs (t) do
-        sum = sum + v -- 累计权重
-        wt [sum] = k -- 以权重总和为键，元素为值，存入新表
-    end
-    wt.max = sum -- 记录权重
-    return wt
-end
-
--- 打印机
-function makeText(seed,num)
-    math.randomseed(seed)
-    local wt = getMaxWeight(chars)
-    -- 抽取字符
-    local result = {}
-    for i = 1, num do
-        local r = math.random (wt.max)
-        for k, v in pairs (wt) do
-            if r <= k then table.insert(result, v) end
-        end
-    end
-    -- 返回连接后的字符串
-    return table.concat(result)
-end
-
-function churchText(seed, tech)
-    math.randomseed(seed)
-    -- 暗金教会开始施法
-    local wt = {}
-    table.insert(wt, makeSerialNumber(seed, 2, nil, "-", "QWERTYUIOPASDFGHJKLZXCVBNM"))
-    table.insert(wt, makeSerialNumber(seed, 3, nil, "-", "1234567890"))
-    table.insert(wt, makeText(seed, 6))
-    table.insert(tech.text, table.concat(wt))
-end
--- 传入表单会增加性能开销
-function churchTip(texts, bonuses, ltext, rtext, icon, permanent)
-    if permanent then
-        table.insert(texts, {ltext = ltext, rtext = rtext, icon = icon})
-    else
-        table.insert(bonuses, {ltext = ltext, rtext = rtext, icon = icon})
-    end
-    return texts, bonuses
-end
------------------------------
 
 -- 企业为所有系统应用上新图标
 function makeIcon(name, tech)
@@ -167,45 +91,86 @@ end
         基础生产范围：紫色
 
     ]]
+--[[新企业
+
+]]
+
+local enters ={}
+local systemTable = {}
+local weaponTable = {}
+local enterpriseUid = 1000
+local entType = {
+    {"militaryEnterprise/*军工企业*/"%_t},
+    {"civilEnterprise/*民用企业*/"%_t},
+    {"HybridEnterprise/*混合企业*/"%_t}
+}
+local entSuffix = {
+    {"Enterprise/*企业*/"%_t}
+    {"Enterprise/*集团*/"%_t}
+}
+
+-- 参数顺序：企业的名字 企业的ID  ||  企业类型(1-3)  企业规模(1-5)  业务范围(1-3)  部门类型(1-4) 后缀(n)
+
+function creatorEnterprise(name, nameId, enterType, enterScale, enterWork, enterQuality, enterSuffix)
+    local ent = {}
+    ent.uid = enterpriseUid
+    ent.name = name
+    ent.nameId = nameId
+    ent.enterType = entType[enterType]
+    ent.enterScale = enterScale
+    ent.enterWork = enterWork
+    ent.enterQuality = enterQuality
+    ent.enterSuffix = entSuffix[enterSuffix]
+    enterpriseUid = enterpriseUid + 1
+    return ent
+end
+-- 格式：systemTable[系统名字] 概率  uid 最小等级  最大等级
+-- all = 全部，如果出现了 all + 指定，那么可能会随机2次
+function addSystem(t, prob, sys, minl, maxl)
+    local newProb = prob
+    if t.perfor[1].uid = 9901 then
+        newProb = 0.001
+    end
+    table.insert(systemTable[sys], {newProb, t.uid, minl, maxl})
+
+end
+
+  -- 3：混合企业  5：特殊规模  2：科技企业  1：盈利部门  2：集团
+local ent = creatorEnterprise("Tianfang Creation/*天创造物*/"%_t, "HEA", 3, 5, 2, 1, 2)
+--是否系统插件  产品ID   最小等级  最大等级
+ent.put = {
+    {true, "all", 3, 3}}
+ent.tip = {
+    {"Welcome to the functional expansion subsystem from Tianfang Creation/*欢迎使用来自 天堂造物 的功能拓展子系统*/"%_t}, 
+    {"Feel the peak technology blessing of the star sea/*感受星海的巅峰科技加持*/"%_t}}
+    ent.perfor = {
+        {name = "No longer produced/*不再生产*/"%_t, tip ="Probability fixed at one in a thousand/*出现概率固定为千分之一*/"%_t, type = 2},
+        {name = "Pioneer technology/*先驱科技*/"%_t, tip ="Minimum quality +100%/*最低品质+100%*/"%_t, type = 1},
+        {name = "Relic/*遗物*/"%_t, tip ="Final value +100%/*最终价值+100%*/"%_t, type = 0}}
+    ent.intro = "Tianchuang/*天创造物*/ is the leader in the research and development of system upgrade modules. They cooperated with a large number of institutions and spent countless resources to make the system upgrade modules come into being. However, such a legendary company disappeared in the star sea because of the rift, leaving only a small number of relics flowing in the star sea telling their history./*天创造物是系统升级模块的研发领头人，他们联合大量的机构花费了无数的资源才让系统升级模块得以诞生，而这样的传奇公司却因为裂隙消失在了星海，只剩下了少量的遗物流动在星海之中诉说着他们的历史。*/"%_t
+table.insert(enters, ent)
+
+
+local ent = {}
+ent.uid = 1001  ent.name = "Daqin Military/*大秦军工*/"%_t  ent.nameId = "QIN"  ent.enterType = "HybridEnterprise/*混合企业*/"%_t
+ent.enterScale = 3  ent.enterWork = 3  ent.enterQuality = 1  ent.enterSuffix = "Enterprise/*企业*/"%_t
+ent.put = {
+    {true, "militarytcs", 1, 2},
+    {false, "RailGun", 1, 3},
+    {false, "ChainGun", 1, 2}
+}
+ent.tip = {
+        {"Welcome to buy and use the products of Daqin Military/*欢迎购买并使用大秦军工的产品*/"%_t},
+        {"I haven't thought of what to write here yet/*我还没想好这里写什么*/"%_t}}
+ent.perfor = {{name = "Stable Quality Control/*稳定品控*/"%_t, tip = "Minimum Quality +10%/*最低品质+10%*/"%_t, type =1}}
+ent.intro = "Daqin Military Industry is one of the oldest enterprises in the galaxy, and was once a top-level technology enterprise alongside Tianfang Creation. After the rift cut off, Tianfang Creation disappeared, and Daqin Military Industry also declined. Even so, its heritage is still not to be underestimated./*大秦军工是星系中最古老的企业之一，曾是与天堂造物并齐的顶级科技企业。自裂隙隔断后天堂造物消失，大秦军工也因此没落，即便如此，其底蕴依旧不可小觑。*/"%_t
+table.insert(enters, ent)
+    
 
 function getEnterprise(seed, rarity, useType)
     math.randomseed(seed)
-    
-    
-    local enters ={}
-
-    local ent = {}
-    ent.uid = 1001  ent.name = "Daqin Military/*大秦军工*/"%_t  ent.nameId = "QIN"  ent.enterType = "HybridEnterprise/*混合企业*/"%_t
-    -- 企业规模         企业业务范围         企业品控               企业后缀
-    ent.enterScale = 3  ent.enterWork = 3  ent.enterQuality = 1  ent.enterSuffix = "Enterprise/*企业*/"
-    --是否系统插件  产品ID   最小等级  最大等级
-    ent.put = {
-        {true, "militarytcs", 1, 2},
-        {false, "RailGun", 1, 3},
-        {false, "ChainGun", 1, 2}
-    }
-    ent.tipLink = 2
-    ent.tip_1 = {"Welcome to buy and use the products of Daqin Military/*欢迎购买并使用大秦军工的产品*/"%_t}
-    ent.tip_2 = {"I haven't thought of what to write here yet/*我还没想好这里写什么*/"%_t}
-    ent.perfor = {{name = "Stable Quality Control/*稳定品控*/"%_t, tip = "Minimum Quality +10%/*最低品质+10%*/", type =1}}
-    
-    table.insert(enters, ent)
-
-
 
     local entes = {
-
-        {
-            uid = 1001, name = "天堂造物"%_t, nameId = "HEA", rarity = 3, quality = 5, type = 0,
-            sys = {"all",3,3},
-            wap = {"false"},
-            prob = 0.001, onlyPerm = false, coinFactor = 1.3, energyFactor = 1.2,
-            minRandom = 15, maxRandom = 100,
-
-            text = {"欢迎使用来自 天堂造物 的功能拓展子系统"%_t, "感受星海的巅峰科技加持"%_t},
-            perfor = {{name = "先驱者", type = 0}, {name = "遗物", type = 0}},
-            entry = {}
-        },
         {
             uid = 1002, name = "索坦逆向科技", nameId = "Xsotan", rarity = 3, quality = 5, type = 1,
             prob = 0.001, onlyPerm = false, coinFactor = 1.3, energyFactor = 1.2,
@@ -273,15 +238,6 @@ function getEnterprise(seed, rarity, useType)
             entry = {}
         },
         {
-            uid = 0803, name = "大秦军工", nameId = "QIN", rarity = 1, quality = 4, type = 1,
-            prob = 0.04, onlyPerm = false, coinFactor = 1.1, energyFactor = 1.05,
-            minRandom = 10, maxRandom = 100,
-
-            text = {"欢迎购买并使用我们的外贸产品"},
-            perfor = {},
-            entry = {}
-        },
-        {
             uid = 0804, name = "惠民企业", nameId = "HM", rarity = 1, quality = 4, type = 2,
             prob = 0.04, onlyPerm = false, coinFactor = 1.1, energyFactor = 1.05,
             minRandom = 10, maxRandom = 100,
@@ -335,6 +291,11 @@ function getEnterprise(seed, rarity, useType)
      return tech
 
 end
+
+
+
+
+
 
 function getGrade(dist, tech,num) 
      if tech.uid == 0902 then return "错误" end -- 直接返回
