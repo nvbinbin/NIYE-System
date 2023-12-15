@@ -59,6 +59,7 @@ end
         基础价格倍率：110%
         基础能量倍率：120%
         基础生产范围：红色
+        基础质量范围：10 - 100
 
         2.科研目的的活动部门；此类部门主要是为了更高技术的装备系统生产。他们拥有非常稳定的品控，但是售价和出现的概率都比较高。
         常规名称：研究所；科研所；
@@ -69,6 +70,7 @@ end
         基础价格倍率：125%
         基础能量倍率：110%
         基础生产范围：紫色
+        基础质量范围：15 - 100
 
         3.这是以定制的化为主活动部门，他们往往只生产高品质产品，这就导致了此类物品在市场上的流通极为罕见。
         常规名称：工程部，会议，彩蛋
@@ -79,6 +81,7 @@ end
         基础价格倍率：145%
         基础能量倍率：100%
         基础生产范围：紫色
+        基础质量范围：20 - 105
 
         4.暗金教会，这是暗金教会的东西，因为很少流通并且数值也被加密，所以很难定价。
         常规名称：教会
@@ -89,6 +92,7 @@ end
         基础价格倍率：50%
         基础能量倍率：110%
         基础生产范围：紫色
+        基础质量范围：0 - 100
 
     ]]
 --[[新企业
@@ -108,6 +112,21 @@ local entSuffix = {
     {"Enterprise/*企业*/"%_t}
     {"Enterprise/*集团*/"%_t}
 }
+local effectTable = {}
+-- Translation: -- 0 - 999 :Reserved
+-- 1000 - 1999：Positive:1
+effectTable[1000] = {type = 1, name = "Pioneer technology/*先驱科技*/"%_t, tip ="Only the highest quality will appear/*只会出现最高品质*/"%_t,  tip ="This is the crystallization of civilization's technology./*这是文明的科技结晶。*/"%_t, effect = "minQuality", value = 999}
+-- 2000 - 2999：Neutral:2
+effectTable[2000] = {type = 2, name = "Relic/*遗物*/"%_t, tip ="Final value +100%/*最终价值+100%*/"%_t, tip ="This product has a very high collection value./*这件商品拥有非常高的收藏价值。*/"%_t, effect = "money", value = 1}
+-- 3000 - 3999：Negative:3
+effectTable[3000] = {type = 3, name = "Reverse technology/*逆向科技*/"%_t, tip ="Maximum quality -5%/*最高品质-5%*/"%_t,  tip ="We can't bring out its full potential./*我们无法发挥出他应有的效果。*/"%_t, effect = "maxQuality", value = -0.05}
+-- 9000 - 9999：Because of the function needs to judge: must be in the first position
+effectTable[9000] = {type = 3, name = "Lost enterprise/*失落企业*/"%_t, tip ="Fixed 1‰ appearance probability/*固定1‰出现概率*/"%_t, tip = "This enterprise disappeared in the long river of history./*这个企业消失在了历史的长河当中。*/"%_t}
+effectTable[9001] = {type = 3, name = "As sparse as morning stars/*寥若晨星*/"%_t, tip ="Appearance probability -100%/*出现概率-100%*/"%_t, tip = "This enterprise usually does not sell their products to the outside world./*这个企业通常不对外出售他们的商品。*/"%_t}
+effectTable[9002] = {type = 1, name = "Emerging enterprise/*新兴企业*/"%_t, tip ="Appearance probability +50%/*出现概率+50%*/"%_t, tip = "This enterprise is crazyly promoting to break through the market./*这个企业正在为了打通市场而在疯狂推广。*/"%_t}
+
+
+
 
 -- 参数顺序：企业的名字 企业的ID  ||  企业类型(1-3)  企业规模(1-5)  业务范围(1-3)  部门类型(1-4) 后缀(n)
 
@@ -128,11 +147,21 @@ end
 -- all = 全部，如果出现了 all + 指定，那么可能会随机2次
 function addSystem(t, prob, sys, minl, maxl)
     local newProb = prob
-    if t.perfor[1].uid = 9901 then
-        newProb = 0.001
-    end
+    if t.perfor[1] == 9000 then newProb = 0.001 end
+    if t.perfor[1] == 9001 then newProb = newProb * 0.5 end
+    if t.perfor[1] == 9002 then newProb = newProb * 1.5 end
     table.insert(systemTable[sys], {newProb, t.uid, minl, maxl})
 
+end
+
+function addWeapon(t, prob, weapon, minl, maxl)
+    local newProb = prob
+    if t.perfor[1] == 9000 then newProb = 0.001 end
+    table.insert(systemTable[weapon], {newProb, t.uid, minl, maxl})
+
+end
+
+function addEffect()
 end
 
   -- 3：混合企业  5：特殊规模  2：科技企业  1：盈利部门  2：集团
@@ -143,11 +172,10 @@ ent.put = {
 ent.tip = {
     {"Welcome to the functional expansion subsystem from Tianfang Creation/*欢迎使用来自 天堂造物 的功能拓展子系统*/"%_t}, 
     {"Feel the peak technology blessing of the star sea/*感受星海的巅峰科技加持*/"%_t}}
-    ent.perfor = {
-        {name = "No longer produced/*不再生产*/"%_t, tip ="Probability fixed at one in a thousand/*出现概率固定为千分之一*/"%_t, type = 2},
-        {name = "Pioneer technology/*先驱科技*/"%_t, tip ="Minimum quality +100%/*最低品质+100%*/"%_t, type = 1},
-        {name = "Relic/*遗物*/"%_t, tip ="Final value +100%/*最终价值+100%*/"%_t, type = 0}}
-    ent.intro = "Tianchuang/*天创造物*/ is the leader in the research and development of system upgrade modules. They cooperated with a large number of institutions and spent countless resources to make the system upgrade modules come into being. However, such a legendary company disappeared in the star sea because of the rift, leaving only a small number of relics flowing in the star sea telling their history./*天创造物是系统升级模块的研发领头人，他们联合大量的机构花费了无数的资源才让系统升级模块得以诞生，而这样的传奇公司却因为裂隙消失在了星海，只剩下了少量的遗物流动在星海之中诉说着他们的历史。*/"%_t
+    ent.perfor = 
+    
+        
+    ent.intro = "Tianchuang is the leader in the research and development of system upgrade modules. They cooperated with a large number of institutions and spent countless resources to make the system upgrade modules come into being. However, such a legendary company disappeared in the star sea because of the rift, leaving only a small number of relics flowing in the star sea telling their history./*天创造物是系统升级模块的研发领头人，他们联合大量的机构花费了无数的资源才让系统升级模块得以诞生，而这样的传奇公司却因为裂隙消失在了星海，只剩下了少量的遗物流动在星海之中诉说着他们的历史。*/"%_t
 table.insert(enters, ent)
 
 

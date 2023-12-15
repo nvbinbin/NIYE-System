@@ -156,3 +156,15 @@
         基础生产范围：紫色
 
     ]]
+
+-- 0 - 999 :保留
+-- 1000 - 1999：正面：1
+effectTable[1000] = {type = 1, name = "Pioneer technology/*先驱科技*/"%_t, tip ="只会出现最高品质"%_t,  tip ="这是文明的科技结晶。"%_t, effect = "minQuality", value = 999}
+-- 2000 - 2999：中性:2
+effectTable[2000] = {type = 2, name = "Relic/*遗物*/"%_t, tip ="Final value +100%/*最终价值+100%*/"%_t, tip ="这件商品拥有非常高的收藏价值。"%_t, effect = "money", value = 1}
+-- 3000 - 3999：负面:3
+effectTable[3000] = {type = 3, name = "逆向科技"%_t, tip ="最高品质-5%"%_t,  tip ="我们无法发挥出他应有的效果。"%_t, effect = "maxQuality", value = -0.05}
+-- 9000 - 9999：因为功能需要判断:必须要在1号位
+effectTable[9000] = {type = 3, name = "失落企业"%_t, tip ="Fixed 1‰ appearance probability/*固定1‰出现概率*/"%_t, tip = "这个企业消失在了历史的长河当中。"%_t}
+effectTable[9001] = {type = 3, name = "寥若晨星"%_t, tip ="出现概率-100%"%_t, tip = "这个企业通常不对外出售他们的商品。"%_t}
+effectTable[9002] = {type = 1, name = "新兴企业"%_t, tip ="出现概率+50%"%_t, tip = "这个企业正在为了打通市场而在疯狂推广。"%_t}
