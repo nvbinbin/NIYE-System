@@ -185,10 +185,9 @@ function getEnterprise(seed, rarity, useType)
         {false, "ChainGun", 1, 2}
     }
     ent.tipLink = 2
-    ent.tip_1 = {"欢迎购买并使用大秦军工的产品"%_t}
-    ent.tip_2 = {"我还没想好这里写什么"%_t}
-    ent.perforLink = 1
-    ent.perfor = {{name = "稳定品控"%_t, tip = "最低品质+10%", type =1}}
+    ent.tip_1 = {"Welcome to buy and use the products of Daqin Military/*欢迎购买并使用大秦军工的产品*/"%_t}
+    ent.tip_2 = {"I haven't thought of what to write here yet/*我还没想好这里写什么*/"%_t}
+    ent.perfor = {{name = "Stable Quality Control/*稳定品控*/"%_t, tip = "Minimum Quality +10%/*最低品质+10%*/", type =1}}
     
     table.insert(enters, ent)
 
