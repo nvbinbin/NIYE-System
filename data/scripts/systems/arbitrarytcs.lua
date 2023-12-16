@@ -6,23 +6,27 @@ include ("utility")
 include ("randomext")
 include ("enterprise") -- 新增库
 
--- 通用栏位
 FixedEnergyRequirement = true
+-- 通用炮塔栏位
+local systemType = "arbitrarytcs"
 
 function getNumTurrets(seed, rarity, permanent)
     math.randomseed(seed)
-    -- 1是军用装备  2是民用装备
-    local tech = getEnterprise(seed, rarity, 1)
-    if tech.uid == 0700 then tech.nameId = "A" end -- 0700 指的是普通插件
+    Server():broadcastChatMessage("debug", ChatMessageType.ServerInfo, "arbitrarytcs插件已加载")
 
-    local turrets = math.max(1, tech.rarity)
-    local autos = math.max(0, getInt(math.max(0, tech.rarity - 2), turrets - 1))
+    local tech = getEnterprise(seed, rarity, systemType)
+    if tech.id == 0700 then
+        tech.abbr = "A"
+    end
+
+    local turrets = math.max(1, tech.rar)
+    local autos = math.max(0, getInt(math.max(0, tech.rar - 2), turrets - 1))
 
     if permanent then
-        turrets = (turrets + math.max(1,  tech.rarity / 2)) 
+        turrets = (turrets + math.max(1,  tech.rar / 2)) 
         autos = autos
     end
-    if not permanent and tech.onlyPerm then
+    if not permanent then -- and tech.onlyPerm
         turrets = 0
         autos = 0
     end
@@ -43,11 +47,11 @@ end
 function getName(seed, rarity)
     local turrets, autos, tech = getNumTurrets(seed, rarity, true)
 
-    local ids = tech.nameId
+    local ids = tech.abbr
     local num = turrets + autos
     local name = "炮塔火控跃增系统"
-    if tech.uid ~= 0700 then name = "通用火控处理系统" end
-    if tech.uid == 0902 then num = "000" end
+    if tech.id ~= 0700 then name = "通用火控处理系统" end
+    if tech.id == 0902 then num = "000" end
 
     return "${name} ${ids}-TCS-${num}"%_t % {name = name, num = num, ids = ids}
 end
@@ -64,7 +68,7 @@ end
 
 function getEnergy(seed, rarity, permanent)
     local turrets, autos, tech = getNumTurrets(seed, rarity, permanent)
-    return (turrets * 350 * 1000 * 1000 / (1.1 ^ tech.rarity)) * tech.energyFactor
+    return (turrets * 350 * 1000 * 1000 / (1.1 ^ tech.rar)) * tech.energy
 end
 
 function getPrice(seed, rarity)
@@ -72,7 +76,7 @@ function getPrice(seed, rarity)
     local _, autos, tech = getNumTurrets(seed, rarity, true)
 
     local price = 7500 * (turrets + autos * 0.5);
-    return (price * 2.5 ^ tech.rarity) * tech.coinFactor
+    return (price * 2.5 ^ tech.rar) * tech.money
 end
 
 function getTooltipLines(seed, rarity, permanent)
@@ -82,9 +86,9 @@ function getTooltipLines(seed, rarity, permanent)
     local texts = {}
     local bonuses = {}
 
-    if tech.uid ~= 0700 then 
+    if tech.id ~= 0700 then 
         table.insert(texts, {ltext = "[" .. tech.name .. "]", lcolor = ColorRGB(1, 0.5, 1)}) 
-        if tech.uid == 0902 then
+        if tech.id == 0902 then
             texts, bonuses = churchTip(texts, bonuses,"Arbitrary Turret Slots", "+???", "data/textures/icons/turret.png", permanent)
             texts, bonuses = churchTip(texts, bonuses,"Auto-Turret Slots", "+???", "data/textures/icons/turret.png", permanent)
             return texts, bonuses
@@ -106,7 +110,7 @@ end
 
 function getDescriptionLines(seed, rarity, permanent)
     local turrets, autos, tech = getNumTurrets(seed, rarity, permanent)
-    if tech.uid == 0700 then
+    if tech.id == 0700 then
         return
         {
             {ltext = "All-round Turret Control System"%_t, rtext = "", icon = ""},

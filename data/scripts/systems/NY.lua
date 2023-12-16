@@ -168,3 +168,10 @@ effectTable[3000] = {type = 3, name = "逆向科技"%_t, tip ="最高品质-5%"%
 effectTable[9000] = {type = 3, name = "失落企业"%_t, tip ="Fixed 1‰ appearance probability/*固定1‰出现概率*/"%_t, tip = "这个企业消失在了历史的长河当中。"%_t}
 effectTable[9001] = {type = 3, name = "寥若晨星"%_t, tip ="出现概率-100%"%_t, tip = "这个企业通常不对外出售他们的商品。"%_t}
 effectTable[9002] = {type = 1, name = "新兴企业"%_t, tip ="出现概率+50%"%_t, tip = "这个企业正在为了打通市场而在疯狂推广。"%_t}
+
+
+ent.tip = {
+    {"Welcome to the functional expansion subsystem from Tianfang Creation/*欢迎使用来自 天堂造物 的功能拓展子系统*/"%_t}, 
+    {"Feel the peak technology blessing of the star sea/*感受星海的巅峰科技加持*/"%_t}}
+ent.perfor = {9000, 2000, 1000}
+ent.intro = "Tianchuang is the leader in the research and development of system upgrade modules. They cooperated with a large number of institutions and spent countless resources to make the system upgrade modules come into being. However, such a legendary company disappeared in the star sea because of the rift, leaving only a small number of relics flowing in the star sea telling their history./*天创造物是系统升级模块的研发领头人，他们联合大量的机构花费了无数的资源才让系统升级模块得以诞生，而这样的传奇公司却因为裂隙消失在了星海，只剩下了少量的遗物流动在星海之中诉说着他们的历史。*/"%_t
