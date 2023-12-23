@@ -25,11 +25,11 @@ function getBonuses(seed, rarity, permanent)
     local flat = 20 -- 基础固定值
 
     ---基础算法---
-    perc = perc + tech.rarity * 4
+    perc = perc + tech.rar * 4
     perc = perc + tech.cargoPercResult * 4
 
-    flat = flat + (tech.rarity + 1) * 50
-    flat = flat + tech.cargoFlatResult * ((tech.rarity + 1) * 50)
+    flat = flat + (tech.rar + 1) * 50
+    flat = flat + tech.cargoFlatResult * ((tech.rar + 1) * 50)
 
 
 
@@ -94,7 +94,7 @@ function getName(seed, rarity)
     end
     local grade = getGrade(dist, tech, 100)
 
-    return "${id}-${grade}-${name} MK ${mark} "%_t % {id = ids, name = name, grade = grade, mark = toRomanLiterals(tech.rarity + 2)}
+    return "${id}-${grade}-${name} MK ${mark} "%_t % {id = ids, name = name, grade = grade, mark = toRomanLiterals(tech.rar + 2)}
 end
 
 function getBasicName()
@@ -116,7 +116,7 @@ end
 function getPrice(seed, rarity)
     local perc, flat, tech = getBonuses(seed, rarity, true)
     local price = perc * 100 * 450 + flat * 75
-    return (price * 2.5 ^ tech.rarity) * tech.coinFactor
+    return (price * 2.5 ^ tech.rar) * tech.money
 end
 
 function getTooltipLines(seed, rarity, permanent)

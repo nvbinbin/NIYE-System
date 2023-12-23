@@ -18,20 +18,20 @@ function getBonuses(seed, rarity, permanent)
 
     local range = 200 -- base value
     -- add flat range based on rarity
-    range = range + (tech.rarity + 1) * 80 -- add 0 (worst rarity) to +480 (best rarity)
+    range = range + (tech.rar + 1) * 80 -- add 0 (worst rarity) to +480 (best rarity)
     -- add randomized range, span is based on rarity
-    range = range + math.random() * ((tech.rarity + 1) * 20) -- add random value between 0 (worst rarity) and 120 (best rarity)
+    range = range + math.random() * ((tech.rar + 1) * 20) -- add random value between 0 (worst rarity) and 120 (best rarity)
 
-    local material = tech.rarity + 1
+    local material = tech.rar + 1
     if math.random() < 0.25 then
         material = material + 1
     end
 
     local amount = 3
     -- add flat amount based on rarity
-    amount = amount + (tech.rarity + 1) * 2 -- add 0 (worst rarity) to +120 (best rarity)
+    amount = amount + (tech.rar + 1) * 2 -- add 0 (worst rarity) to +120 (best rarity)
     -- add randomized amount, span is based on rarity
-    amount = amount + math.random() * ((tech.rarity + 1) * 5) -- add random value between 0 (worst rarity) and 60 (best rarity)
+    amount = amount + math.random() * ((tech.rar + 1) * 5) -- add random value between 0 (worst rarity) and 60 (best rarity)
 
     if permanent then
         range = range * 1.5
@@ -144,7 +144,7 @@ function getName(seed, rarity)
     materials[MaterialType.Avorion] = "AV"
 
     local name
-    if materialLevel >= tech.rarity + 2 then
+    if materialLevel >= tech.rar + 2 then
         name = "Mining Subsystem Plus"%_t
     else
         name = "Mining Subsystem"%_t
@@ -174,7 +174,7 @@ function getPrice(seed, rarity)
 
     local price = materialLevel * 5000 + amount * 750 + range * 1.5;
 
-    return (price * 2.5 ^ tech.rarity) * tech.coinFactor
+    return (price * 2.5 ^ tech.rar) * tech.money
 end
 
 function getTooltipLines(seed, rarity, permanent)

@@ -14,13 +14,13 @@ function getBonuses(seed, rarity, permanent)
     local radar = 0
     local hiddenRadar = 0
 
-    radar = math.max(0, getInt(tech.rarity, tech.rarity * 2.0)) + 1
-    hiddenRadar = math.max(0, getInt(tech.rarity, tech.rarity * 1.5)) + 1
+    radar = math.max(0, getInt(tech.rar, tech.rar * 2.0)) + 1
+    hiddenRadar = math.max(0, getInt(tech.rar, tech.rar * 1.5)) + 1
 
     -- probability for both of them being used
     -- when rarity.value >= 4, always both
     -- when rarity.value <= 0 always only one
-    local probability = math.max(0, tech.rarity * 0.25)
+    local probability = math.max(0, tech.rar * 0.25)
     if math.random() > probability then
         -- only 1 will be used
         if math.random() < 0.5 then
@@ -98,7 +98,7 @@ end
 function getPrice(seed, rarity)
     local radar, hiddenRadar, tech = getBonuses(seed, rarity, true)
     local price = radar * 3000 + hiddenRadar * 5000
-    return (price * 2.5 ^ tech.rarity) * tech.coinFactor
+    return (price * 2.5 ^ tech.rar) * tech.money
 end
 
 function getTooltipLines(seed, rarity, permanent)

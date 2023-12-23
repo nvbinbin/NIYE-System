@@ -16,9 +16,9 @@ function getNumDefenseWeapons(seed, rarity, permanent)
 
     if permanent then
         if rarity.value <= 2 then
-            def = (tech.rarity + 2) * 5 + getInt(0, 3)
+            def = (tech.rar + 2) * 5 + getInt(0, 3)
         else
-            def = tech.rarity * 10 + getInt(0, 8)
+            def = tech.rar * 10 + getInt(0, 8)
         end
     end
 
@@ -55,13 +55,13 @@ end
 
 function getEnergy(seed, rarity, permanent)
     local num, tech = getNumDefenseWeapons(seed, rarity, permanent)
-    return (num * 75 * 1000 * 1000 / (1.2 ^ tech.rarity)) * tech.energyFactor
+    return (num * 75 * 1000 * 1000 / (1.2 ^ tech.rar)) * tech.energyFactor
 end
 
 function getPrice(seed, rarity)
     local num, tech = getNumDefenseWeapons(seed, rarity, true)
     local price = 500 * num;
-    return (price * 2 ^ tech.rarity) * tech.coinFactor
+    return (price * 2 ^ tech.rar) * tech.money
 end
 
 function getTooltipLines(seed, rarity, permanent)

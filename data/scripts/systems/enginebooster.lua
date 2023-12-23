@@ -20,18 +20,18 @@ function getBonuses(seed, rarity, permanent)
     local afactor = 6 -- base value, in percent
 
     -- add flat percentage based on rarity
-    vfactor = vfactor + (tech.rarity + 1) * 3 -- add 0% (worst rarity) to +18% (best rarity)
+    vfactor = vfactor + (tech.rar + 1) * 3 -- add 0% (worst rarity) to +18% (best rarity)
 
     -- add randomized percentage, span is based on rarity
-    vfactor = vfactor + tech.engineVfactorResult * ((tech.rarity + 1) * 4) -- add random value between 0% (worst rarity) and +24% (best rarity)
+    vfactor = vfactor + tech.engineVfactorResult * ((tech.rar + 1) * 4) -- add random value between 0% (worst rarity) and +24% (best rarity)
     vfactor = vfactor * 0.8 / 100
 
     
     -- add flat percentage based on rarity
-    afactor = afactor + (tech.rarity + 1) * 5 -- add 0% (worst rarity) to +30% (best rarity)
+    afactor = afactor + (tech.rar + 1) * 5 -- add 0% (worst rarity) to +30% (best rarity)
 
     -- add randomized percentage, span is based on rarity
-    afactor = afactor + tech.engineAfactorResult * ((tech.rarity + 1) * 4) -- add random value between 0% (worst rarity) and +24% (best rarity)
+    afactor = afactor + tech.engineAfactorResult * ((tech.rar + 1) * 4) -- add random value between 0% (worst rarity) and +24% (best rarity)
     afactor = afactor * 0.8 / 100
 
     if permanent then
@@ -46,7 +46,7 @@ function getBonuses(seed, rarity, permanent)
     -- probability for both of them being used 异域++
     -- when rarity.value >= 4, always both
     -- when rarity.value <= 0 always only one
-    local probability = math.max(0, tech.rarity * 0.25)
+    local probability = math.max(0, tech.rar * 0.25)
     if math.random() > probability then
         -- only 1 will be used
         if math.random() < 0.5 then
@@ -109,7 +109,7 @@ end
 function getPrice(seed, rarity)
     local vel, acc, tech = getBonuses(seed, rarity, true)
     local price = vel * 100 * 500 + acc * 100 * 500
-    return (price * 2.5 ^ tech.rarity) * tech.coinFactor
+    return (price * 2.5 ^ tech.rar) * tech.money
 end
 
 function getTooltipLines(seed, rarity, permanent)

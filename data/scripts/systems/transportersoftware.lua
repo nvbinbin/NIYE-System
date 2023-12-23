@@ -15,10 +15,10 @@ function getBonuses(seed, rarity, permanent)
 
     -- rarity -1 is -1 / 2 + 1 * 50 = 0.5 * 100 = 50
     -- rarity 5 is 5 / 2 + 1 * 50 = 3.5 * 100 = 350
-    local range = (tech.rarity / 2 + 1 + round(getFloat(0.0, 0.4), 1)) * 100
+    local range = (tech.rar / 2 + 1 + round(getFloat(0.0, 0.4), 1)) * 100
 
     local fighterCargoPickup = 0
-    if tech.rarity >= RarityType.Rare then
+    if tech.rar >= RarityType.Rare then
         fighterCargoPickup = 1
     end
 
@@ -39,7 +39,7 @@ end
 function getName(seed, rarity)
     local range, fighterCargoPickup, tech = getBonuses(seed, rarity, permanent)
     local serial = makeSerialNumber(seed, 2)
-    local v = tech.rarity + 1
+    local v = tech.rar + 1
     local s2 = makeSerialNumber(seed, 1, nil, nil, "12345")
     if tech.uid ~= 0700 then
         serial = tech.nameId
@@ -63,7 +63,7 @@ end
 
 function getPrice(seed, rarity)
     local range, fighterCargoPickup, tech = getBonuses(seed, rarity, true)
-    return (range * 250) * tech.coinFactor
+    return (range * 250) * tech.money
 end
 
 function getTooltipLines(seed, rarity, permanent)

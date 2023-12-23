@@ -22,7 +22,7 @@ function getBonuses(seed, rarity, permanent)
     local production = 0 -- 加速时间
 
     if permanent then
-        production = math.max(0, lerp(random():getFloat(0, 1), 0, 1, tech.rarity - 1, tech.rarity)) * 1000
+        production = math.max(0, lerp(random():getFloat(0, 1), 0, 1, tech.rar - 1, tech.rar)) * 1000
         production = round(production / 100) * 100
     end
     if not permanent and tech.onlyPerm then
@@ -57,10 +57,10 @@ function getAllSquads(seed, rarity)
     local tech = getEnterprise(seed, rarity, 1)
 
 
-    local total = math.max(1, math.ceil((tech.rarity + 1.5) / 2))
+    local total = math.max(1, math.ceil((tech.rar + 1.5) / 2))
 
     local base = getInt(0, 1)
-    if tech.rarity == RarityType.Petty then base = 0 end
+    if tech.rar == RarityType.Petty then base = 0 end
 
     local bonus = total - base
 
@@ -96,11 +96,11 @@ function getName(seed, rarity)
         rarityName = "Six-headed"%_t
     elseif rarity == Rarity(5) then
         rarityName = "Seven-headed"%_t
-    elseif tech.rarity == 6 then
+    elseif tech.rar == 6 then
         rarityName = "八头蛇"%_t
-    elseif tech.rarity == 7 then
+    elseif tech.rar == 7 then
         rarityName = "九头蛇"%_t
-    elseif tech.rarity == 8 then
+    elseif tech.rar == 8 then
         rarityName = "九头蛇EX"%_t
     end
 
@@ -124,14 +124,14 @@ end
 function getEnergy(seed, rarity, permanent)
     local squads = getNumSquads(seed, rarity, permanent)
     local _, production, tech = getBonuses(seed, rarity, true)
-    return (squads * 600 * 1000 * 1000 / (1.1 ^ tech.rarity)) * tech.energyFactor
+    return (squads * 600 * 1000 * 1000 / (1.1 ^ tech.rar)) * tech.energyFactor
 end
 
 function getPrice(seed, rarity)
     local squads = getNumSquads(seed, rarity, true)
     local _, production, tech = getBonuses(seed, rarity, true)
     local price = 25000 * (squads)
-    return (price * 1.5 ^ tech.rarity) * tech.coinFactor
+    return (price * 1.5 ^ tech.rar) * tech.money
 end
 
 function getTooltipLines(seed, rarity, permanent)

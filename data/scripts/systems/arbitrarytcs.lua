@@ -12,10 +12,10 @@ local systemType = "arbitrarytcs"
 
 function getNumTurrets(seed, rarity, permanent)
     math.randomseed(seed)
-    Server():broadcastChatMessage("debug", ChatMessageType.ServerInfo, "arbitrarytcs插件已加载")
+    
 
     local tech = getEnterprise(seed, rarity, systemType)
-    if tech.id == 0700 then
+    if tech.id == 0 then
         tech.abbr = "A"
     end
 
@@ -27,7 +27,7 @@ function getNumTurrets(seed, rarity, permanent)
         autos = autos
     end
     if not permanent then -- and tech.onlyPerm
-        turrets = 0
+        --turrets = 0
         autos = 0
     end
 
@@ -110,7 +110,7 @@ end
 
 function getDescriptionLines(seed, rarity, permanent)
     local turrets, autos, tech = getNumTurrets(seed, rarity, permanent)
-    if tech.id == 0700 then
+    if tech.id == 1 then
         return
         {
             {ltext = "All-round Turret Control System"%_t, rtext = "", icon = ""},

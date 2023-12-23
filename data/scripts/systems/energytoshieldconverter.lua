@@ -19,15 +19,15 @@ function getBonuses(seed, rarity, permanent)
 
     local baseAmplification = 20
     -- add flat percentage based on rarity
-    local baseAmplification = baseAmplification + (tech.rarity + 1) * 15 -- add 0% (worst rarity) to +120% (best rarity)
+    local baseAmplification = baseAmplification + (tech.rar + 1) * 15 -- add 0% (worst rarity) to +120% (best rarity)
 
     -- add randomized percentage, span is based on rarity
-    local amplification = baseAmplification + tech.amplificationResult * (tech.rarity + 1) * 10 -- add random value between 0% (worst rarity) and +60% (best rarity)
+    local amplification = baseAmplification + tech.amplificationResult * (tech.rar + 1) * 10 -- add random value between 0% (worst rarity) and +60% (best rarity)
 
     baseAmplification = baseAmplification / 100
     amplification = amplification / 100
 
-    energy = -baseAmplification * 0.45 / (1.05 ^ tech.rarity) -- note the minus
+    energy = -baseAmplification * 0.45 / (1.05 ^ tech.rar) -- note the minus
 
     -- is balanced around permanent installation
     -- permanent installation reverses this factor
@@ -57,7 +57,7 @@ end
 
 function getName(seed, rarity)
     local amplification, energy, tech = getBonuses(seed, rarity, permanent)
-    local mark = toRomanLiterals(tech.rarity + 2)
+    local mark = toRomanLiterals(tech.rar + 2)
     local ids = tech.nameId
     local grade = getGrade(tech.amplificationResult, tech, 100)
 
@@ -77,7 +77,7 @@ end
 function getPrice(seed, rarity)
     local amplification, energy, tech = getBonuses(seed, rarity, true)
     local price = 150 * 1000 * amplification;
-    return (price * 2.0 ^ tech.rarity) * tech.coinFactor
+    return (price * 2.0 ^ tech.rar) * tech.money
 end
 
 function getTooltipLines(seed, rarity, permanent)

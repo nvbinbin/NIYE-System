@@ -15,17 +15,17 @@ function getNumTurrets(seed, rarity, permanent)
     local tech = getEnterprise(seed, rarity, 1)
     if tech.uid == 0700 then tech.nameId = "M" end
 
-    local baseTurrets = math.max(1, tech.rarity + 1) -- 原神
+    local baseTurrets = math.max(1, tech.rar + 1) -- 原神
     local turrets = baseTurrets
     
     local pdcs = 0
     local autos = 0
 
     if permanent then
-        turrets = baseTurrets + math.max(1, (tech.rarity + 1) / 2)
+        turrets = baseTurrets + math.max(1, (tech.rar + 1) / 2)
         pdcs = baseTurrets / 2
         -- 科技等级-1 ~ 最大炮台栏位-1
-        autos = math.max(0, getInt(math.max(0, tech.rarity - 1), turrets - 1))
+        autos = math.max(0, getInt(math.max(0, tech.rar - 1), turrets - 1))
     end
     -- turrets = math.floor(turrets)
     -- pdcs = math.floor(pdcs)
@@ -74,7 +74,7 @@ end
 
 function getEnergy(seed, rarity, permanent)
     local turrets, pdcs, autos, tech = getNumTurrets(seed, rarity, permanent)
-    return (turrets * 300 * 1000 * 1000 / (1.2 ^ tech.rarity)) * tech.energyFactor
+    return (turrets * 300 * 1000 * 1000 / (1.2 ^ tech.rar)) * tech.energyFactor
 end
 
 function getPrice(seed, rarity)
@@ -82,7 +82,7 @@ function getPrice(seed, rarity)
     local _, _, autos, tech = getNumTurrets(seed, rarity, true)
 
     local price = 6000 * (turrets + autos * 0.5)
-    return (price * 2.5 ^ tech.rarity) * tech.coinFactor
+    return (price * 2.5 ^ tech.rar) * tech.money
 end
 
 function getTooltipLines(seed, rarity, permanent)

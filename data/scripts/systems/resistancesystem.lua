@@ -44,7 +44,7 @@ function getBonuses(seed, rarity, permanent)
     local tech = getEnterprise(seed, rarity, 1)
     if tech.uid == 0700 then tech.nameId = "" end
 
-    local rarityLevel = tech.rarity + 2 -- rarity levels start at -1
+    local rarityLevel = tech.rar + 2 -- rarity levels start at -1
 
     local randomEntry = math.random(1, 4)
     resistanceType = resistanceTypes[randomEntry]
@@ -100,7 +100,7 @@ function getName(seed, rarity)
 
     name = tech.nameId .. name
 
-    local mark = toRomanLiterals(tech.rarity + 2)
+    local mark = toRomanLiterals(tech.rar + 2)
     return "${name} MK ${mark} /* ex: Plasmatic Shield Ionizer MK III */"%_t % {name = name, mark = mark}
 end
 
@@ -122,7 +122,7 @@ end
 function getPrice(seed, rarity)
     local resistanceType, dmgFactor,tech = getBonuses(seed, rarity, true)
     local price = dmgFactor * 100 * 500 + dmgFactor * 100 * 257
-    return (price * 2.5 ^ tech.rarity) * tech.coinFactor
+    return (price * 2.5 ^ tech.rar) * tech.money
 end
 
 function getTooltipLines(seed, rarity, permanent)

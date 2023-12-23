@@ -16,7 +16,7 @@ function getNumTurrets(seed, rarity, permanent)
     local tech = getEnterprise(seed, rarity, 1)
     if tech.uid == 0700 then tech.nameId = "A" end
 
-    local turrets = math.max(1, tech.rarity + 1)
+    local turrets = math.max(1, tech.rar + 1)
 
     if permanent then
          turrets = turrets * 2 
@@ -61,13 +61,13 @@ end
 
 function getEnergy(seed, rarity, permanent)
     local num, tech = getNumTurrets(seed, rarity, permanent)
-    return (num * 200 * 1000 * 1000 / (1.2 ^ tech.rarity)) * tech.energyFactor
+    return (num * 200 * 1000 * 1000 / (1.2 ^ tech.rar)) * tech.energyFactor
 end
 
 function getPrice(seed, rarity)
     local num, tech = getNumTurrets(seed, rarity, true)
     local price = 5000 * num;
-    return (price * 2.5 ^ tech.rarity) * tech.coinFactor
+    return (price * 2.5 ^ tech.rar) * tech.money
 end
 
 function getTooltipLines(seed, rarity, permanent)

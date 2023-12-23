@@ -30,67 +30,67 @@ function getBonuses(seed, rarity, permanent)
 
 
 
-    if tech.rarity >= 8 then
+    if tech.rar >= 8 then
         if permanent then
             highlightRange = 12500 + math.random() * 1000
         end
 
         cooldown = baseCooldown
-    elseif tech.rarity >= 7 then
+    elseif tech.rar >= 7 then
         if permanent then
             highlightRange = 11000 + math.random() * 1000
         end
 
         cooldown = baseCooldown
-    elseif tech.rarity >= 6 then
+    elseif tech.rar >= 6 then
         if permanent then
             highlightRange = 9000 + math.random() * 1000
         end
 
         cooldown = baseCooldown
-    elseif tech.rarity >= RarityType.Legendary then
+    elseif tech.rar >= RarityType.Legendary then
         if permanent then
             highlightRange = 8500 + math.random() * 1000
         end
 
         cooldown = baseCooldown
 
-    elseif tech.rarity >= RarityType.Exotic then
+    elseif tech.rar >= RarityType.Exotic then
         if permanent then
             highlightRange = 7000 + math.random() * 1000
         end
 
         cooldown = baseCooldown
 
-    elseif tech.rarity >= RarityType.Exceptional then
+    elseif tech.rar >= RarityType.Exceptional then
         if permanent then
             highlightRange = 5500 + math.random() * 1000
         end
 
         cooldown = baseCooldown
 
-    elseif tech.rarity >= RarityType.Rare then
+    elseif tech.rar >= RarityType.Rare then
         if permanent then
             highlightRange = 4000 + math.random() * 1000
         end
 
         cooldown = baseCooldown
 
-    elseif tech.rarity >= RarityType.Uncommon then
+    elseif tech.rar >= RarityType.Uncommon then
         if permanent then
             highlightRange = 2500 + math.random() * 1000
         end
 
         cooldown = baseCooldown + highlightDuration * 0.5
 
-    elseif tech.rarity >= RarityType.Common then
+    elseif tech.rar >= RarityType.Common then
         if permanent then
             highlightRange = 1000 + math.random() * 1000
         end
 
         cooldown = baseCooldown + highlightDuration
 
-    elseif tech.rarity >= RarityType.Petty then
+    elseif tech.rar >= RarityType.Petty then
         highlightRange = 0
         cooldown = baseCooldown + highlightDuration * 3
     end
@@ -319,7 +319,7 @@ end
 
 function getName(seed, rarity)
     local range, cooldown, tech = getBonuses(seed, rarity, true)
-    local mark = toRomanLiterals(tech.rarity + 2)
+    local mark = toRomanLiterals(tech.rar + 2)
 
     local random = Random(Seed(seed))
     local name = randomEntry(random, {"Object Detector"%_t, "Object Finder"%_t})
@@ -356,9 +356,9 @@ function getPrice(seed, rarity)
     local range, cooldown, tech = getBonuses(seed, rarity, true)
     range = math.min(range, 1500)
 
-    local price = (tech.rarity + 2) * 750 + range * 1.5;
+    local price = (tech.rar + 2) * 750 + range * 1.5;
 
-    return (price * 2.5 ^ (tech.rarity + 1)) * tech.coinFactor
+    return (price * 2.5 ^ (tech.rar + 1)) * tech.money
 end
 
 function getTooltipLines(seed, rarity, permanent)
