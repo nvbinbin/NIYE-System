@@ -20,10 +20,10 @@ function getNumTurrets(seed, rarity, permanent)
     end
 
     local turrets = math.max(1, tech.rar)
-    local autos = math.max(0, getInt(math.max(0, tech.rar - 2), turrets - 1))
+    local autos = math.max(0, getInt(math.max(0, tech.rarity - 2), turrets - 1))
 
     if permanent then
-        turrets = (turrets + math.max(1,  tech.rar / 2)) 
+        turrets = (turrets + math.max(1,  tech.rarity / 2)) 
         autos = autos
     end
     if not permanent then -- and tech.onlyPerm
