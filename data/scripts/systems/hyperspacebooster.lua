@@ -56,35 +56,35 @@ function getBonuses(seed, rarity, permanent)
     if enabled[StatsBonuses.HyperspaceCooldown] then -- 跃迁冷却
         cdfactor = 5 -- base value, in percent
         -- add flat percentage based on rarity
-        cdfactor = cdfactor + (tech.rar + 1) * 2.5 -- add 0% (worst rarity) to +15% (best rarity)
+        cdfactor = cdfactor + (tech.rarity + 1) * 2.5 -- add 0% (worst rarity) to +15% (best rarity)
 
         -- add randomized percentage, span is based on rarity
-        cdfactor = cdfactor + math.random() * ((tech.rar + 1) * 2.5) -- add random value between 0% (worst rarity) and +15% (best rarity)
+        cdfactor = cdfactor + math.random() * ((tech.rarity + 1) * 2.5) -- add random value between 0% (worst rarity) and +15% (best rarity)
         cdfactor = -cdfactor / 100
     end
 
     if enabled[StatsBonuses.HyperspaceChargeEnergy] then -- 超空间跃迁能量
         efactor = 5 -- base value, in percent
         -- add flat percentage based on rarity
-        efactor = efactor + (tech.rar + 1) * 3 -- add 0% (worst rarity) to +18% (best rarity)
+        efactor = efactor + (tech.rarity + 1) * 3 -- add 0% (worst rarity) to +18% (best rarity)
 
         -- add randomized percentage, span is based on rarity
-        efactor = efactor + math.random() * ((tech.rar + 1) * 4) -- add random value between 0% (worst rarity) and +24% (best rarity)
+        efactor = efactor + math.random() * ((tech.rarity + 1) * 4) -- add random value between 0% (worst rarity) and +24% (best rarity)
         efactor = -efactor / 100
     end
 
     if enabled[StatsBonuses.RadarReach] then -- 雷达范围
-        radar = math.max(0, getInt(tech.rar, tech.rar * 2.0)) + 1
+        radar = math.max(0, getInt(tech.rar, tech.rarity * 2.0)) + 1
     end
 
     if permanent then
         if enabled[StatsBonuses.HyperspaceReach] then -- 超空间雷达
             if megaReach then
-                reach = math.max(1, tech.rar + 1) * 2 + tech.rar -- 跃迁范围
+                reach = math.max(1, tech.rarity + 1) * 2 + tech.rarity -- 跃迁范围
                 cdbias = round(math.max(0, (reach - 2) / 4) * 60)
                 cdfactor = 0
             else
-                reach = math.max(0, (tech.rar * tech.rar) / 25 * 8 + random():getFloat(0, 1.0))
+                reach = math.max(0, (tech.rarity * tech.rar) / 25 * 8 + random():getFloat(0, 1.0))
             end
         end
 
@@ -125,7 +125,7 @@ function getName(seed, rarity)
         reachStr = tech.nameId .. math.ceil(reach) .. " "
     end
 
-    local mark = toRomanLiterals(tech.rar + 2)
+    local mark = toRomanLiterals(tech.rarity + 2)
 
     local type = "Hyperspace Subsystem"%_t --超空间跃增系统
     if cooldown ~= 0 and efactor ~= 0 then

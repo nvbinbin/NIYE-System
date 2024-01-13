@@ -16,16 +16,16 @@ function getNumTurrets(seed, rarity, permanent)
     local tech = getEnterprise(seed, rarity, 2)
     if tech.uid == 0700 then tech.nameId = "C" end
 
-    local baseTurrets = math.max(1, tech.rar + 1)
+    local baseTurrets = math.max(1, tech.rarity + 1)
     local turrets = baseTurrets
 
     local pdcs = 0
     local autos = 0
 
     if permanent then
-        turrets = baseTurrets + math.max(1, (tech.rar + 1) / 2)
+        turrets = baseTurrets + math.max(1, (tech.rarity + 1) / 2)
         pdcs = baseTurrets / 2
-        autos = math.max(0, getInt(math.max(0, tech.rar - 1), turrets - 1))
+        autos = math.max(0, getInt(math.max(0, tech.rarity - 1), turrets - 1))
     end
     if not permanent and tech.onlyPerm then
         turrets = 0

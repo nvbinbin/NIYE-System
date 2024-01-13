@@ -22,16 +22,16 @@ function getBonuses(seed, rarity, permanent)
 
 
     -- add flat percentage based on rarity
-    energy = energy + (tech.rar + 1) * 10 -- add 0% (worst rarity) to +60% (best rarity)
+    energy = energy + (tech.rarity + 1) * 10 -- add 0% (worst rarity) to +60% (best rarity)
 
     -- add randomized percentage, span is based on rarity
-    energy = energy + tech.boosterEnergyResult * ((tech.rar + 1) * 8) -- add random value between 0% (worst rarity) and +48% (best rarity)
+    energy = energy + tech.boosterEnergyResult * ((tech.rarity + 1) * 8) -- add random value between 0% (worst rarity) and +48% (best rarity)
     
     -- add flat percentage based on rarity
-    charge = charge + (tech.rar + 1) * 4 -- add 0% (worst rarity) to +24% (best rarity)
+    charge = charge + (tech.rarity + 1) * 4 -- add 0% (worst rarity) to +24% (best rarity)
 
     -- add randomized percentage, span is based on rarity
-    charge = charge + tech.boosterChargeResult * ((tech.rar + 1) * 4) -- add random value between 0% (worst rarity) and +24% (best rarity)
+    charge = charge + tech.boosterChargeResult * ((tech.rarity + 1) * 4) -- add random value between 0% (worst rarity) and +24% (best rarity)
 
 
     energy = energy * 0.8 / 100
@@ -47,7 +47,7 @@ function getBonuses(seed, rarity, permanent)
     end
 
     -- 每级25%额外概率 异域以上必定双享
-    local probability = math.max(0, tech.rar * 0.25)
+    local probability = math.max(0, tech.rarity * 0.25)
     if math.random() > probability then
         -- only 1 will be used
         if math.random() < 0.5 then

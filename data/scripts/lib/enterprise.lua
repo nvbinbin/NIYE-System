@@ -361,15 +361,16 @@ function getEnterprise(seed, rarity, inType)
     end
     
     -- 先从最大等级开始，再到最低等级。
+    local tys = systemTable.all
+    for i, v in pairs(systemTable[inType]) do
+        table.insert(tys, v)   
+    end
+
     for le = 3, 1, -1 do
-        local out = getEnt(le, systemTable.all)
+        local out = getEnt(le, tys)
         if out then
             tech = out
-        else
-            out = getEnt(le, systemTable[inType])
-            if out then
-                tech = out
-            end
+            break
         end
     end
     ---------------------------------------------------------------------

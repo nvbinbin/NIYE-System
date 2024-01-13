@@ -18,10 +18,10 @@ function getBonuses(seed, rarity, permanent)
 
     scanner = 5 -- base value, in percent
     -- add flat percentage based on rarity
-    scanner = scanner + (tech.rar + 2) * 15 -- add +15% (worst rarity) to +105% (best rarity)
+    scanner = scanner + (tech.rarity + 2) * 15 -- add +15% (worst rarity) to +105% (best rarity)
 
     -- add randomized percentage, span is based on rarity
-    scanner = scanner + tech.scannerResult * ((tech.rar + 1) * 15) -- add random value between +0% (worst rarity) and +90% (best rarity)
+    scanner = scanner + tech.scannerResult * ((tech.rarity + 1) * 15) -- add random value between +0% (worst rarity) and +90% (best rarity)
     scanner = scanner / 100
 
     if permanent then
@@ -47,7 +47,7 @@ end
 function getName(seed, rarity)
     local scanner, tech = getBonuses(seed, rarity, true)
 
-    local rarityStr = tostring(tech.rar + 2)
+    local rarityStr = tostring(tech.rarity + 2)
     local serial = tostring(round(scanner * 100))
     local name = getGrade(tech.scannerResult, tech, 100) .. " 探测器强化"
 

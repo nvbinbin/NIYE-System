@@ -44,7 +44,7 @@ function getBonuses(seed, rarity, permanent)
     local tech = getEnterprise(seed, rarity, 1)
     if tech.uid == 0700 then tech.nameId = "" end
 
-    local rarityLevel = tech.rar + 2 -- rarity levels start at -1
+    local rarityLevel = tech.rarity + 2 -- rarity levels start at -1
 
     local randomEntry = math.random(1, 4)
     weaknessType = weaknessTypes[randomEntry]
@@ -102,7 +102,7 @@ function getName(seed, rarity)
     local weaknessType, hpBonus, dmgFactor, tech = getBonuses(seed, rarity, true)
     local designation = getDamageTypeName(weaknessType)
 
-    return "W-${designation}-Hull Polarizer ${rarity}"%_t % {designation = designation, rarity = tostring((tech.rar + 2) * 1000 + seed % 750)}
+    return "W-${designation}-Hull Polarizer ${rarity}"%_t % {designation = designation, rarity = tostring((tech.rarity + 2) * 1000 + seed % 750)}
 end
 
 function getBasicName()

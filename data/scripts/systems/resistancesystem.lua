@@ -44,7 +44,7 @@ function getBonuses(seed, rarity, permanent)
     local tech = getEnterprise(seed, rarity, 1)
     if tech.uid == 0700 then tech.nameId = "" end
 
-    local rarityLevel = tech.rar + 2 -- rarity levels start at -1
+    local rarityLevel = tech.rarity + 2 -- rarity levels start at -1
 
     local randomEntry = math.random(1, 4)
     resistanceType = resistanceTypes[randomEntry]
@@ -100,7 +100,7 @@ function getName(seed, rarity)
 
     name = tech.nameId .. name
 
-    local mark = toRomanLiterals(tech.rar + 2)
+    local mark = toRomanLiterals(tech.rarity + 2)
     return "${name} MK ${mark} /* ex: Plasmatic Shield Ionizer MK III */"%_t % {name = name, mark = mark}
 end
 

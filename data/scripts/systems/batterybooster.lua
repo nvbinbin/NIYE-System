@@ -22,11 +22,11 @@ function getBonuses(seed, rarity, permanent)
     local charge = 15 -- 基础值 充能速度
 
     -- 基础算法 --
-    energy = energy + (tech.rar + 1) * 15 
-    energy = energy + tech.batteryEnergyResult * ((tech.rar + 1) * 10) 
+    energy = energy + (tech.rarity + 1) * 15 
+    energy = energy + tech.batteryEnergyResult * ((tech.rarity + 1) * 10) 
     
-    charge = charge + (tech.rar + 1) * 4 
-    charge = charge + tech.batteryChargeResult * ((tech.rar + 1) * 4)
+    charge = charge + (tech.rarity + 1) * 4 
+    charge = charge + tech.batteryChargeResult * ((tech.rarity + 1) * 4)
     
     
     energy = energy * 0.8 / 100
@@ -38,7 +38,7 @@ function getBonuses(seed, rarity, permanent)
     end
 
     -- 每级25%额外概率 异域以上必定双享
-    local probability = math.max(0, tech.rar * 0.25) -- 4 级就是 1 了
+    local probability = math.max(0, tech.rarity * 0.25) -- 4 级就是 1 了
     if math.random() > probability then
         -- 随机处死一个
         if math.random() < 0.5 then

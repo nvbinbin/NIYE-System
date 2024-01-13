@@ -13,7 +13,7 @@ function getLootCollectionRange(seed, rarity, permanent)
     local tech = getEnterprise(seed, rarity, 2)
     if tech.uid == 0700 then tech.nameId = "RCN" end
 
-    local range = (tech.rar + 2 + getFloat(0.0, 0.75)) * 2 * (1.3 ^ tech.rar) -- one unit is 10 meters
+    local range = (tech.rarity + 2 + getFloat(0.0, 0.75)) * 2 * (1.3 ^ tech.rar) -- one unit is 10 meters
 
     if permanent then
         range = range * 3
@@ -34,7 +34,7 @@ end
 function getName(seed, rarity)
     local range, tech = getLootCollectionRange(seed, rarity)
     local serial = makeSerialNumber(seed, 2, nil, nil, "0123456789")
-    local mark = toRomanLiterals(tech.rar + 2)
+    local mark = toRomanLiterals(tech.rarity + 2)
     return "${ids}-${serial} 牵引光束升级 MK ${mark}"%_t % {mark = mark, serial = serial, ids = tech.nameId}
 end
 

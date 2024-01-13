@@ -13,10 +13,10 @@ function getBonuses(seed, rarity, permanent)
     if tech.uid == 0700 then tech.nameId = "SR" end
 
     local durability = 0.25
-    durability = durability + (tech.rar * 0.03) + (0.03 * math.random())
+    durability = durability + (tech.rarity * 0.03) + (0.03 * math.random())
 
     local rechargeTimeFactor = 4.0
-    rechargeTimeFactor = rechargeTimeFactor - (tech.rar * 0.2) - (0.2 * math.random())
+    rechargeTimeFactor = rechargeTimeFactor - (tech.rarity * 0.2) - (0.2 * math.random())
 
 
     return durability, rechargeTimeFactor, tech
@@ -40,7 +40,7 @@ function getName(seed, rarity)
     local durability, rechargeTimeFactor, tech = getBonuses(seed, rarity)
     local random = Random(Seed(seed))
     local serial = makeSerialNumber(random, 2)
-    local gen = toGreekNumber(tech.rar + 2)
+    local gen = toGreekNumber(tech.rarity + 2)
     local name = randomEntry(random, {"Shield Reinforcer"%_t, "Shield Impenetrator"%_t})
 
     return "${ids}-${serial} ${name} Gen. ${gen} /* SR-FL Shield Impenetrator Gen. Delta */"%_t % {ids = tech.nameId, serial = serial, gen = gen, name = name}
