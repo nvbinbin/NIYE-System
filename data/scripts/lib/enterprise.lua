@@ -154,7 +154,7 @@ systemTable.militarytcs = {}
 function creatorEnterprise(inName, inAbbr, inScale, inProb, inSuffix)
     -- 基础数据
     local ent = {}
-    local base = baseTable[inRarity]
+    local base = baseTable[inProb]
     ent.id = enterpriseID
     ent.name = inName
     ent.abbr = inAbbr

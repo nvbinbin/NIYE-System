@@ -10,6 +10,34 @@ FixedEnergyRequirement = true
 -- 通用炮塔栏位
 local systemType = "arbitrarytcs"
 
+BoostingUpgrades = {}
+BoostingUpgrades["data/scripts/systems/arbitrarytcs.lua"] = true
+--[[
+    通用炮塔系统
+
+    通用栏位算法：
+    默认拥有2个通用栏位 = 2
+    增加稀有度x1的额外栏位 = 5
+    随机增加[0 - 稀有度x0.5]个通用栏位 = 2.5
+    id0max = 9.5
+    remix3 = 14
+
+    自动栏位算法：
+    默认拥有1个自动栏位 = 1
+    增加稀有度x0.5的额外栏位 = 2.5
+    随机增加[0 - 稀有度x0.5]个通用栏位 = 2.5
+    id0max = 6
+    remix3 = 9
+
+    系统联动效果：
+    [联动效果只影响本插件；三件套的出现概率10%；四件套5%；五件套1%]
+    [3/3]通用战斗协同系统
+    通用栏位-2
+    武装栏位+4
+    
+
+]]
+
 function getNumTurrets(seed, rarity, permanent)
     math.randomseed(seed)
     
@@ -19,12 +47,21 @@ function getNumTurrets(seed, rarity, permanent)
         tech.abbr = "A"
     end
 
-    local turrets = math.max(1, tech.rar)
+    local counter = 0
+
+    local turrets = math.max(1, tech.rarity)
     local autos = math.max(0, getInt(math.max(0, tech.rarity - 2), turrets - 1))
 
     if permanent then
         turrets = (turrets + math.max(1,  tech.rarity / 2)) 
         autos = autos
+        -- 侦测装备同类型系统数量
+        for upgrade, permanent in pairs(ShipSystem():getUpgrades()) do
+            if permanent and BoostingUpgrades[upgrade.script] then
+                counter = counter + 1
+            end
+        end
+        tech.counter = counter
     end
     if not permanent then -- and tech.onlyPerm
         --turrets = 0
@@ -68,7 +105,7 @@ end
 
 function getEnergy(seed, rarity, permanent)
     local turrets, autos, tech = getNumTurrets(seed, rarity, permanent)
-    return (turrets * 350 * 1000 * 1000 / (1.1 ^ tech.rar)) * tech.energy
+    return (turrets * 350 * 1000 * 1000 / (1.1 ^ tech.rarity)) * tech.energy
 end
 
 function getPrice(seed, rarity)
@@ -76,7 +113,7 @@ function getPrice(seed, rarity)
     local _, autos, tech = getNumTurrets(seed, rarity, true)
 
     local price = 7500 * (turrets + autos * 0.5);
-    return (price * 2.5 ^ tech.rar) * tech.money
+    return (price * 2.5 ^ tech.rarity) * tech.money
 end
 
 function getTooltipLines(seed, rarity, permanent)
