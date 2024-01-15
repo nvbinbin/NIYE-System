@@ -96,6 +96,13 @@ function churchTip(texts, bonuses, ltext, rtext, icon, permanent)
     return texts, bonuses
 end
 -----------------------------
+-- 顶级企业核心部分
+-----------------------------
+
+local ENTERPRISE_TABLE = {}
+function creatorEnterpriseTable()
+end
+
 
 
 local enters ={}
@@ -103,7 +110,6 @@ local systemTable = {}
 local effectTable = {}
 local rarityTable = {}
 
-local enterpriseID = 1
 local baseTable = {}
 
 ---------- A
@@ -149,81 +155,9 @@ systemTable.arbitrarytcs = {}
 systemTable.militarytcs = {}
 
 
--- 参数顺序：企业的名字 企业的ID  ||  企业类型(1-3)  企业规模(1-5)    部门产能(1-4) 后缀(n)[TABC]
-                                --  军民混合      小中大顶特        基础概率表     企业集团
-function creatorEnterprise(inName, inAbbr, inScale, inProb, inSuffix)
-    -- 基础数据
-    local ent = {}
-    local base = baseTable[inProb]
-    ent.id = enterpriseID
-    ent.name = inName
-    ent.abbr = inAbbr
-    ent.scale = inScale
-    ent.prob = inProb
-    ent.suffix = inSuffix
-    --基础属性
-    ent.ny = 0
-    ent.minProb = base[1]
-    ent.maxProb = base[2]
-    ent.money = base[3]
-    ent.energy = base[4]
 
 
-    --收尾
-    enterpriseID = enterpriseID + 1
-    return ent
-end
 
-function getFixRarity(inRarity, eft)
-    local rarity = inRarity
-    if eft == 9000 then local rarity = {0.1, 0.5, 0.5} end
-    if eft == 9001 then for i, r in pairs(rarity) do r[i] = r[i] * 0.5 end end
-    if eft == 9002 then for i, r in pairs(rarity) do r[i] = r[i] * 1.5 end end
-    return rarity
-end
-
--- 注册格式：注册表单 部门产能 系统名称 最小等级 最大等级
-function addSystem(inTable, inRarity, sys, minProb, maxProb)
-    local rarity = rarityTable[inRarity]
-    if next(inTable.eft) ~= nil then
-        -- 检查是否有特殊词条
-        local eft = inTable.eft[1]
-        if type(eft.title) == "number" then
-            local rarity = getFixRarity(rarity, eft.title)
-        end
-    end
-    local abbr = inTable.abbr
-    -- 参数：名称 : 等级 概率 所属
-    for i=minProb, maxProb do
-        table.insert(systemTable[sys], {level = i,prob = rarity[i], abbr = abbr}) --error
-    end
-end
-
-function addEffect(inTable,eftID)
-    local it = inTable
-    if eftID >= 9000 then 
-        -- 9000+ 属于内部特殊效果，只入表
-        local eft = effectTable[eftID] -- 通过地址获取词条
-        table.insert(it.eft, eft) -- 注册效果进入表单
-        return it
-    end
-
-    local function ope(act, a, b)
-        if act == "=" then return b
-        elseif act == "+" then return a + b
-        elseif act == "-" then return a - b
-        elseif act == "/" then if b == 0 then return a else return a / b end
-        elseif act == "*" then return a * b end
-    end
-
-    local eft = effectTable[eftID] -- 通过地址获取词条
-    local title = eft.title -- 获取词条名称
-    local origVal = it[title] -- 获取原始数据
-    it[title] = ope(eft.act,origVal,eft.val) -- 修正数值
-    table.insert(it.eft, eft) -- 注册效果进入表单
-    
-    return it
-end
 --[[企业类型
     militaryEnterprise 军工企业ME：专注于军用的装备系统研发生产企业
     civilEnterprise 民工企业CE：专注于民用的装备系统研发生产企业
@@ -276,8 +210,90 @@ end
         基础生产范围：紫色
         基础质量范围：0 - 100
     ]]
+
+    function getEnterprise(seed, rarity, inType)
+        math.randomseed(seed)
+        local function getFixRarity(inRarity, eft)
+            local randoms = math.random()
+        end
+    end
+
+
 function getEnterprise(seed, rarity, inType)
     math.randomseed(seed)
+    -- 参数顺序：企业的名字 企业的ID  ||  企业类型(1-3)  企业规模(1-5)    部门产能(1-4) 后缀(n)[TABC]
+    --  军民混合      小中大顶特        基础概率表     企业集团
+    local function creatorEnterprise(inEntID, inName, inAbbr, inScale, inProb, inSuffix)
+        -- 基础数据
+        local ent = {}
+        local base = baseTable[inProb]
+        ent.id = inEntID
+        ent.name = inName
+        ent.abbr = inAbbr
+        ent.scale = inScale
+        ent.prob = inProb
+        ent.suffix = inSuffix
+        --基础属性
+        ent.ny = 0
+        ent.minProb = base[1]
+        ent.maxProb = base[2]
+        ent.money = base[3]
+        ent.energy = base[4]
+    
+    
+        --收尾
+        return ent
+    end
+    
+        local function getFixRarity(inRarity, eft)
+        local rarity = inRarity
+        if eft == 9000 then local rarity = {0.8, 0.8, 0.8} end
+        if eft == 9001 then for i, r in pairs(rarity) do r[i] = r[i] * 0.5 end end
+        if eft == 9002 then for i, r in pairs(rarity) do r[i] = r[i] * 1.5 end end
+        return rarity
+    end
+    
+    -- 注册格式：注册表单 部门产能 系统名称 最小等级 最大等级
+    local function addSystem(inTable, inRarity, sys, level)
+        local rarity = rarityTable[inRarity]
+        if next(inTable.eft) ~= nil then
+            -- 检查是否有特殊词条
+            local eft = inTable.eft[1]
+            if type(eft.title) == "number" then
+                local rarity = getFixRarity(rarity, eft.title)
+            end
+        end
+        local abbr = inTable.abbr
+        -- 参数：                名称 : 等级            概率               所属
+        table.insert(systemTable[sys], {level = level, prob = rarity[level], abbr = abbr})
+    end
+    
+    local function addEffect(inTable,eftID)
+        local it = inTable
+        if eftID >= 9000 then 
+            -- 9000+ 属于内部特殊效果，只入表
+            local eft = effectTable[eftID] -- 通过地址获取词条
+            table.insert(it.eft, eft) -- 注册效果进入表单
+            return it
+        end
+    
+        local function ope(act, a, b)
+            if act == "=" then return b
+            elseif act == "+" then return a + b
+            elseif act == "-" then return a - b
+            elseif act == "/" then if b == 0 then return a else return a / b end
+            elseif act == "*" then return a * b end
+        end
+    
+        local eft = effectTable[eftID] -- 通过地址获取词条
+        local title = eft.title -- 获取词条名称
+        local origVal = it[title] -- 获取原始数据
+        it[title] = ope(eft.act,origVal,eft.val) -- 修正数值
+        table.insert(it.eft, eft) -- 注册效果进入表单
+        
+        return it
+    end
+
     local enterpriseSuffix = {
         {"Enterprise/*企业*/"%_t},
         {"Enterprise/*集团*/"%_t},
@@ -286,103 +302,116 @@ function getEnterprise(seed, rarity, inType)
 
     local tech
     -- 1号 默认企业
-    local ent = creatorEnterprise("SYSTEM"%_t, "SYS", 5, 0, 1)
+    local ent = creatorEnterprise(1, "SYSTEM"%_t, "SYS", 5, 0, 1)
     ent.eft = {}
     ent.tip = {}
     table.insert(enters, ent) -- 完成注册一个企业
-    -- 不是传奇就不要玩了
-    if rarity.value < 5 then
-        tech = enters[1]
-        tech.rarity = rarity.value
-        return tech
-    end 
+    
 
     --                                                                   规模 品控 后缀
-    local ent = creatorEnterprise("Tianfang Creation/*天创造物*/"%_t, "HEA", 5, 1, 2)
+    local ent = creatorEnterprise(2, "Tianfang Creation/*天创造物*/"%_t, "HEA", 5, 1, 2)
     --注册并修正效果表
     ent.eft = {}
     ent = addEffect(ent, 9000)
     ent = addEffect(ent, 2000)
     ent = addEffect(ent, 1000)
     -- 生成产品列表     警告：你必须要先注册效果表，否则ety[1]涉及到概率的修正无法生效。
-    addSystem(ent, 1, "all", 3, 3)
-    ent.tip = {
-        "Welcome to the functional expansion subsystem from Tianfang Creation/*欢迎使用 天创开物 的功能拓展子系统*/"%_t,
-        "Feel the peak technology blessing of the star sea/*感受星海的巅峰科技加持*/"%_t}
+    addSystem(ent, 1, "all", 3)
+    ent.tip = {"Welcome to the functional expansion subsystem from Tianfang Creation/*欢迎使用 天创开物 的功能拓展子系统*/"%_t, 
+    "Feel the peak technology blessing of the star sea/*感受星海的巅峰科技加持*/"%_t}
+    
+    -- local ent = {eft = {}, tip = {}}
+    -- local base = baseTable[1]
+    -- ent.id = 2
+    -- ent.name = "Tianfang Creation/*天创造物*/"%_t
+    -- ent.abbr = "HEA"
+    -- --基础属性
+    -- ent.minProb = base[1]
+    -- ent.maxProb = base[2]
+    -- ent.money = base[3]
+    -- ent.energy = base[4]
+    -- --效果器
+    -- table.insert(ent.eft, addEffect(ent, 9000))
+    -- table.insert(ent.eft, addEffect(ent, 2000))
+    -- table.insert(ent.eft, addEffect(ent, 1000))
+    -- --提示
+    -- table.insert(ent.tip, "Welcome to the functional expansion subsystem from Tianfang Creation/*欢迎使用 天创开物 的功能拓展子系统*/"%_t)
+    -- table.insert(ent.tip, "Feel the peak technology blessing of the star sea/*感受星海的巅峰科技加持*/"%_t)
+    -- --产品列表
+    -- addSystem(ent, 1, "all", 3)
+    
     table.insert(enters, ent) -- 完成注册一个企业
 
+    -- local ent = creatorEnterprise(3, "Daqin Military/*大秦军工*/"%_t, "QIN", 3, 1, 1)
+    -- ent.eft = {}
+    -- addSystem(ent, 1, "militarytcs", 1, 3)
+    -- ent.tip = {"Welcome to buy and use the products of Daqin Military/*欢迎购买并使用大秦军工的产品*/"%_t}
+    -- table.insert(enters, ent) -- 完成注册一个企业
 
-    local ent = creatorEnterprise("Daqin Military/*大秦军工*/"%_t, "QIN", 3, 1, 1)
-    ent.eft = {}
-    addSystem(ent, 1, "militarytcs", 1, 3)
-    ent.tip = {"Welcome to buy and use the products of Daqin Military/*欢迎购买并使用大秦军工的产品*/"%_t}
-    table.insert(enters, ent) -- 完成注册一个企业
 
-    local ent = creatorEnterprise("惠民企业"%_t, "MIN", 2, 1, 1)
-    ent.eft = {}
-    ent.tip = {"澎湃动力，源自惠民科技。"%_t}
-    table.insert(enters, ent) -- 完成注册一个企业
+    -- local ent = creatorEnterprise(4, "惠民企业"%_t, "MIN", 2, 1, 1)
+    -- ent.eft = {}
+    -- ent.tip = {"澎湃动力，源自惠民科技。"%_t}
+    -- table.insert(enters, ent) -- 完成注册一个企业
 
 
     
     ---------------------------------------------------------------------
-    
+    local function addCommon()
+        local common = enters[1]
+        common.rarity = rarity.value
+        return common
+    end
+
     local function getTech(inAbbr)
         for i, e in pairs(enters) do
             if e.abbr == inAbbr then
-                return e   
-            else
+                return e
             end
         end
     end
-    local function getEnt(le, st)
-        local ot
-        if next(st) ~=nil then
-            for i, t in pairs(st) do
-                if t.level == le then
-                    local random = math.random()
-                    local prob = t.prob
-                    -- 随机数 小于 概率
-                    if random < prob then
-                        ot = getTech(t.abbr)
-                        ot.rarity = rarity.value + le
-                        break
-                    end
-                end
 
-            end
-        end
 
-        if ot then 
-            return ot
-        else
-            return nil
-        end
-    end
+    -- 不是传奇就不要玩了
+    if rarity.value <= 4 then
+        print("系统：这不是一张传奇卡")
+        return addCommon()
+    end 
+
     
-    -- 先从最大等级开始，再到最低等级。
+    -- 根据类型整合表格
     local tys = systemTable.all
     for i, v in pairs(systemTable[inType]) do
         table.insert(tys, v)   
     end
 
+    if next(tys) == nil then
+        print("警告：没有任何企业掌握这个系统插件的改进。")
+        return addCommon()
+    end
+
+    -- 先从最大等级开始，再到最低等级。
+
     for le = 3, 1, -1 do
-        local out = getEnt(le, tys)
-        if out then
-            tech = out
-            break
+        for i, t in pairs(tys) do
+            local randoms = math.random()
+            if t.level == le and randoms < t.prob then
+                tech = getTech(t.abbr)
+                tech.rarity = rarity.value + t.level
+                break
+            end
+        end
+        if tech then
+            return tech
         end
     end
     ---------------------------------------------------------------------
-    if not tech then --如果抽奖失败了那么我们就创造一个0700 = 原版
-        tech = enters[1]
-        tech.rarity = rarity.value
-        return tech
+    -- 平平无奇的传奇卡
+    if not tech then
+        print("系统：这是一张普通的传奇卡")
+        return addCommon()
     end
-     return tech
 end
-
-
 
 ---------------------------------------------------------------------------------------
 ---------------------------------------------------------------------------------------

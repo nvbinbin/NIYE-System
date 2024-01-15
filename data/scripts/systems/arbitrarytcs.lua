@@ -7,8 +7,7 @@ include ("randomext")
 include ("enterprise") -- 新增库
 
 FixedEnergyRequirement = true
--- 通用炮塔栏位
-local systemType = "arbitrarytcs"
+
 
 BoostingUpgrades = {}
 BoostingUpgrades["data/scripts/systems/arbitrarytcs.lua"] = true
@@ -26,9 +25,10 @@ BoostingUpgrades["data/scripts/systems/arbitrarytcs.lua"] = true
 
 function getNumTurrets(seed, rarity, permanent)
     math.randomseed(seed)
-    
+    -- 通用炮塔栏位
+    local systemType = "arbitrarytcs"
     local tech = getEnterprise(seed, rarity, systemType)
-    if tech.id == 0 then tech.abbr = "TCS" end
+    if tech.id == 1 then tech.abbr = "TCS" end
     -- 初始化
     local arbs = 0
     local autos = 0
