@@ -27,7 +27,7 @@ function getBonuses(seed, rarity, permanent)
     baseAmplification = baseAmplification / 100
     amplification = amplification / 100
 
-    energy = -baseAmplification * 0.45 / (1.05 ^ tech.rar) -- note the minus
+    energy = -baseAmplification * 0.45 / (1.05 ^ tech.rarity) -- note the minus
 
     -- is balanced around permanent installation
     -- permanent installation reverses this factor
@@ -77,7 +77,7 @@ end
 function getPrice(seed, rarity)
     local amplification, energy, tech = getBonuses(seed, rarity, true)
     local price = 150 * 1000 * amplification;
-    return (price * 2.0 ^ tech.rar) * tech.money
+    return (price * 2.0 ^ tech.rarity) * tech.coinFactor
 end
 
 function getTooltipLines(seed, rarity, permanent)

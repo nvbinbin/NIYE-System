@@ -119,7 +119,7 @@ end
 function getPrice(seed, rarity)
     local energy, charge, tech = getBonuses(seed, rarity, true)
     local price = energy * 100 * 400 + charge * 100 * 300
-    return (price * 2.5 ^ tech.rar) * tech.money
+    return (price * 2.5 ^ tech.rarity) * tech.coinFactor
 end
 
 function getTooltipLines(seed, rarity, permanent)

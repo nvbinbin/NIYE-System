@@ -74,7 +74,7 @@ function getPrice(seed, rarity)
     local scanner, tech = getBonuses(seed, rarity, true)
     local scanner = getBonuses(seed, rarity)
     local price = scanner * 100 * 250
-    return (price * 2.5 ^ tech.rar) * tech.money
+    return (price * 2.5 ^ tech.rarity) * tech.coinFactor
 end
 
 function getTooltipLines(seed, rarity, permanent)

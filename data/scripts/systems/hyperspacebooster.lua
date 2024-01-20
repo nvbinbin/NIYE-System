@@ -74,7 +74,7 @@ function getBonuses(seed, rarity, permanent)
     end
 
     if enabled[StatsBonuses.RadarReach] then -- 雷达范围
-        radar = math.max(0, getInt(tech.rar, tech.rarity * 2.0)) + 1
+        radar = math.max(0, getInt(tech.rarity, tech.rarity * 2.0)) + 1
     end
 
     if permanent then
@@ -84,7 +84,7 @@ function getBonuses(seed, rarity, permanent)
                 cdbias = round(math.max(0, (reach - 2) / 4) * 60)
                 cdfactor = 0
             else
-                reach = math.max(0, (tech.rarity * tech.rar) / 25 * 8 + random():getFloat(0, 1.0))
+                reach = math.max(0, (tech.rarity * tech.rarity) / 25 * 8 + random():getFloat(0, 1.0))
             end
         end
 
@@ -163,7 +163,7 @@ function getPrice(seed, rarity)
     local reach, _, efactor, radar, _ = getBonuses(seed, rarity, false)
     local _, cdfactor, _, _, _, tech= getBonuses(seed, rarity, true)
     local price = math.abs(cdfactor) * 100 * 350 + math.abs(efactor) * 100 * 250 + reach * 3000 + radar * 450
-    return (price * 2.5 ^ tech.rar) * tech.money
+    return (price * 2.5 ^ tech.rarity) * tech.coinFactor
 end
 
 function getTooltipLines(seed, rarity, permanent)

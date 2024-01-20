@@ -23,7 +23,7 @@ Unique = true
 function getBonuses(seed, rarity, permanent)
     math.randomseed(seed)
     local tech = getEnterprise(seed, rarity, 2)
-    if tech.uid == 0700 then tech.nameId = "V" end
+    if tech.uid == 0700 then tech.nameId = "" end
 
     local highlightRange = 0
     local cooldown = baseCooldown
@@ -336,7 +336,7 @@ function getBasicName()
 end
 
 function getIcon(seed, rarity)
-    local a, b, tech = getBonuses(seed, rarity, permanent)
+    local _, _, tech = getBonuses(seed, rarity, permanent)
 
     return makeIcon("movement-sensor", tech)
 end
@@ -358,7 +358,7 @@ function getPrice(seed, rarity)
 
     local price = (tech.rarity + 2) * 750 + range * 1.5;
 
-    return (price * 2.5 ^ (tech.rarity + 1)) * tech.money
+    return (price * 2.5 ^ (tech.rarity + 1)) * tech.coinFactor
 end
 
 function getTooltipLines(seed, rarity, permanent)
@@ -453,4 +453,3 @@ function getComparableValues(seed, rarity)
 
     return base, bonus
 end
-    

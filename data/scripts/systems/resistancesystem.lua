@@ -122,7 +122,7 @@ end
 function getPrice(seed, rarity)
     local resistanceType, dmgFactor,tech = getBonuses(seed, rarity, true)
     local price = dmgFactor * 100 * 500 + dmgFactor * 100 * 257
-    return (price * 2.5 ^ tech.rar) * tech.money
+    return (price * 2.5 ^ tech.rarity) * tech.coinFactor
 end
 
 function getTooltipLines(seed, rarity, permanent)

@@ -152,7 +152,7 @@ end
 function getPrice(seed, rarity)
     local durability, recharge, emergencyRecharge, tech = getBonuses(seed, rarity, true)
     local price = durability / 5 + recharge * 100 * 250 + emergencyRecharge * 15000
-    return (price * 2.5 ^ tech.rar) * tech.money
+    return (price * 2.5 ^ tech.rarity) * tech.coinFactor
 end
 
 function getTooltipLines(seed, rarity, permanent)

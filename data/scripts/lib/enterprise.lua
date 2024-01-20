@@ -13,7 +13,7 @@ FixedEnergyRequirement = true
 -- 企业为所有系统应用上新图标
 function makeIcon(name, tech)
     local icon = "data/textures/icons/" .. name
-    if tech.id == 1 then
+    if tech.uid == 0700 then
         icon = icon .. ".png"
     else
         icon = icon .. toRomanLiterals(tech.rarity - 5) .. ".png"
@@ -99,35 +99,11 @@ end
 -- 顶级企业核心部分
 -----------------------------
 
-local ENTERPRISE_TABLE = {}
-function creatorEnterpriseTable()
-end
-
-
-
-local enters ={}
 local systemTable = {}
 local effectTable = {}
 local rarityTable = {}
 
 local baseTable = {}
-
----------- A
---          effectTable
---          效果特性表
-----------
--- 1
-effectTable[1000] = {type = 1, ltext = "Pioneer technology/*先驱科技*/"%_t, rtext ="Only the highest quality will appear/*只会出现最高品质*/"%_t, title = "minPorb", act = "=", val = 1}
--- 2
-effectTable[2000] = {type = 2, ltext = "Relic/*遗物*/"%_t, rtext ="Final value +100%/*最终价值+100%*/"%_t, title = "money", act = "+", val = 1}
--- 3
-effectTable[3000] = {type = 3, ltext = "Reverse technology/*逆向科技*/"%_t, rtext ="Maximum quality -5%/*最高品质-5%*/"%_t, title = "maxPorb", act = "-", val = 0.05}
-effectTable[3001] = {type = 3, ltext = "Stable Quality Control/*稳定品控*/"%_t, rtext ="Minimum quality +5%/*最低品质+5%*/"%_t, title = "mimPorb", act = "+", val = 0.05}
--- function needs
-effectTable[9000] = {type = 3, ltext = "Lost enterprise/*失落企业*/"%_t, rtext ="Fixed 1‰ appearance probability/*固定1‰出现概率*/"%_t,title = 9000}
-effectTable[9001] = {type = 3, ltext = "As sparse as morning stars/*寥若晨星*/"%_t, rtext ="Appearance probability -100%/*出现概率-100%*/"%_t,title = 9001}
-effectTable[9002] = {type = 1, ltext = "Emerging enterprise/*新兴企业*/"%_t, rtext ="Appearance probability +50%/*出现概率+50%*/"%_t,title = 9002}
-
 ---------- B
 --          rarityTable
 --          出现概率表
@@ -150,9 +126,28 @@ baseTable[2] = {15, 100, 1.25, 1.1}
 baseTable[3] = {20, 105, 1.45, 1}
 baseTable[4] = {0, 100, 0.5, 1.1}
 
-systemTable.all = {}
-systemTable.arbitrarytcs = {}
-systemTable.militarytcs = {}
+---------- A
+--          effectTable
+--          效果特性表
+----------
+-- 1
+effectTable[1000] = {type = 1, ltext = "Pioneer technology/*先驱科技*/"%_t, rtext ="Only the highest quality will appear/*只会出现最高品质*/"%_t, title = "minPorb", act = "=", val = 1}
+-- 2
+effectTable[2000] = {type = 2, ltext = "Relic/*遗物*/"%_t, rtext ="Final value +100%/*最终价值+100%*/"%_t, title = "money", act = "+", val = 1}
+-- 3
+effectTable[3000] = {type = 3, ltext = "Reverse technology/*逆向科技*/"%_t, rtext ="Maximum quality -5%/*最高品质-5%*/"%_t, title = "maxPorb", act = "-", val = 0.05}
+effectTable[3001] = {type = 3, ltext = "Stable Quality Control/*稳定品控*/"%_t, rtext ="Minimum quality +5%/*最低品质+5%*/"%_t, title = "mimPorb", act = "+", val = 0.05}
+-- function needs
+effectTable[9000] = {type = 3, ltext = "Lost enterprise/*失落企业*/"%_t, rtext ="Fixed 1‰ appearance probability/*固定1‰出现概率*/"%_t,title = 9000}
+effectTable[9001] = {type = 3, ltext = "As sparse as morning stars/*寥若晨星*/"%_t, rtext ="Appearance probability -100%/*出现概率-100%*/"%_t,title = 9001}
+effectTable[9002] = {type = 1, ltext = "Emerging enterprise/*新兴企业*/"%_t, rtext ="Appearance probability +50%/*出现概率+50%*/"%_t,title = 9002}
+
+
+
+
+local ENTERPRISE_TIP = {}
+ENTERPRISE_TIP.HEA = {"Welcome to the functional expansion subsystem from Tianfang Creation/*欢迎使用 天创开物 的功能拓展子系统*/"%_t, "Feel the peak technology blessing of the star sea/*感受星海的巅峰科技加持*/"%_t}
+
 
 
 
@@ -211,256 +206,317 @@ systemTable.militarytcs = {}
         基础质量范围：0 - 100
     ]]
 
-    function getEnterprise(seed, rarity, inType)
-        math.randomseed(seed)
-        local function getFixRarity(inRarity, eft)
-            local randoms = math.random()
-        end
-    end
-
 
 function getEnterprise(seed, rarity, inType)
     math.randomseed(seed)
-    -- 参数顺序：企业的名字 企业的ID  ||  企业类型(1-3)  企业规模(1-5)    部门产能(1-4) 后缀(n)[TABC]
-    --  军民混合      小中大顶特        基础概率表     企业集团
-    local function creatorEnterprise(inEntID, inName, inAbbr, inScale, inProb, inSuffix)
-        -- 基础数据
-        local ent = {}
-        local base = baseTable[inProb]
-        ent.id = inEntID
-        ent.name = inName
-        ent.abbr = inAbbr
-        ent.scale = inScale
-        ent.prob = inProb
-        ent.suffix = inSuffix
-        --基础属性
-        ent.ny = 0
-        ent.minProb = base[1]
-        ent.maxProb = base[2]
-        ent.money = base[3]
-        ent.energy = base[4]
     
-    
-        --收尾
-        return ent
-    end
-    
-        local function getFixRarity(inRarity, eft)
-        local rarity = inRarity
-        if eft == 9000 then local rarity = {0.8, 0.8, 0.8} end
-        if eft == 9001 then for i, r in pairs(rarity) do r[i] = r[i] * 0.5 end end
-        if eft == 9002 then for i, r in pairs(rarity) do r[i] = r[i] * 1.5 end end
-        return rarity
-    end
-    
-    -- 注册格式：注册表单 部门产能 系统名称 最小等级 最大等级
-    local function addSystem(inTable, inRarity, sys, level)
-        local rarity = rarityTable[inRarity]
-        if next(inTable.eft) ~= nil then
-            -- 检查是否有特殊词条
-            local eft = inTable.eft[1]
-            if type(eft.title) == "number" then
-                local rarity = getFixRarity(rarity, eft.title)
-            end
-        end
-        local abbr = inTable.abbr
-        -- 参数：                名称 : 等级            概率               所属
-        table.insert(systemTable[sys], {level = level, prob = rarity[level], abbr = abbr})
-    end
-    
-    local function addEffect(inTable,eftID)
-        local it = inTable
-        if eftID >= 9000 then 
-            -- 9000+ 属于内部特殊效果，只入表
-            local eft = effectTable[eftID] -- 通过地址获取词条
-            table.insert(it.eft, eft) -- 注册效果进入表单
-            return it
-        end
-    
-        local function ope(act, a, b)
-            if act == "=" then return b
-            elseif act == "+" then return a + b
-            elseif act == "-" then return a - b
-            elseif act == "/" then if b == 0 then return a else return a / b end
-            elseif act == "*" then return a * b end
-        end
-    
-        local eft = effectTable[eftID] -- 通过地址获取词条
-        local title = eft.title -- 获取词条名称
-        local origVal = it[title] -- 获取原始数据
-        it[title] = ope(eft.act,origVal,eft.val) -- 修正数值
-        table.insert(it.eft, eft) -- 注册效果进入表单
-        
-        return it
-    end
+    --[[
+        type：  0：通用     1：军用     2：民用
+        onlyPerm:   只能永久安装
 
-    local enterpriseSuffix = {
-        {"Enterprise/*企业*/"%_t},
-        {"Enterprise/*集团*/"%_t},
-        {"研究会"%_t}
+        基础倍率：0.04 / 0.02  / 0.001
+        价格平衡：1.1/1.2/1.3
+        电量平衡：1.05/1.1/1.2 
+        出现品质：4/5/5  
+        品质保底：5/10/15
+
+        限制：111   211     422
+        彩蛋：3     4       8
+    ]]
+
+    local enters = {
+        {
+            uid = 1001, name = "Tianfang Creation/*天创造物*/"%_t, nameId = "HEA", rarity = 3, quality = 5, type = 0,
+            prob = 0.1, onlyPerm = false, coinFactor = 1.1, energyFactor = 1.2,
+            minRandom = 100, maxRandom = 100,
+            text = {"Welcome to the functional expansion subsystem from Tianfang Creation/*欢迎使用 天创造物 的功能拓展子系统*/"%_t, "Feel the peak technology blessing of the star sea/*感受星海的巅峰科技加持*/"%_t},
+            perfor = {
+                {type = 1, ltext = "Pioneer technology/*先驱科技*/"%_t, rtext ="Only highest quality/*绝对最高品质*/"%_t},
+                {type = 2, ltext = "Relic/*遗物*/"%_t, rtext ="Final +100%/*价值+100%*/"%_t},
+                {type = 3, ltext = "Lost enterprise/*失落企业*/"%_t, rtext ="Fixed 1‰ appearance probability/*固定1‰出现概率*/"%_t}},
+            entry = {}
+        },
+        {
+            uid = 1002, name = "索坦逆向科技", nameId = "Xsotan", rarity = 3, quality = 5, type = 1,
+            prob = 0.001, onlyPerm = false, coinFactor = 1.3, energyFactor = 1.2,
+            minRandom = 15, maxRandom = 100,
+
+            text = {"Xsotan Key 0X000000", "null - 000000"},
+            perfor = {{type = 3, ltext = "Reverse technology/*逆向科技*/"%_t, rtext ="Maximum quality -5%/*最高品质-5%*/"%_t}},
+            entry = {}
+        },
+
+        {
+            uid = 0901, name = "闪耀科技", nameId = "STAR", rarity = 2, quality = 5, type = 0,
+            prob = 0.02, onlyPerm = false, coinFactor = 1.2, energyFactor = 1.1,
+            minRandom = 10, maxRandom = 100,
+
+            text = {"Xsotan System Decompile", "产自 - 闪耀科技研讨会"},
+            perfor = {{type = 3, ltext = "Reverse technology/*逆向科技*/"%_t, rtext ="Maximum quality -5%/*最高品质-5%*/"%_t}},
+            entry = {}
+        },
+        {
+            uid = 0902, name = "暗金教会", nameId = "DGC", rarity = 2, quality = 5, type = 0,
+            prob = 0.1, onlyPerm = true, coinFactor = 1.2, energyFactor = 1.1,
+            minRandom = 10, maxRandom = 100,
+
+            text = {},
+            perfor = {{type = 2, ltext = "暗金工程"%_t, rtext ="数据被加密"%_t}},
+            entry = {}
+        },
+
+        {
+            uid = 9901, name = "晓立天下", nameId = "NVCX", rarity = 2, quality = 5, type = 0,
+            prob = 0.006, onlyPerm = false, coinFactor = 1.2, energyFactor = 1.1,
+            minRandom = 10, maxRandom = 100,
+
+            text = {},
+            perfor = {},
+            entry = {}
+        },
+        {
+            uid = 9902, name = "莱莎重工", nameId = "BA", rarity = 2, quality = 5, type = 1,
+            prob = 0.006, onlyPerm = false, coinFactor = 1.2, energyFactor = 1.1,
+            minRandom = 10, maxRandom = 100,
+
+            text = {},
+            perfor = {},
+            entry = {}
+        },
+
+        {
+            uid = 0801, name = "AISystem", nameId = "AI", rarity = 1, quality = 4, type = 0,
+            prob = 0.1, onlyPerm = false, coinFactor = 1.1, energyFactor = 1.05,
+            minRandom = 10, maxRandom = 100,
+
+            text = {"通过最新的量子计算器", "我们已成功推算出传说之上"},
+            perfor = {},
+            entry = {}
+        },
+        {
+            uid = 0802, name = "天顶星集团", nameId = "HCK", rarity = 1, quality = 4, type = 0,
+            prob = 0.04, onlyPerm = false, coinFactor = 1.1, energyFactor = 1.05,
+            minRandom = 10, maxRandom = 100,
+
+            text = {"欢迎加入我们", "无论您是从事什么行业"},
+            perfor = {},
+            entry = {}
+        },
+        {
+            uid = 0803, name = "大秦军工", nameId = "QIN", rarity = 1, quality = 4, type = 1,
+            prob = 0.04, onlyPerm = false, coinFactor = 1.1, energyFactor = 1.05,
+            minRandom = 10, maxRandom = 100,
+
+            text = {"欢迎购买并使用我们的外贸产品"},
+            perfor = {},
+            entry = {}
+        },
+        {
+            uid = 0804, name = "惠民企业", nameId = "HM", rarity = 1, quality = 4, type = 2,
+            prob = 0.04, onlyPerm = false, coinFactor = 1.1, energyFactor = 1.05,
+            minRandom = 10, maxRandom = 100,
+
+            text = {"惠民企业给你带来更高端的产业升级"},
+            perfor = {},
+            entry = {}
+        }
+
+
     }
 
+    --[[
+        type:   0null 1good 2bad
+    ]]
+    local perfors = {
+    }
+
+
     local tech
-    -- 1号 默认企业
-    local ent = creatorEnterprise(1, "SYSTEM"%_t, "SYS", 5, 0, 1)
-    ent.eft = {}
-    ent.tip = {}
-    table.insert(enters, ent) -- 完成注册一个企业
-    
+    --  民用插件定义：非战斗用途    civil = 2
 
-    --                                                                   规模 品控 后缀
-    local ent = creatorEnterprise(2, "Tianfang Creation/*天创造物*/"%_t, "HEA", 5, 1, 2)
-    --注册并修正效果表
-    ent.eft = {}
-    ent = addEffect(ent, 9000)
-    ent = addEffect(ent, 2000)
-    ent = addEffect(ent, 1000)
-    -- 生成产品列表     警告：你必须要先注册效果表，否则ety[1]涉及到概率的修正无法生效。
-    addSystem(ent, 1, "all", 3)
-    ent.tip = {"Welcome to the functional expansion subsystem from Tianfang Creation/*欢迎使用 天创开物 的功能拓展子系统*/"%_t, 
-    "Feel the peak technology blessing of the star sea/*感受星海的巅峰科技加持*/"%_t}
-    
-    -- local ent = {eft = {}, tip = {}}
-    -- local base = baseTable[1]
-    -- ent.id = 2
-    -- ent.name = "Tianfang Creation/*天创造物*/"%_t
-    -- ent.abbr = "HEA"
-    -- --基础属性
-    -- ent.minProb = base[1]
-    -- ent.maxProb = base[2]
-    -- ent.money = base[3]
-    -- ent.energy = base[4]
-    -- --效果器
-    -- table.insert(ent.eft, addEffect(ent, 9000))
-    -- table.insert(ent.eft, addEffect(ent, 2000))
-    -- table.insert(ent.eft, addEffect(ent, 1000))
-    -- --提示
-    -- table.insert(ent.tip, "Welcome to the functional expansion subsystem from Tianfang Creation/*欢迎使用 天创开物 的功能拓展子系统*/"%_t)
-    -- table.insert(ent.tip, "Feel the peak technology blessing of the star sea/*感受星海的巅峰科技加持*/"%_t)
-    -- --产品列表
-    -- addSystem(ent, 1, "all", 3)
-    
-    table.insert(enters, ent) -- 完成注册一个企业
+    for i, t in pairs(enters) do
 
-    -- local ent = creatorEnterprise(3, "Daqin Military/*大秦军工*/"%_t, "QIN", 3, 1, 1)
-    -- ent.eft = {}
-    -- addSystem(ent, 1, "militarytcs", 1, 3)
-    -- ent.tip = {"Welcome to buy and use the products of Daqin Military/*欢迎购买并使用大秦军工的产品*/"%_t}
-    -- table.insert(enters, ent) -- 完成注册一个企业
-
-
-    -- local ent = creatorEnterprise(4, "惠民企业"%_t, "MIN", 2, 1, 1)
-    -- ent.eft = {}
-    -- ent.tip = {"澎湃动力，源自惠民科技。"%_t}
-    -- table.insert(enters, ent) -- 完成注册一个企业
-
-
-    
-    ---------------------------------------------------------------------
-    local function addCommon()
-        local common = enters[1]
-        common.rarity = rarity.value
-        return common
-    end
-
-    local function getTech(inAbbr)
-        for i, e in pairs(enters) do
-            if e.abbr == inAbbr then
-                return e
+        if t.type == 0 or t.type == useType then
+            if math.random() < t.prob and rarity.value >= t.quality then -- 如果 随机数 比 概率大 和 品级对等/达标则开始抽奖
+                tech = t 
+                break 
             end
-        end
+            
+         end
+
+        
     end
 
+    if not tech then --如果抽奖失败了那么我们就创造一个0799 = 原版
+        tech = {
+            uid = 0700, name = "", nameId = "", rarity = 0, quality = 0, type = 0,
+            prob = 0, onlyPerm = false, coinFactor = 1, energyFactor = 1,
+            minRandom = 0, maxRandom = 100,
 
-    -- 不是传奇就不要玩了
-    if rarity.value <= 4 then
-        print("系统：这不是一张传奇卡")
-        return addCommon()
-    end 
+            text = {},
+            perfor = {},
+            entry = {}
+        }
+    end
 
+    -- 整合等级
+    tech.rarity = rarity.value + tech.rarity
     
-    -- 根据类型整合表格
-    local tys = systemTable.all
-    for i, v in pairs(systemTable[inType]) do
-        table.insert(tys, v)   
-    end
-
-    if next(tys) == nil then
-        print("警告：没有任何企业掌握这个系统插件的改进。")
-        return addCommon()
-    end
-
-    -- 先从最大等级开始，再到最低等级。
-
-    for le = 3, 1, -1 do
-        for i, t in pairs(tys) do
-            local randoms = math.random()
-            if t.level == le and randoms < t.prob then
-                tech = getTech(t.abbr)
-                tech.rarity = rarity.value + t.level
-                break
-            end
-        end
-        if tech then
-            return tech
-        end
-    end
-    ---------------------------------------------------------------------
-    -- 平平无奇的传奇卡
-    if not tech then
-        print("系统：这是一张普通的传奇卡")
-        return addCommon()
-    end
+     return tech
 end
+
+--     math.randomseed(seed)
+--     local tech
+--     local enters = {
+--         {
+--             id = 1, name = "SYSTEM"%_t, abbr = "SYS", rarity = rarityTable[0], porb = baseTable[0], perm = false,
+--             eft = {}, tip = {}
+--         },
+--         {
+--             id = 2, name = "Tianfang Creation/*天创造物*/"%_t, abbr = "HEA", rarity = rarityTable[1], porb = baseTable[1], perm = false,
+--             eft = {effectTable[9000], effectTable[2000], effectTable[1000]}, tip = ENTERPRISE_TIP.HEA
+--         },
+--     }
+
+
+
+--     local function addCommon()
+--         local common = enters[1]
+--         common.rarity = rarity.value
+--         return common
+--     end
+
+--     local function getTech(inAbbr)
+--         for i, e in pairs(enters) do
+--             if e.abbr == inAbbr then
+--                 return e
+--             end
+--         end
+--     end
+
+
+--     -- 不是传奇就不要玩了
+--     if rarity.value <= 4 then
+--         print("系统：这不是一张传奇卡")
+--         return addCommon()
+--     end 
+
+    
+--     -- 根据类型整合表格
+--     local tys = systemTable.all
+--     for i, v in pairs(systemTable[inType]) do
+--         table.insert(tys, v)   
+--     end
+
+--     if next(tys) == nil then
+--         print("警告：没有任何企业掌握这个系统插件的改进。")
+--         return addCommon()
+--     end
+
+--     -- 先从最大等级开始，再到最低等级。
+
+--     for le = 3, 1, -1 do
+--         for i, t in pairs(tys) do
+--             local randoms = math.random()
+--             if t.level == le and randoms < t.prob then
+--                 tech = getTech(t.abbr)
+--                 tech.rarity = rarity.value + t.level
+--                 break
+--             end
+--         end
+--         if tech then
+--             return tech
+--         end
+--     end
+--     ---------------------------------------------------------------------
+--     -- 平平无奇的传奇卡
+--     if not tech then
+--         print("系统：这是一张普通的传奇卡")
+--         return addCommon()
+--     end
+-- end
 
 ---------------------------------------------------------------------------------------
 ---------------------------------------------------------------------------------------
 
 function getGrade(dist, tech,num) 
-     if tech.id == 1 then return "错误" end -- 直接返回
-      dist = dist * num
+    if tech.uid == 0902 then return "错误" end -- 直接返回
+     dist = dist * num
 
-     local grade = "未验证" 
+    local grade = "未验证" 
 
-    --  local vals = {
-    --      "淘汰", 
-    --      "粗劣", 
-    --      "普通", 
-    --      "优良", 
-    --      "罕见", 
-    --      "稀有", 
-    --      "完美", 
-    --      "无暇", 
-    --      "极限", 
-    --      "奇迹" 
-    --  } 
+    local vals = {
+        "淘汰", 
+        "粗劣", 
+        "普通", 
+        "优良", 
+        "罕见", 
+        "稀有", 
+        "完美", 
+        "无暇", 
+        "极限", 
+        "奇迹" 
+    } 
 
-    --  local last = 0
-    --  for i, v in ipairs(vals) do
-    --      -- 随机数值 大于或等于 上一个值*10 和 随机数值 小于 当前索引值*10
-    --      if  dist >= last*10 and dist < i*10 then 
-    --        grade = v
-    --        break 
-    --      end 
-    --      last = i
-    --  end 
-  
-     return grade 
- end
+    local last = 0
+    for i, v in ipairs(vals) do
+        -- 随机数值 大于或等于 上一个值*10 和 随机数值 小于 当前索引值*10
+        if  dist >= last*10 and dist < i*10 then 
+          grade = v
+          break 
+        end 
+        last = i
+    end 
+ 
+    return grade 
+end
 
 function getLines(seed, tech)
-    math.randomseed(seed)
-    local texts = {}
-    local wlin = false
+    -- math.randomseed(seed)
+    -- local texts = {}
+    -- local wlin = false
     -- 暗金乱码植入
     --if tech.uid == 0902 then churchText(seed, tech) end 
 
-    local eft = tech.eft
-    if next(eft) ~= nil then
-        local colors
+    -- local eft = tech.eft
+    -- if next(eft) ~= nil then
+    --     local colors
 
-        table.insert(texts, {ltext = "Enterprise characteristics:/*企业特性：*/", lcolor = ColorRGB(0.9, 0.5, 0.3)})
-        for i, v in pairs(eft) do
+    --     table.insert(texts, {ltext = "Enterprise characteristics:/*企业特性：*/", lcolor = ColorRGB(0.9, 0.5, 0.3)})
+    --     for i, v in pairs(eft) do
+    --         local lt = v.ltext
+    --         local rt = v.rtext
+    --         local et = v.type
+    --         if et == 2 then colors = ColorRGB(0.8, 0.8, 0.4) end
+    --         if et == 1 then colors = ColorRGB(0.4, 0.8, 0.4) end
+    --         if et == 3 then colors = ColorRGB(0.8, 0.4, 0.4) end
+    --         table.insert(texts, {ltext = " -  " .. lt, rtext = rt, lcolor = colors})
+            
+    --     end
+    -- end
+
+    -- local tip = tech.tip
+    -- if next(tip) ~= nil then
+    --     table.insert(texts, {ltext = ""})
+    --     for i, v in pairs(tip) do
+    --     table.insert(texts, {ltext = v, lcolor = ColorRGB(1, 0.5, 0.6)})
+    --     end
+    -- end
+    
+    -- table.insert(texts, {ltext = ""})
+    -- -- return texts
+-------------------------------------------------------------------------------------------------------
+    math.randomseed(seed)
+    local texts = {}
+    local wlin = false
+    local colors
+    -- 暗金乱码植入
+    --if tech.uid == 0902 then churchText(seed, tech) end 
+
+    if next(tech.perfor) ~= nil then
+
+        table.insert(texts, {ltext = "Enterprise characteristics:/*企业特性：*/"%_t, lcolor = ColorRGB(0.9, 0.5, 0.3)})
+        for i, v in pairs(tech.perfor) do
             local lt = v.ltext
             local rt = v.rtext
             local et = v.type
@@ -468,19 +524,22 @@ function getLines(seed, tech)
             if et == 1 then colors = ColorRGB(0.4, 0.8, 0.4) end
             if et == 3 then colors = ColorRGB(0.8, 0.4, 0.4) end
             table.insert(texts, {ltext = " -  " .. lt, rtext = rt, lcolor = colors})
-            
-        end
-    end
-
-    local tip = tech.tip
-    if next(tip) ~= nil then
-        table.insert(texts, {ltext = ""})
-        for i, v in pairs(tip) do
-        table.insert(texts, {ltext = v, lcolor = ColorRGB(1, 0.5, 0.6)})
         end
     end
     
-    table.insert(texts, {ltext = ""})
+    if next(tech.text) ~= nil then
+        table.insert(texts, {ltext = ""})
+
+        for i, v in pairs(tech.text) do
+        table.insert(texts, {ltext = tech.text[i], lcolor = ColorRGB(1, 0.5, 0.6)})
+        end
+        table.insert(texts, {ltext = ""})
+    end
+    
+
     return texts
+
 end   
 -----------------------------------------------------------------------------
+
+    

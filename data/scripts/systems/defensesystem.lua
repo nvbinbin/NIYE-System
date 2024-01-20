@@ -55,13 +55,13 @@ end
 
 function getEnergy(seed, rarity, permanent)
     local num, tech = getNumDefenseWeapons(seed, rarity, permanent)
-    return (num * 75 * 1000 * 1000 / (1.2 ^ tech.rar)) * tech.energyFactor
+    return (num * 75 * 1000 * 1000 / (1.2 ^ tech.rarity)) * tech.energyFactor
 end
 
 function getPrice(seed, rarity)
     local num, tech = getNumDefenseWeapons(seed, rarity, true)
     local price = 500 * num;
-    return (price * 2 ^ tech.rar) * tech.money
+    return (price * 2 ^ tech.rarity) * tech.coinFactor
 end
 
 function getTooltipLines(seed, rarity, permanent)

@@ -174,7 +174,7 @@ function getPrice(seed, rarity)
 
     local price = materialLevel * 5000 + amount * 750 + range * 1.5;
 
-    return (price * 2.5 ^ tech.rar) * tech.money
+    return (price * 2.5 ^ tech.rarity) * tech.coinFactor
 end
 
 function getTooltipLines(seed, rarity, permanent)

@@ -13,7 +13,7 @@ function getLootCollectionRange(seed, rarity, permanent)
     local tech = getEnterprise(seed, rarity, 2)
     if tech.uid == 0700 then tech.nameId = "RCN" end
 
-    local range = (tech.rarity + 2 + getFloat(0.0, 0.75)) * 2 * (1.3 ^ tech.rar) -- one unit is 10 meters
+    local range = (tech.rarity + 2 + getFloat(0.0, 0.75)) * 2 * (1.3 ^ tech.rarity) -- one unit is 10 meters
 
     if permanent then
         range = range * 3
@@ -50,12 +50,12 @@ end
 
 function getEnergy(seed, rarity, permanent)
     local range, tech = getLootCollectionRange(seed, rarity)
-    return range * 20 * 1000 * 1000 / (1.1 ^ tech.rar) * tech.energyFactor
+    return range * 20 * 1000 * 1000 / (1.1 ^ tech.rarity) * tech.energyFactor
 end
 
 function getPrice(seed, rarity)
     local range, tech = getLootCollectionRange(seed, rarity, true)
-    return (500 * range) * tech.money
+    return (500 * range) * tech.coinFactor
 end
 
 function getTooltipLines(seed, rarity, permanent)

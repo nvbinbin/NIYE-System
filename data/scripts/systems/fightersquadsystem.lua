@@ -22,7 +22,7 @@ function getBonuses(seed, rarity, permanent)
     local production = 0 -- 加速时间
 
     if permanent then
-        production = math.max(0, lerp(random():getFloat(0, 1), 0, 1, tech.rarity - 1, tech.rar)) * 1000
+        production = math.max(0, lerp(random():getFloat(0, 1), 0, 1, tech.rarity - 1, tech.rarity)) * 1000
         production = round(production / 100) * 100
     end
     if not permanent and tech.onlyPerm then
@@ -124,14 +124,14 @@ end
 function getEnergy(seed, rarity, permanent)
     local squads = getNumSquads(seed, rarity, permanent)
     local _, production, tech = getBonuses(seed, rarity, true)
-    return (squads * 600 * 1000 * 1000 / (1.1 ^ tech.rar)) * tech.energyFactor
+    return (squads * 600 * 1000 * 1000 / (1.1 ^ tech.rarity)) * tech.energyFactor
 end
 
 function getPrice(seed, rarity)
     local squads = getNumSquads(seed, rarity, true)
     local _, production, tech = getBonuses(seed, rarity, true)
     local price = 25000 * (squads)
-    return (price * 1.5 ^ tech.rar) * tech.money
+    return (price * 1.5 ^ tech.rarity) * tech.coinFactor
 end
 
 function getTooltipLines(seed, rarity, permanent)

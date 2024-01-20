@@ -61,13 +61,13 @@ end
 
 function getEnergy(seed, rarity, permanent)
     local num, tech = getNumTurrets(seed, rarity, permanent)
-    return (num * 200 * 1000 * 1000 / (1.2 ^ tech.rar)) * tech.energyFactor
+    return (num * 200 * 1000 * 1000 / (1.2 ^ tech.rarity)) * tech.energyFactor
 end
 
 function getPrice(seed, rarity)
     local num, tech = getNumTurrets(seed, rarity, true)
     local price = 5000 * num;
-    return (price * 2.5 ^ tech.rar) * tech.money
+    return (price * 2.5 ^ tech.rarity) * tech.coinFactor
 end
 
 function getTooltipLines(seed, rarity, permanent)

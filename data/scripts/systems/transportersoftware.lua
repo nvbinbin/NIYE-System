@@ -63,7 +63,7 @@ end
 
 function getPrice(seed, rarity)
     local range, fighterCargoPickup, tech = getBonuses(seed, rarity, true)
-    return (range * 250) * tech.money
+    return (range * 250) * tech.coinFactor
 end
 
 function getTooltipLines(seed, rarity, permanent)
