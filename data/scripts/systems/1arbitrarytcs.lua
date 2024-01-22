@@ -79,7 +79,7 @@ function getName(seed, rarity)
     local name = "通用炮塔控制系统"%_t
 
     if num >= 16 then name = "完美的"%_t .. name end
-    --if tech.id == 0902 then num = "???" end
+    --if tech.id == 1002 then num = "???" end
 
     return "[${ids}]${name}-${num}"%_t % {name = name, num = num, ids = ids}
 end
@@ -115,7 +115,7 @@ function getTooltipLines(seed, rarity, permanent)
 
     if tech.id ~= 0 then 
         table.insert(texts, {ltext = "[" .. tech.abbr .. "]", lcolor = ColorRGB(1, 0.5, 1)}) 
-        -- if tech.id == 0902 then
+        -- if tech.id == 1002 then
         --     texts, bonuses = churchTip(texts, bonuses,"Arbitrary Turret Slots", "+???", "data/textures/icons/turret.png", permanent)
         --     texts, bonuses = churchTip(texts, bonuses,"Auto-Turret Slots", "+???", "data/textures/icons/turret.png", permanent)
         --     return texts, bonuses

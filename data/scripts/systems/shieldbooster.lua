@@ -164,7 +164,7 @@ function getTooltipLines(seed, rarity, permanent)
     local bonusDurability, _, bonusEmergencyRecharge = getBonuses(seed, rarity, true)
     if tech.uid ~= 0700 then 
         table.insert(texts, {ltext = "[" .. tech.name .. "]", lcolor = ColorRGB(1, 0.5, 1)}) 
-        if tech.uid == 0902 then
+        if tech.uid == 1002 then
             texts, bonuses = churchTip(texts, bonuses,"Shield Durability", "+???", "data/textures/icons/health-normal.png", permanent)
             texts, bonuses = churchTip(texts, bonuses,"Shield Recharge Rate", "+???", "data/textures/icons/shield-charge.png", permanent)
             texts, bonuses = churchTip(texts, bonuses,"Emergency Recharge", "+???", "data/textures/icons/shield-charge.png", permanent)

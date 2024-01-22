@@ -13,7 +13,7 @@ FixedEnergyRequirement = true
 -- 企业为所有系统应用上新图标
 function makeIcon(name, tech)
     local icon = "data/textures/icons/" .. name
-    if tech.uid == 0700 then
+    if tech.uid == 0700 or tech.uid == 1002 then
         icon = icon .. ".png"
     else
         icon = icon .. toRomanLiterals(tech.rarity - 5) .. ".png"
@@ -106,226 +106,190 @@ effectTable[9002] = {type = 1, ltext = "Emerging enterprise/*新兴企业*/"%_t,
 
 local ENTERPRISE_TIP = {}
 ENTERPRISE_TIP.HEA = {"Welcome to the functional expansion subsystem from Tianfang Creation/*欢迎使用 天创开物 的功能拓展子系统*/"%_t, "Feel the peak technology blessing of the star sea/*感受星海的巅峰科技加持*/"%_t}
+ENTERPRISE_TIP.ATN = { "凡事皆有代价"%_t, "多余的能量换取更强的性能绝对是划算的"%_t, "武装列车只会发行实用好货"%_t}
 
+
+--[[
+    炮塔科技：通用栏位；武装栏位；民用栏位；自动栏位；内部防御
+    通用科技：牵引光束，货箱系统；雷达；加速引擎；跃迁；采矿系统
+    能量科技：固化护盾；能量护盾；复活护盾；能量电池；能量发生器
+    高级科技：运输调度；九头蛇；扫描仪；屏蔽器；船体固
+]]
 local ENTERS = {
     {
-        uid = 1001, name = "Tianfang Creation/*天创造物*/"%_t, nameId = "HEA", rarity = 3, quality = 5, type = 0,
-        prob = 0.1, onlyPerm = false, coinFactor = 1.1, energyFactor = 1.2,
+        uid = 1001, name = "Tianfang Creation/*天创造物*/"%_t, nameId = "HEA", minLevel = 3, maxLevel = 3,
+        prob = {0.1,0.1,0.1}, onlyPerm = false, coinFactor = 2, energyFactor = 1,
         minRandom = 100, maxRandom = 100,
         text = ENTERPRISE_TIP.HEA,
         perfor = {
             {type = 1, ltext = "Pioneer technology/*先驱科技*/"%_t, rtext ="Only highest quality/*绝对最高品质*/"%_t},
             {type = 2, ltext = "Relic/*遗物*/"%_t, rtext ="Final +100%/*价值+100%*/"%_t},
             {type = 3, ltext = "Lost enterprise/*失落企业*/"%_t, rtext ="Fixed 1‰ appearance probability/*固定1‰出现概率*/"%_t}},
-        system = {{id = "all", val = 3, prob = 0.1}}
+        system = {"all"}
     },
     {
-        uid = 1002, name = "索坦逆向科技", nameId = "Xsotan", rarity = 3, quality = 5, type = 1,
-        prob = 0.001, onlyPerm = false, coinFactor = 1.3, energyFactor = 1.2,
-        minRandom = 15, maxRandom = 100,
-
-        text = {"Xsotan Key 0X000000", "null - 000000"},
-        perfor = {{type = 3, ltext = "Reverse technology/*逆向科技*/"%_t, rtext ="Maximum quality -5%/*最高品质-5%*/"%_t}},
-        system = {{id = "all", val = 3, prob = 0.1}}
-    },
-
-    {
-        uid = 0901, name = "闪耀科技", nameId = "STAR", rarity = 2, quality = 5, type = 0,
-        prob = 0.02, onlyPerm = false, coinFactor = 1.2, energyFactor = 1.1,
-        minRandom = 10, maxRandom = 100,
-
-        text = {"Xsotan System Decompile", "产自 - 闪耀科技研讨会"},
-        perfor = {{type = 3, ltext = "Reverse technology/*逆向科技*/"%_t, rtext ="Maximum quality -5%/*最高品质-5%*/"%_t}},
-        system = {}
-    },
-    {
-        uid = 0902, name = "暗金教会", nameId = "DGC", rarity = 2, quality = 5, type = 0,
-        prob = 0.1, onlyPerm = true, coinFactor = 1.2, energyFactor = 1.1,
+        uid = 1002, name = "暗金教会", nameId = "DGC", minLevel = 1, maxLevel = 3,
+        prob = {0.1,0.1,0.1}, onlyPerm = true, coinFactor = 1, energyFactor = 1,
         minRandom = 10, maxRandom = 100,
 
         text = {},
-        perfor = {{type = 2, ltext = "暗金工程"%_t, rtext ="数据被加密"%_t}},
-        system = {{id = "all", val = 3, prob = 0.1}}
-    },
-
-    {
-        uid = 9901, name = "晓立天下", nameId = "NVCX", rarity = 2, quality = 5, type = 0,
-        prob = 0.006, onlyPerm = false, coinFactor = 1.2, energyFactor = 1.1,
-        minRandom = 10, maxRandom = 100,
-
-        text = {},
-        perfor = {},
-        system = {}
+        perfor = {
+            {type = 2, ltext = "暗金工程"%_t, rtext ="数据被加密"%_t},
+            {type = 3, ltext = "口口口口"%_t, rtext ="[未知数据]"%_t},
+            {type = 3, ltext = "口口口口"%_t, rtext ="[未知数据]"%_t}
+        },
+        system = {"all"}
     },
     {
-        uid = 9902, name = "莱莎重工", nameId = "BA", rarity = 2, quality = 5, type = 1,
-        prob = 0.006, onlyPerm = false, coinFactor = 1.2, energyFactor = 1.1,
+        uid = 1003, name = "武装列车", nameId = "Atn", minLevel = 1, maxLevel = 2,
+        prob = {0.15,0.025,0}, onlyPerm = false, coinFactor = 1, energyFactor = 1.2,
         minRandom = 10, maxRandom = 100,
 
-        text = {},
-        perfor = {},
-        system = {}
-    },
-
-    {
-        uid = 0801, name = "AISystem", nameId = "AI", rarity = 1, quality = 4, type = 0,
-        prob = 0.1, onlyPerm = false, coinFactor = 1.1, energyFactor = 1.05,
-        minRandom = 10, maxRandom = 100,
-
-        text = {"通过最新的量子计算器", "我们已成功推算出传说之上"},
-        perfor = {},
-        system = {}
-    },
-    {
-        uid = 0802, name = "天顶星集团", nameId = "HCK", rarity = 1, quality = 4, type = 0,
-        prob = 0.04, onlyPerm = false, coinFactor = 1.1, energyFactor = 1.05,
-        minRandom = 10, maxRandom = 100,
-
-        text = {"欢迎加入我们", "无论您是从事什么行业"},
-        perfor = {},
-        system = {}
-    },
-    {
-        uid = 0803, name = "大秦军工", nameId = "QIN", rarity = 1, quality = 4, type = 1,
-        prob = 0.04, onlyPerm = false, coinFactor = 1.1, energyFactor = 1.05,
-        minRandom = 10, maxRandom = 100,
-
-        text = {"欢迎购买并使用我们的外贸产品"},
-        perfor = {},
-        system = {}
-    },
-    {
-        uid = 0804, name = "惠民企业", nameId = "HM", rarity = 1, quality = 4, type = 2,
-        prob = 0.04, onlyPerm = false, coinFactor = 1.1, energyFactor = 1.05,
-        minRandom = 10, maxRandom = 100,
-
-        text = {"惠民企业给你带来更高端的产业升级"},
-        perfor = {},
-        system = {}
+        text = ENTERPRISE_TIP.ATN,
+        perfor = {
+            {type = 1, ltext = "联动线路控制"%_t, rtext ="主要炮塔+1"%_t},
+            {type = 3, ltext = "超载线路"%_t, rtext ="能量消耗+20%"%_t}
+        },
+        system = {"arbitrarytcs"}
     }
+    --Xsotan
+    -- {
+    --     uid = 0901, name = "闪耀科技", nameId = "STAR", rarity = 2, quality = 5, type = 0,
+    --     prob = 0.02, onlyPerm = false, coinFactor = 1.2, energyFactor = 1.1,
+    --     minRandom = 10, maxRandom = 100,
+
+    --     text = {"Xsotan System Decompile", "产自 - 闪耀科技研讨会"},
+    --     perfor = {{type = 3, ltext = "Reverse technology/*逆向科技*/"%_t, rtext ="Maximum quality -5%/*最高品质-5%*/"%_t}},
+    --     turretSystem = true, energySystem = true, currentSystem = true, seniorSystem = true
+    -- },
+
+    -- {
+    --     uid = 9901, name = "晓立天下", nameId = "NVCX", rarity = 2, quality = 5, type = 0,
+    --     prob = 0.006, onlyPerm = false, coinFactor = 1.2, energyFactor = 1.1,
+    --     minRandom = 10, maxRandom = 100,
+
+    --     text = {},
+    --     perfor = {},
+    --     turretSystem = true, energySystem = true, currentSystem = true, seniorSystem = true
+    -- },
+    -- {
+    --     uid = 9902, name = "莱莎重工", nameId = "BA", rarity = 2, quality = 5, type = 1,
+    --     prob = 0.006, onlyPerm = false, coinFactor = 1.2, energyFactor = 1.1,
+    --     minRandom = 10, maxRandom = 100,
+
+    --     text = {},
+    --     perfor = {},
+    --     turretSystem = true, energySystem = true, currentSystem = true, seniorSystem = true
+    -- },
+
+    -- {
+    --     uid = 0801, name = "AISystem", nameId = "AI", rarity = 1, quality = 4, type = 0,
+    --     prob = 0.1, onlyPerm = false, coinFactor = 1.1, energyFactor = 1.05,
+    --     minRandom = 10, maxRandom = 100,
+
+    --     text = {"通过最新的量子计算器", "我们已成功推算出传说之上"},
+    --     perfor = {},
+    --     turretSystem = true, energySystem = true, currentSystem = true, seniorSystem = true
+    -- },
+    -- {
+    --     uid = 0802, name = "天顶星集团", nameId = "HCK", rarity = 1, quality = 4, type = 0,
+    --     prob = 0.04, onlyPerm = false, coinFactor = 1.1, energyFactor = 1.05,
+    --     minRandom = 10, maxRandom = 100,
+
+    --     text = {"欢迎加入我们", "无论您是从事什么行业"},
+    --     perfor = {},
+    --     turretSystem = true, energySystem = true, currentSystem = true, seniorSystem = true
+    -- },
+    -- {
+    --     uid = 0803, name = "大秦军工", nameId = "QIN", rarity = 1, quality = 4, type = 1,
+    --     prob = 0.04, onlyPerm = false, coinFactor = 1.1, energyFactor = 1.05,
+    --     minRandom = 10, maxRandom = 100,
+
+    --     text = {"欢迎购买并使用我们的外贸产品"},
+    --     perfor = {},
+    --     turretSystem = true, energySystem = true, currentSystem = true, seniorSystem = true
+    -- },
+    -- {
+    --     uid = 0804, name = "惠民企业", nameId = "HM", rarity = 1, quality = 4, type = 2,
+    --     prob = 0.04, onlyPerm = false, coinFactor = 1.1, energyFactor = 1.05,
+    --     minRandom = 10, maxRandom = 100,
+
+    --     text = {"惠民企业给你带来更高端的产业升级"},
+    -- }
 }
 
---[[企业规模：A+B
-    A:企业的规模大小决定了这个企业铺设了多少的生产线作用于不同的装备系统。
-        1:small 小型：拥有两件MKI和一件MKII
-        2:medium 中型：拥有三件MKI和两件MKII和一件MKIII
-        3:large 大型：拥有三件MKI和三件MKII和一件MKIII
-        4:top 顶级：拥有四件MKI和三件MKII和两件MKIII
-
-        5:special 特殊：似乎什么改良都有涉及
-    
-
-    B:企业的品控决定了出现的概率，额外的属性和其他参数。
-        1.盈利目的型活动部门；此类部门主要目的是为了利益性赚钱。他们拥有比较稳定的品控和售价，出现的概率也比较高。
-        常规名称：企业；公司；集团
-        基础出现概率：MKI[0.06] MKII[0.03] MKIII[0.006]
-        基础价格倍率：110%
-        基础能量倍率：120%
-        基础生产范围：紫色
-        基础质量范围：10 - 100
-
-        2.科研目的的活动部门；此类部门主要是为了更高技术的装备系统生产。他们拥有非常稳定的品控，但是售价和出现的概率都比较高。
-        常规名称：研究所；科研所；
-        基础出现概率：MKI[0.03] MKII[0.015] MKIII[0.003]
-        基础价格倍率：125%
-        基础能量倍率：110%
-        基础生产范围：紫色
-        基础质量范围：15 - 100
-
-        3.这是以定制的化为主活动部门，他们往往只生产高品质产品，这就导致了此类物品在市场上的流通极为罕见。
-        常规名称：工程部，会议，彩蛋
-        基础出现概率：MKI[0.01] MKII[0.005] MKIII[0.001]
-        基础价格倍率：145%
-        基础能量倍率：100%
-        基础生产范围：紫色
-        基础质量范围：20 - 105
-
-        4.暗金教会，这是暗金教会的东西，因为很少流通并且数值也被加密，所以很难定价。
-        常规名称：教会
-        基础出现概率：MKI[0.02] MKII[0.01] MKIII[0.002]
-        基础价格倍率：50%
-        基础能量倍率：110%
-        基础生产范围：紫色
-        基础质量范围：0 - 100
-    ]]
-
-
+-- 抽取并返回企业数据
 function getEnterprise(seed, rarity, inType)
+    assert(type(inType) == "string", "getEnterprise传入了一个错误的inType参数")
+
     math.randomseed(seed)
     local tech
     local enters = {}
     if rarity.value < 5 then
-        goto notech
+        goto notech -- 不是传奇插件就直接返回普通类型
     end
 
-    for i, t in pairs(ENTERS) do
-        local sys = t.system
-        -- 一般情况下不会出现这种情况
-        if not sys then
-            print("Error: " .. t.name .. " 没有检索到系统，本次生成跳过此企业。")
-            goto continue
-        end
-        -- 为enters 添加上所有的 all 和 匹配系统类型
-        -- enters的最终参数：id = 类型；val = 等级； prob = 概率； uid = 企业uid
-        if next(sys) ~= nil then
-            for i2, t2 in pairs(sys) do
-                if t2.id == inType or t2.id == "all" then
-                    local ent = t2
-                    ent.uid = t.uid
-                    table.insert(enters, ent)
+    -- 从最高等级开始往下抽取
+    for level = 3, 1, -1 do
+        for i, ent in pairs(ENTERS) do -- 遍历所有企业
+            if level >= ent.minLevel and level <= ent.maxLevel then else -- level不在范围内
+                goto continue
+            end
+
+            local sys = ent.system
+            if not sys then 
+                print("Error: 企业[" .. ent.name .. " ]没有获取到系统。")
+                goto continue
+            end
+
+            local key -- 打开新世界大门的钥匙
+            local count = 0 -- 计数器
+            for k, v in pairs(sys) do
+                count = count + 1
+                if v == "all" or v == inType then
+                  key = true
                 end
             end
-        end
 
-        ::continue::
-    end
-    
-
-    for level = 3, 1, -1 do --等级从高到低开始抽取
-        for i, t in pairs(enters) do
-            if t.val == level then
-                if math.random() < t.prob then -- 如果 随机数 比 概率大 和 品级对等/达标则开始抽奖
-                    for n, e in pairs(ENTERS) do
-                        if e.uid == t.uid then
-                            tech = e
-                            tech.rarity = rarity.value + level
-                            break
-                        end
-                    end
-                    break 
-                end
+            if count == 0 then
+                print("Error: 企业[" .. ent.name .. " ]没有支持的改装。")
+                goto continue
             end
-        end
 
-        if tech then
-            break
+            local porb = ent.prob[level] -- 获取当前等级的概率
+            if key then
+                local random = math.random()
+                if random < porb then
+                    tech = ent
+                    tech.rarity = rarity.value + level
+                    break -- 退出类型检索循环
+                end
+
+            end
+            if tech then break end -- 退出企业检索循环
+            ::continue::
         end
+        if tech then break end -- 退出降级循环
     end
 
     ::notech::
     if not tech then --如果抽奖失败了那么我们就创造一个0799 = 原版
         tech = {
-            uid = 0700, name = "", nameId = "", rarity = rarity.value, quality = 0, type = 0,
+            uid = 0700, name = "", nameId = "", rarity = rarity.value,
             prob = 0, onlyPerm = false, coinFactor = 1, energyFactor = 1,
             minRandom = 0, maxRandom = 100,
-
-            text = {},
-            perfor = {},
-            system = {{id = "all", val = 0, prob = 0}}
+            text = {},perfor = {}
         }
+        
     end
-
-    -- 整合等级
-    
-    
-     return tech
+    return tech
 end
 
 ---------------------------------------------------------------------------------------
 ---------------------------------------------------------------------------------------
 
 function getGrade(dist, tech,num) 
-    if tech.uid == 0902 then return "错误" end -- 直接返回
+    if tech.uid == 1002 then return "错误" end -- 直接返回
      dist = dist * num
 
     local grade = "未验证" 
@@ -364,10 +328,7 @@ function getLines(seed, tech)
 
     local tips = tech.perfor
     local notice = tech.text
-    -- 暗金乱码植入
-    if tech.uid == 0902 then 
-        table.insert(notice, churchText(seed))
-    end 
+    
 
     if next(tips) ~= nil then
 
@@ -391,7 +352,16 @@ function getLines(seed, tech)
         end
         table.insert(texts, {ltext = ""})
     end
-    
+    -- 暗金植入
+    if tech.uid == 1002 then 
+        local dgcRandom = math.random(3, 10)
+        dgcRandom = math.floor(dgcRandom)
+        table.insert(texts, {ltext = ""})
+        table.insert(texts, {ltext = churchText(seed), lcolor = ColorRGB(0.8, 0.8, 0.8)})
+        table.insert(texts, {ltext = makeText(seed + 1, 12), lcolor = ColorRGB(0.8, 0.8, 0.8)})
+        table.insert(texts, {ltext = makeText(seed + 2, dgcRandom), lcolor = ColorRGB(0.8, 0.8, 0.8)})
+        table.insert(texts, {ltext = ""})
+    end 
 
     return texts
 

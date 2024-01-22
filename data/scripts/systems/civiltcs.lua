@@ -53,7 +53,7 @@ function getName(seed, rarity)
     local num = turrets + pdcs + autos
     local name = "民用炮塔火控跃增系统"
     if tech.uid ~= 0700 then name = "民用火控处理系统" end
-    if tech.uid == 0902 then num = "000" end
+    if tech.uid == 1002 then num = "000" end
 
     return "${name} ${ids}-TCS-${num}"%_t % {name = name, num = num, ids = ids}
 end
@@ -89,7 +89,7 @@ function getTooltipLines(seed, rarity, permanent)
     local bonuses = {}
     if tech.uid ~= 0700 then 
         table.insert(texts, {ltext = "[" .. tech.name .. "]", lcolor = ColorRGB(1, 0.5, 1)}) 
-        if tech.uid == 0902 then
+        if tech.uid == 1002 then
             texts, bonuses = churchTip(texts, bonuses,"Unarmed Turret Slots", "+???", "data/textures/icons/turret.png", permanent)
             texts, bonuses = churchTip(texts, bonuses,"Defensive Turret Slots", "+???", "data/textures/icons/turret.png", permanent)
             texts, bonuses = churchTip(texts, bonuses,"Auto-Turret Slots", "+???", "data/textures/icons/turret.png", permanent)

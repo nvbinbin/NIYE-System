@@ -175,7 +175,7 @@ function getTooltipLines(seed, rarity, permanent)
     local betterReach, cdfactor, _, betterRadar, cdbias, tech = getBonuses(seed, rarity, true)
     if tech.uid ~= 0700 then 
         table.insert(texts, {ltext = "[" .. tech.name .. "]", lcolor = ColorRGB(1, 0.5, 1)}) 
-        if tech.uid == 0902 then
+        if tech.uid == 1002 then
             texts, bonuses = churchTip(texts, bonuses,"Jump Range", "+???", "data/textures/icons/star-cycle.png", permanent)
             texts, bonuses = churchTip(texts, bonuses,"Radar Range", "+???", "data/textures/icons/radar-sweep.png", permanent)
             texts, bonuses = churchTip(texts, bonuses,"Hyperspace Cooldown", "+???", "data/textures/icons/hourglass.png", permanent)

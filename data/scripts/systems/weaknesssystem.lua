@@ -133,7 +133,7 @@ function getTooltipLines(seed, rarity, permanent)
     local weaknessType, hpBonus, dmgFactor, tech = getBonuses(seed, rarity, true)
     if tech.uid ~= 0700 then 
         table.insert(texts, {ltext = "[" .. tech.name .. "]", lcolor = ColorRGB(1, 0.5, 1)}) 
-        if tech.uid == 0902 then
+        if tech.uid == 1002 then
             table.insert(texts, {ltext = "[此系统无法加密]", lcolor = ColorRGB(1, 0.5, 1)}) 
         end
     end

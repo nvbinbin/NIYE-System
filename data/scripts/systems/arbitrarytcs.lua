@@ -12,7 +12,9 @@ FixedEnergyRequirement = true
 function getNumTurrets(seed, rarity, permanent)
     math.randomseed(seed)
     -- 1是军用装备  2是民用装备
-    local tech = getEnterprise(seed, rarity, 1)
+    local systemType = "arbitrarytcs"
+    local tech = getEnterprise(seed, rarity, systemType)
+
     if tech.uid == 0700 then tech.nameId = "A" end -- 0700 指的是普通插件
 
     local turrets = math.max(1, tech.rarity)
@@ -47,7 +49,7 @@ function getName(seed, rarity)
     local num = turrets + autos
     local name = "炮塔火控跃增系统"
     if tech.uid ~= 0700 then name = "通用火控处理系统" end
-    if tech.uid == 0902 then num = "000" end
+    if tech.uid == 1002 then num = "000" end
 
     return "${name} ${ids}-TCS-${num}"%_t % {name = name, num = num, ids = ids}
 end
@@ -84,7 +86,7 @@ function getTooltipLines(seed, rarity, permanent)
 
     if tech.uid ~= 0700 then 
         table.insert(texts, {ltext = "[" .. tech.name .. "]", lcolor = ColorRGB(1, 0.5, 1)}) 
-        if tech.uid == 0902 then
+        if tech.uid == 1002 then
             texts, bonuses = churchTip(texts, bonuses,"Arbitrary Turret Slots", "+???", "data/textures/icons/turret.png", permanent)
             texts, bonuses = churchTip(texts, bonuses,"Auto-Turret Slots", "+???", "data/textures/icons/turret.png", permanent)
             return texts, bonuses

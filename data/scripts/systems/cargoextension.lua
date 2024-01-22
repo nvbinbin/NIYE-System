@@ -130,7 +130,7 @@ function getTooltipLines(seed, rarity, permanent)
 
     if tech.uid ~= 0700 then 
         table.insert(texts, {ltext = "[" .. tech.name .. "]", lcolor = ColorRGB(1, 0.5, 1)}) 
-        if tech.uid == 0902 then
+        if tech.uid == 1002 then
             texts, bonuses = churchTip(texts, bonuses,"Cargo Hold (relative)", "+???", "data/textures/icons/crate.png", permanent)
             texts, bonuses = churchTip(texts, bonuses,"Cargo Hold", "+???", "data/textures/icons/crate.png", permanent)
             return texts, bonuses

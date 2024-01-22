@@ -87,7 +87,7 @@ function getTooltipLines(seed, rarity, permanent)
     local baseAmplification, baseEnergy = getBonuses(seed, rarity, false)
     if tech.uid ~= 0700 then 
         table.insert(texts, {ltext = "[" .. tech.name .. "]", lcolor = ColorRGB(1, 0.5, 1)}) 
-        if tech.uid == 0902 then
+        if tech.uid == 1002 then
             texts, bonuses = churchTip(texts, bonuses,"Shield Durability", "+???", "data/textures/icons/crate.png", permanent)
             texts, bonuses = churchTip(texts, bonuses,"Generated Energy", "+???", "data/textures/icons/crate.png", permanent)
             return texts, bonuses

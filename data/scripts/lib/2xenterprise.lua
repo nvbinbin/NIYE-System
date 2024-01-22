@@ -440,7 +440,7 @@ function getLines(seed, tech)
     local texts = {}
     local wlin = false
     -- 暗金乱码植入
-    --if tech.uid == 0902 then churchText(seed, tech) end 
+    --if tech.uid == 1002 then churchText(seed, tech) end 
 
     local eft = tech.eft
     if next(eft) ~= nil then

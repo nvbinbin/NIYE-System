@@ -186,7 +186,7 @@ function getTooltipLines(seed, rarity, permanent)
     local material = Material(materialLevel)
     if tech.uid ~= 0700 then 
         table.insert(texts, {ltext = "[" .. tech.name .. "]", lcolor = ColorRGB(1, 0.5, 1)}) 
-        if tech.uid == 0902 then
+        if tech.uid == 1002 then
             texts, bonuses = churchTip(texts, bonuses,"Material Level", "+???", "data/textures/icons/metal-bar.png", permanent)
             texts, bonuses = churchTip(texts, bonuses,"Range", "+???", "data/textures/icons/rss.png", permanent)
             texts, bonuses = churchTip(texts, bonuses,"Asteroids", "+???", "data/textures/icons/rock.png", permanent)
