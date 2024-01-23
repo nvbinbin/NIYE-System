@@ -6,7 +6,7 @@ include ("utility")
 include ("randomext")
 include ("enterprise") -- 新增库
 
--- 通用栏位
+-- [通用炮塔栏位]
 FixedEnergyRequirement = true
 
 BoostingUpgrades = {}
@@ -24,27 +24,6 @@ local systemType = "arbitrarytcs"
     自动栏位 + 1
 
 ]]
-function getNumBonusTurrets(seed, rarity, permanent)
-    local turrets, pdcs, autos = getNumTurrets(seed, rarity, permanent)
-    local counter = 0
-    if permanent then
-        -- 侦测装备同类型系统数量
-        for upgrade, permanent in pairs(ShipSystem():getUpgrades()) do
-            if permanent and BoostingUpgrades[upgrade.script] then
-                counter = counter + 1
-            end
-        end
-        if counter >= 2 then
-            turrets = turrets + 1
-        end
-        if counter >= 4 then
-            pdcs = pdcs + 1
-            autos = autos + 1
-        end
-    end
-
-    return turrets, pdcs, autos, counter
-end
 
 function getNumTurrets(seed, rarity, permanent)
     math.randomseed(seed)
@@ -65,6 +44,10 @@ function getNumTurrets(seed, rarity, permanent)
         turrets = turrets + math.max(1,  tech.rarity / 2)
         pdcs = getInt(0, getInt(1, math.max(0, tech.rarity - 3)))   -- 0 ~ 2
         autos = math.max(0, getInt(math.max(0, tech.rarity - 2), turrets - 1))
+        -- 词条
+        if tech.uid == 1003 then
+            turrets = turrets + 1
+        end
     end
     if not permanent and tech.onlyPerm then
         turrets = 0
@@ -73,6 +56,28 @@ function getNumTurrets(seed, rarity, permanent)
     end
 
     return turrets, pdcs, autos, tech
+end
+
+function getNumBonusTurrets(seed, rarity, permanent)
+    local turrets, pdcs, autos = getNumTurrets(seed, rarity, permanent)
+    local counter = 0
+    if permanent then
+        -- 侦测装备同类型系统数量
+        for upgrade, permanent in pairs(ShipSystem():getUpgrades()) do
+            if permanent and BoostingUpgrades[upgrade.script] then
+                counter = counter + 1
+            end
+        end
+        if counter >= 2 then
+            turrets = turrets + 1
+        end
+        if counter >= 4 then
+            pdcs = pdcs + 1
+            autos = autos + 1
+        end
+    end
+
+    return turrets, pdcs, autos, counter
 end
 
 function onInstalled(seed, rarity, permanent)
@@ -97,8 +102,7 @@ function applyBonuses(seed, rarity, permanent)
     if key2 then removeBonus(key2) end
     if key3 then removeBonus(key3) end
 
-    local turrets, pdcs, autos = getNumTurrets(seed, rarity, permanent)
-    turrets = turrets + getNumBonusTurrets(seed, rarity, permanent)
+    local turrets, pdcs, autos = getNumBonusTurrets(seed, rarity, permanent)
 
     key1 = addMultiplyableBias(StatsBonuses.ArbitraryTurrets, turrets)
     key2 = addMultiplyableBias(StatsBonuses.PointDefenseTurrets, pdcs)
@@ -112,7 +116,7 @@ function getName(seed, rarity)
     local num = turrets + pdcs + autos
     local name = "通用炮塔控制系统"%_t
 
-    if num >= 16 then name = "完美的"%_t .. name end
+    if num >= 16 then name = "优质"%_t .. name end
     if tech.uid == 1002 then num = "XXX" end
 
     return "${ids} ${name}-${num}"%_t % {name = name, num = num, ids = ids}

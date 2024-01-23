@@ -6,37 +6,98 @@ include ("utility")
 include ("randomext")
 include ("enterprise")
 
--- 自动栏位
+-- [自动炮塔栏位]autotcs
 FixedEnergyRequirement = true
+
+BoostingUpgrades = {}
+BoostingUpgrades["data/scripts/systems/autotcs.lua"] = true
+
+local systemType = "autotcs"
 
 
 function getNumTurrets(seed, rarity, permanent)
     math.randomseed(seed)
 
     local tech = getEnterprise(seed, rarity, 1)
-    if tech.uid == 0700 then tech.nameId = "A" end
+    if tech.uid == 0700 then tech.nameId = "TCS" end
+
+    -- 初始化
+    local turrets = 0
+    local arbits = 0
+    local pdcs = 0
 
     local turrets = math.max(1, tech.rarity + 1)
 
     if permanent then
-         turrets = turrets * 2 
+        turrets = turrets * 2 
+        arbits = getInt(0, getInt(1, math.max(0, tech.rarity - 3)))   -- 0 ~ 2
+        pdcs = getInt(0, getInt(1, math.max(0, tech.rarity - 3)))   -- 0 ~ 2
+        -- 词条
+        if tech.uid == 1003 then
+            turrets = turrets + 1
+        end
     end
     if not permanent and tech.onlyPerm then
         turrets = 0
+        arbits = 0
+        pdcs = 0
     end
 
-    return turrets, tech
+    return turrets, pdcs, arbits, tech
+end
+
+function getNumBonusTurrets(seed, rarity, permanent)
+    local turrets, pdcs, arbits = getNumTurrets(seed, rarity, permanent)
+    local counter = 0
+    if permanent then
+        -- 侦测装备同类型系统数量
+        for upgrade, permanent in pairs(ShipSystem():getUpgrades()) do
+            if permanent and BoostingUpgrades[upgrade.script] then
+                counter = counter + 1
+            end
+        end
+        if counter >= 2 then
+            turrets = turrets + 1
+        end
+        if counter >= 4 then
+            pdcs = pdcs + 1
+            arbits = arbits + 1
+        end
+    end
+
+    return turrets, pdcs, arbits, counter
 end
 
 function onInstalled(seed, rarity, permanent)
-    local turrets = getNumTurrets(seed, rarity, permanent)
+    Entity():registerCallback("onSystemsChanged", "onSystemsChanged")
 
-    addMultiplyableBias(StatsBonuses.AutomaticTurrets, turrets)
+    applyBonuses(seed, rarity, permanent)
 end
 
 function onUninstalled(seed, rarity, permanent)
 end
 
+function onSystemsChanged()
+    applyBonuses(getSeed(), getRarity(), getPermanent())
+end
+
+local key1
+local key2
+local key3
+
+function applyBonuses(seed, rarity, permanent)
+    if key1 then removeBonus(key1) end
+    if key2 then removeBonus(key2) end
+    if key3 then removeBonus(key3) end
+
+    local turrets, pdcs, arbits = getNumBonusTurrets(seed, rarity, permanent)
+
+    key1 = addMultiplyableBias(StatsBonuses.ArbitraryTurrets, turrets)
+    key2 = addMultiplyableBias(StatsBonuses.PointDefenseTurrets, pdcs)
+    key3 = addMultiplyableBias(StatsBonuses.AutomaticTurrets, arbits)
+end
+
+--jindu
 function getName(seed, rarity)
     local turrets, tech = getNumTurrets(seed, rarity, true)
     local ids = tech.nameId
