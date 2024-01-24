@@ -114,7 +114,7 @@ function getName(seed, rarity)
 
     local ids = tech.nameId
     local num = turrets + pdcs + autos
-    local name = "通用炮塔控制系统"%_t
+    local name = "通用炮塔火控系统"%_t
 
     if num >= 16 then name = "优质"%_t .. name end
     if tech.uid == 1002 then num = "XXX" end
@@ -149,12 +149,9 @@ function getTooltipLines(seed, rarity, permanent)
     local turrets = getNumTurrets(seed, rarity, permanent)
     local maxTurrets, pdcs, autos, tech = getNumTurrets(seed, rarity, true)
     local permTurrets = maxTurrets - turrets
-
-    
-    
-
     local texts = {}
     local bonuses = {}
+    local counter
 
     if tech.uid ~= 0700 then 
         table.insert(texts, {ltext = "[" .. tech.name .. "]", lcolor = ColorRGB(1, 0.5, 1)}) 
@@ -173,7 +170,7 @@ function getTooltipLines(seed, rarity, permanent)
 
 
     table.insert(texts, {ltext = "Arbitrary Turret Slots"%_t, rtext = "+" .. turrets, icon = "data/textures/icons/turret.png", boosted = permanent})
-    table.insert(bonuses, {ltext = "Arbitrary Turret Slots"%_t, rtext = "+" .. maxTurrets - turrets, icon = "data/textures/icons/turret.png"})
+    table.insert(bonuses, {ltext = "Arbitrary Turret Slots"%_t, rtext = "+" .. permTurrets, icon = "data/textures/icons/turret.png"})
 
     if pdcs > 0 then
         if permanent then
@@ -195,6 +192,7 @@ end
 function getDescriptionLines(seed, rarity, permanent)
     local turrets, pdcs, autos, tech = getNumTurrets(seed, rarity, permanent)
     local texts = {}
+    local counter
 
     local lca = ColorRGB(0.5, 0.5, 0.5)
     local lcb = ColorRGB(0.5, 0.5, 0.5)
