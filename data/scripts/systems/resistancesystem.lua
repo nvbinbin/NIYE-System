@@ -34,14 +34,15 @@ local resistanceTypes =
 local resistanceType = nil
 local hpBonus = nil
 local dmgFactor = nil
-
+--偏导护盾
 -- optimization so that energy requirement doesn't have to be read every frame
 FixedEnergyRequirement = true
 Unique = true
+local systemType = "resistancesystem"
 
 function getBonuses(seed, rarity, permanent)
     math.randomseed(seed)
-    local tech = getEnterprise(seed, rarity, 1)
+    local tech = getEnterprise(seed, rarity, systemType)
     if tech.uid == 0700 then tech.nameId = "" end
 
     local rarityLevel = tech.rarity + 2 -- rarity levels start at -1
@@ -132,9 +133,10 @@ function getTooltipLines(seed, rarity, permanent)
     local resistanceType, dmgFactor, tech = getBonuses(seed, rarity, true)
     if tech.uid ~= 0700 then 
         table.insert(texts, {ltext = "[" .. tech.name .. "]", lcolor = ColorRGB(1, 0.5, 1)}) 
-        if tech.uid == 1002 then
-            table.insert(texts, {ltext = "[此系统无法加密]", lcolor = ColorRGB(1, 0.5, 1)}) 
-        end
+        
+    end
+    if tech.uid == 1002 then
+        table.insert(texts, {ltext = "[此系统无法加密]", lcolor = ColorRGB(1, 0.5, 1)}) 
     end
 
     if permanent then
@@ -155,8 +157,10 @@ function getDescriptionLines(seed, rarity, permanent)
     table.insert(texts, {ltext = "Ionizes the shield against incoming damage."%_t})
     table.insert(texts, {ltext = "Reduces damage received from"%_t})
     table.insert(texts, {ltext = string.format("%s weapons."%_t, getDamageTypeName(resistanceType))})
-    if tech.uid ~= 0700 then 
-        texts = getLines(seed, tech)
+
+    local techTexts = getLines(seed, tech)
+    for i, v in pairs(techTexts) do
+        table.insert(texts, v)   
     end
     return texts
 end

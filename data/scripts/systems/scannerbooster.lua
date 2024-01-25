@@ -5,12 +5,14 @@ include ("randomext")
 include ("utility")
 include ("enterprise")
 -- tanceqi
+--主动雷达
 -- optimization so that energy requirement doesn't have to be read every frame
 FixedEnergyRequirement = true
+local systemType = "scannerbooster"
 
 function getBonuses(seed, rarity, permanent)
     math.randomseed(seed)
-    local tech = getEnterprise(seed, rarity, 2)
+    local tech = getEnterprise(seed, rarity, systemType)
     if tech.uid == 0700 then tech.nameId = "T" end
     tech.scannerResult = math.random(tech.minRandom, tech.maxRandom) / 100
 
@@ -85,10 +87,11 @@ function getTooltipLines(seed, rarity, permanent)
     local baseScanner = getBonuses(seed, rarity, false)
     if tech.uid ~= 0700 then 
         table.insert(texts, {ltext = "[" .. tech.name .. "]", lcolor = ColorRGB(1, 0.5, 1)}) 
-        if tech.uid == 1002 then
-            texts, bonuses = churchTip(texts, bonuses,"Scanner Range", "+???", "data/textures/icons/signal-range.png", permanent)
-            return texts, bonuses
-        end
+        
+    end
+    if tech.uid == 1002 then
+        texts, bonuses = churchTip(texts, bonuses,"Scanner Range", "+???", "data/textures/icons/signal-range.png", permanent)
+        return texts, bonuses
     end
 
     if scanner ~= 0 then
@@ -101,6 +104,7 @@ end
 
 function getDescriptionLines(seed, rarity, permanent)
     local scanner, tech = getBonuses(seed, rarity, permanent)
+    local texts = {}
     if tech.uid == 0700 then 
         return
         {
@@ -108,7 +112,10 @@ function getDescriptionLines(seed, rarity, permanent)
             {ltext = "see cargo, exact HP, etc. of other ships /* continued from 'Increases the distance from which you can'*/"%_t, rtext = "", icon = ""}
         }
     end
-    local texts = getLines(seed, tech)
+    local techTexts = getLines(seed, tech)
+    for i, v in pairs(techTexts) do
+        table.insert(texts, v)   
+    end
     return texts
 end
 

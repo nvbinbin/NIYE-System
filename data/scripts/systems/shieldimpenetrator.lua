@@ -6,10 +6,11 @@ include ("randomext")
 include ("enterprise")
 -- 护盾加固发生器
 FixedEnergyRequirement = true
+local systemType = "shieldimpenetrator"
 
 function getBonuses(seed, rarity, permanent)
     math.randomseed(seed)
-    local tech = getEnterprise(seed, rarity, 1)
+    local tech = getEnterprise(seed, rarity, systemType)
     if tech.uid == 0700 then tech.nameId = "SR" end
 
     local durability = 0.25
@@ -74,12 +75,13 @@ function getTooltipLines(seed, rarity, permanent)
     local durability, rechargeTimeFactor, tech = getBonuses(seed, rarity)
     if tech.uid ~= 0700 then 
         table.insert(texts, {ltext = "[" .. tech.name .. "]", lcolor = ColorRGB(1, 0.5, 1)}) 
-        if tech.uid == 1002 then
-            texts, bonuses = churchTip(texts, bonuses,"Impenetrable Shields", "Yes", "data/textures/icons/shield.png", permanent)
-            texts, bonuses = churchTip(texts, bonuses,"Shield Durability", "+???", "data/textures/icons/health-normal.png", permanent)
-            texts, bonuses = churchTip(texts, bonuses,"Time Until Recharge", "+???", "data/textures/icons/recharge-time.png", permanent)
-            return texts, bonuses
-        end
+        
+    end
+    if tech.uid == 1002 then
+        texts, bonuses = churchTip(texts, bonuses,"Impenetrable Shields", "Yes", "data/textures/icons/shield.png", permanent)
+        texts, bonuses = churchTip(texts, bonuses,"Shield Durability", "+???", "data/textures/icons/health-normal.png", permanent)
+        texts, bonuses = churchTip(texts, bonuses,"Time Until Recharge", "+???", "data/textures/icons/recharge-time.png", permanent)
+        return texts, bonuses
     end
 
     table.insert(bonuses, {ltext = "Impenetrable Shields"%_t, rtext = "Yes"%_t, icon = "data/textures/icons/shield.png", boosted = permanent})
@@ -102,8 +104,9 @@ function getDescriptionLines(seed, rarity, permanent)
     table.insert(texts, {ltext = "Shields can't be penetrated by shots or torpedoes."%_t})
     table.insert(texts, {ltext = "Durability is diverted to reinforce shield membrane."%_t})
     table.insert(texts, {ltext = "Time until recharge after a hit is increased."%_t})
-    if tech.uid ~= 0700 then 
-        texts = getLines(seed, tech)
+    local techTexts = getLines(seed, tech)
+    for i, v in pairs(techTexts) do
+        table.insert(texts, v)   
     end
     return texts
 end

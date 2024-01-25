@@ -7,10 +7,11 @@ include ("randomext")
 include ("enterprise")
 -- 牵引光束升级
 FixedEnergyRequirement = true
+local systemType = "lootrangebooster"
 
 function getLootCollectionRange(seed, rarity, permanent)
     math.randomseed(seed)
-    local tech = getEnterprise(seed, rarity, 2)
+    local tech = getEnterprise(seed, rarity, systemType)
     if tech.uid == 0700 then tech.nameId = "RCN" end
 
     local range = (tech.rarity + 2 + getFloat(0.0, 0.75)) * 2 * (1.3 ^ tech.rarity) -- one unit is 10 meters
@@ -65,10 +66,11 @@ function getTooltipLines(seed, rarity, permanent)
     local bonuses = {}
     if tech.uid ~= 0700 then 
         table.insert(texts, {ltext = "[" .. tech.name .. "]", lcolor = ColorRGB(1, 0.5, 1)}) 
-        if tech.uid == 1002 then
-            texts, bonuses = churchTip(texts, bonuses,"Loot Collection Range", "+???", "data/textures/icons/tractor.png", permanent)
-            return texts, bonuses
-        end
+        
+    end
+    if tech.uid == 1002 then
+        texts, bonuses = churchTip(texts, bonuses,"Loot Collection Range", "+???", "data/textures/icons/tractor.png", permanent)
+        return texts, bonuses
     end
 
     return
@@ -82,13 +84,17 @@ end
 
 function getDescriptionLines(seed, rarity, permanent)
     local range, tech = getLootCollectionRange(seed, rarity, permanent)
+    local texts = {}
     if tech.uid == 0700 then
         return
         {
             {ltext = "Gotta catch 'em all!"%_t, lcolor = ColorRGB(1, 0.5, 0.5)}
         }
     end
-    local texts = getLines(seed, tech)
+    local techTexts = getLines(seed, tech)
+    for i, v in pairs(techTexts) do
+        table.insert(texts, v)   
+    end
     return texts
 end
 

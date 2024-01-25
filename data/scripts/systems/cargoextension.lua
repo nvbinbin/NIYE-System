@@ -8,11 +8,12 @@ include ("enterprise")
 -- 货箱
 -- 优化：让能量需求不需要每帧读取
 FixedEnergyRequirement = true
+local systemType = "cargoextension"
 
 function getBonuses(seed, rarity, permanent)
     math.randomseed(seed)
     -- 原神抽奖
-    local tech = getEnterprise(seed, rarity, 2)
+    local tech = getEnterprise(seed, rarity, systemType)
     -----  我是王者荣耀3000小时玩家  -----
     tech.cargoPercResult = math.random(tech.minRandom, tech.maxRandom) / 100
     tech.cargoFlatResult = math.random(tech.minRandom, tech.maxRandom) / 100
@@ -130,11 +131,12 @@ function getTooltipLines(seed, rarity, permanent)
 
     if tech.uid ~= 0700 then 
         table.insert(texts, {ltext = "[" .. tech.name .. "]", lcolor = ColorRGB(1, 0.5, 1)}) 
-        if tech.uid == 1002 then
-            texts, bonuses = churchTip(texts, bonuses,"Cargo Hold (relative)", "+???", "data/textures/icons/crate.png", permanent)
-            texts, bonuses = churchTip(texts, bonuses,"Cargo Hold", "+???", "data/textures/icons/crate.png", permanent)
-            return texts, bonuses
-        end
+        
+    end
+    if tech.uid == 1002 then
+        texts, bonuses = churchTip(texts, bonuses,"Cargo Hold (relative)", "+???", "data/textures/icons/crate.png", permanent)
+        texts, bonuses = churchTip(texts, bonuses,"Cargo Hold", "+???", "data/textures/icons/crate.png", permanent)
+        return texts, bonuses
     end
 
     if perc ~= 0 then
@@ -152,10 +154,14 @@ end
 
 function getDescriptionLines(seed, rarity, permanent)
     local perc, flat, tech = getBonuses(seed, rarity, false)
+    local texts = {}
     if tech.uid == 0700 then
         return{{ltext = "It's bigger on the inside!"%_t, lcolor = ColorRGB(1, 0.5, 0.5)}}
     end
-    local texts = getLines(seed, tech)
+    local techTexts = getLines(seed, tech)
+    for i, v in pairs(techTexts) do
+        table.insert(texts, v)   
+    end
     return texts
 end
 

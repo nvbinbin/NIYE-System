@@ -19,10 +19,11 @@ local tooltipName = "Object Detection"%_t
 -- optimization so that energy requirement doesn't have to be read every frame
 FixedEnergyRequirement = true
 Unique = true
+local systemType = "valuablesdetector"
 
 function getBonuses(seed, rarity, permanent)
     math.randomseed(seed)
-    local tech = getEnterprise(seed, rarity, 2)
+    local tech = getEnterprise(seed, rarity, systemType)
     if tech.uid == 0700 then tech.nameId = "" end
 
     local highlightRange = 0
@@ -367,9 +368,10 @@ function getTooltipLines(seed, rarity, permanent)
     local range, cooldown, tech = getBonuses(seed, rarity, true)
     if tech.uid ~= 0700 then 
         table.insert(texts, {ltext = "[" .. tech.name .. "]", lcolor = ColorRGB(1, 0.5, 1)}) 
-        if tech.uid == 1002 then
-            table.insert(texts, {ltext = "[此系统无法加密]", lcolor = ColorRGB(1, 0.5, 1)}) 
-        end
+        
+    end
+    if tech.uid == 1002 then
+        table.insert(texts, {ltext = "[此系统无法加密]", lcolor = ColorRGB(1, 0.5, 1)}) 
     end
 
     local toYesNo = function(line, value)
@@ -434,8 +436,9 @@ function getDescriptionLines(seed, rarity, permanent)
     if rarity > Rarity(RarityType.Petty) then
         table.insert(texts, {ltext = "Highlights objects when permanently installed."%_t})
     end
-    if tech.uid ~= 0700 then 
-        texts = getLines(seed, tech)
+    local techTexts = getLines(seed, tech)
+    for i, v in pairs(techTexts) do
+        table.insert(texts, v)   
     end
     return texts
 end

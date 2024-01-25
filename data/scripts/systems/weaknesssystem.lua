@@ -6,7 +6,7 @@ local SpawnUtility = include ("spawnutility")
 include ("randomext")
 include ("damagetypeutility")
 include ("enterprise")
-
+-- 船体加固
 -- static stats
 local weaknessBonus = {}
 weaknessBonus[1] = {hpBonus = 0.1, dmgFactor = 3}       -- Petty
@@ -38,10 +38,11 @@ local dmgFactor = nil
 -- optimization so that energy requirement doesn't have to be read every frame
 FixedEnergyRequirement = true
 Unique = true
+local systemType = "weaknesssystem"
 
 function getBonuses(seed, rarity, permanent)
     math.randomseed(seed)
-    local tech = getEnterprise(seed, rarity, 1)
+    local tech = getEnterprise(seed, rarity, systemType)
     if tech.uid == 0700 then tech.nameId = "" end
 
     local rarityLevel = tech.rarity + 2 -- rarity levels start at -1
@@ -133,9 +134,10 @@ function getTooltipLines(seed, rarity, permanent)
     local weaknessType, hpBonus, dmgFactor, tech = getBonuses(seed, rarity, true)
     if tech.uid ~= 0700 then 
         table.insert(texts, {ltext = "[" .. tech.name .. "]", lcolor = ColorRGB(1, 0.5, 1)}) 
-        if tech.uid == 1002 then
-            table.insert(texts, {ltext = "[此系统无法加密]", lcolor = ColorRGB(1, 0.5, 1)}) 
-        end
+        
+    end
+    if tech.uid == 1002 then
+        table.insert(texts, {ltext = "[此系统无法加密]", lcolor = ColorRGB(1, 0.5, 1)}) 
     end
 
     if permanent then
@@ -161,8 +163,9 @@ function getDescriptionLines(seed, rarity, permanent)
     table.insert(texts, {ltext = "Polarizes hull to greatly increase durability."%_t})
     table.insert(texts, {ltext = "A side effect causes the hull to take"%_t})
     table.insert(texts, {ltext = string.format("more damage from %s weapons."%_t, getDamageTypeName(weaknessType))})
-    if tech.uid ~= 0700 then 
-        texts = getLines(seed, tech)
+    local techTexts = getLines(seed, tech)
+    for i, v in pairs(techTexts) do
+        table.insert(texts, v)   
     end
     return texts
 end

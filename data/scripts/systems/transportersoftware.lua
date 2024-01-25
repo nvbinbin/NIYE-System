@@ -4,13 +4,15 @@ include ("basesystem")
 include ("utility")
 include ("randomext")
 include ("enterprise")
+-- 运输调度
 -- optimization so that energy requirement doesn't have to be read every frame
 FixedEnergyRequirement = true
 PermanentInstallationOnly = true
+local systemType = "transportersoftware"
 
 function getBonuses(seed, rarity, permanent)
     math.randomseed(seed)
-    local tech = getEnterprise(seed, rarity, 1)
+    local tech = getEnterprise(seed, rarity, systemType)
     if tech.uid == 0700 then tech.nameId = "" end
 
     -- rarity -1 is -1 / 2 + 1 * 50 = 0.5 * 100 = 50
@@ -72,11 +74,12 @@ function getTooltipLines(seed, rarity, permanent)
     local bonuses = {}
     if tech.uid ~= 0700 then 
         table.insert(texts, {ltext = "[" .. tech.name .. "]", lcolor = ColorRGB(1, 0.5, 1)}) 
-        if tech.uid == 1002 then
-            texts, bonuses = churchTip(texts, bonuses,"Docking Distance", "+??? km", "data/textures/icons/solar-system.png", permanent)
-            texts, bonuses = churchTip(texts, bonuses,"Fighter Cargo Pickup", "", "data/textures/icons/fighter.png", permanent)
-            return texts, bonuses
-        end
+        
+    end
+    if tech.uid == 1002 then
+        texts, bonuses = churchTip(texts, bonuses,"Docking Distance", "+??? km", "data/textures/icons/solar-system.png", permanent)
+        texts, bonuses = churchTip(texts, bonuses,"Fighter Cargo Pickup", "", "data/textures/icons/fighter.png", permanent)
+        return texts, bonuses
     end
     
     if permanent then
@@ -107,8 +110,9 @@ function getDescriptionLines(seed, rarity, permanent)
     if fighterCargoPickup > 0 then
         table.insert(texts, {ltext = "Allows fighters to pick up cargo"%_t, rtext = "", icon = ""})
     end
-    if tech.uid ~= 0700 then 
-        texts = getLines(seed, tech)
+    local techTexts = getLines(seed, tech)
+    for i, v in pairs(techTexts) do
+        table.insert(texts, v)   
     end
     return texts
 end

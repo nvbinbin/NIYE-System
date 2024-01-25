@@ -6,10 +6,11 @@ include ("randomext")
 include ("enterprise")
 -- 内部防御
 FixedEnergyRequirement = true
+local systemType = "defensesystem"
 
 function getNumDefenseWeapons(seed, rarity, permanent)
     math.randomseed(seed)
-    local tech = getEnterprise(seed, rarity, 1)
+    local tech = getEnterprise(seed, rarity, systemType)
     if tech.uid == 0700 then tech.nameId = "IDWS" end
 
     def = 0
@@ -70,10 +71,11 @@ function getTooltipLines(seed, rarity, permanent)
     local bonuses = {}
     if tech.uid ~= 0700 then 
         table.insert(texts, {ltext = "[" .. tech.name .. "]", lcolor = ColorRGB(1, 0.5, 1)}) 
-        if tech.uid == 1002 then
-            texts, bonuses = churchTip(texts, bonuses,"Internal Defense Weapons", "+???", "data/textures/icons/shotgun.png", permanent)
-            return texts, bonuses
-        end
+        
+    end
+    if tech.uid == 1002 then
+        texts, bonuses = churchTip(texts, bonuses,"Internal Defense Weapons", "+???", "data/textures/icons/shotgun.png", permanent)
+        return texts, bonuses
     end
 
     table.insert(bonuses, {ltext = "Internal Defense Weapons"%_t, rtext = "+" .. num, boosted = permanent, icon = "data/textures/icons/shotgun.png", boosted = permanent})
@@ -83,6 +85,7 @@ end
 
 function getDescriptionLines(seed, rarity, permanent)
     local num, tech = getNumDefenseWeapons(seed, rarity, true)
+    local texts = {}
 
     if tech.uid == 0700 then
         return{
@@ -91,9 +94,11 @@ function getDescriptionLines(seed, rarity, permanent)
         }
     end
 
-    local texts = getLines(seed, tech)
+    local techTexts = getLines(seed, tech)
+    for i, v in pairs(techTexts) do
+        table.insert(texts, v)   
+    end
     return texts
-    
 end
 
 function getComparableValues(seed, rarity)

@@ -16,6 +16,7 @@ rechargeAmount = 0.35
 
 -- 复活强化护盾
 FixedEnergyRequirement = true
+local systemType = "shieldbooster"
 
 function getUpdateInterval()
     return 0.25
@@ -46,7 +47,7 @@ end
 
 function getBonuses(seed, rarity, permanent)
     math.randomseed(seed)
-    local tech = getEnterprise(seed, rarity, 1)
+    local tech = getEnterprise(seed, rarity, systemType)
     if tech.uid == 0700 then tech.nameId = "" end
     -----  我是王者荣耀3000小时玩家  -----
     tech.rechargeShieldResult = math.random(tech.minRandom, tech.maxRandom) / 100
@@ -164,13 +165,14 @@ function getTooltipLines(seed, rarity, permanent)
     local bonusDurability, _, bonusEmergencyRecharge = getBonuses(seed, rarity, true)
     if tech.uid ~= 0700 then 
         table.insert(texts, {ltext = "[" .. tech.name .. "]", lcolor = ColorRGB(1, 0.5, 1)}) 
-        if tech.uid == 1002 then
-            texts, bonuses = churchTip(texts, bonuses,"Shield Durability", "+???", "data/textures/icons/health-normal.png", permanent)
-            texts, bonuses = churchTip(texts, bonuses,"Shield Recharge Rate", "+???", "data/textures/icons/shield-charge.png", permanent)
-            texts, bonuses = churchTip(texts, bonuses,"Emergency Recharge", "+???", "data/textures/icons/shield-charge.png", permanent)
-            texts, bonuses = churchTip(texts, bonuses,"Recharge Upon Depletion", "+???", "data/textures/icons/shield-charge.png", permanent)
-            return texts, bonuses
-        end
+        
+    end
+    if tech.uid == 1002 then
+        texts, bonuses = churchTip(texts, bonuses,"Shield Durability", "+???", "data/textures/icons/health-normal.png", permanent)
+        texts, bonuses = churchTip(texts, bonuses,"Shield Recharge Rate", "+???", "data/textures/icons/shield-charge.png", permanent)
+        texts, bonuses = churchTip(texts, bonuses,"Emergency Recharge", "+???", "data/textures/icons/shield-charge.png", permanent)
+        texts, bonuses = churchTip(texts, bonuses,"Recharge Upon Depletion", "+???", "data/textures/icons/shield-charge.png", permanent)
+        return texts, bonuses
     end
 
     if durability ~= 0 then
@@ -203,8 +205,9 @@ function getDescriptionLines(seed, rarity, permanent)
         table.insert(texts, {ltext = string.format("Upon depletion: Recharges %i%% of your shield."%_t, rechargeAmount * 100)})
         table.insert(texts, {ltext = plural_t("This effect can only occur once every minute.", "This effect can only occur once every ${i} minutes.", round(rechargeDelay / 60))})
     end
-    if tech.uid ~= 0700 then 
-        texts = getLines(seed, tech)
+    local techTexts = getLines(seed, tech)
+    for i, v in pairs(techTexts) do
+        table.insert(texts, v)   
     end
     return texts
 end

@@ -8,12 +8,14 @@ materialLevel = 0
 range = 0
 amount = 0
 
+-- 采矿系统
 -- optimization so that energy requirement doesn't have to be read every frame
 FixedEnergyRequirement = true
+local systemType = "miningsystem"
 
 function getBonuses(seed, rarity, permanent)
     math.randomseed(seed)
-    local tech = getEnterprise(seed, rarity, 2)
+    local tech = getEnterprise(seed, rarity, systemType)
     if tech.uid == 0700 then tech.nameId = "" end
 
     local range = 200 -- base value
@@ -186,12 +188,13 @@ function getTooltipLines(seed, rarity, permanent)
     local material = Material(materialLevel)
     if tech.uid ~= 0700 then 
         table.insert(texts, {ltext = "[" .. tech.name .. "]", lcolor = ColorRGB(1, 0.5, 1)}) 
-        if tech.uid == 1002 then
-            texts, bonuses = churchTip(texts, bonuses,"Material Level", "+???", "data/textures/icons/metal-bar.png", permanent)
-            texts, bonuses = churchTip(texts, bonuses,"Range", "+???", "data/textures/icons/rss.png", permanent)
-            texts, bonuses = churchTip(texts, bonuses,"Asteroids", "+???", "data/textures/icons/rock.png", permanent)
-            return texts, bonuses
-        end
+        
+    end
+    if tech.uid == 1002 then
+        texts, bonuses = churchTip(texts, bonuses,"Material Level", "+???", "data/textures/icons/metal-bar.png", permanent)
+        texts, bonuses = churchTip(texts, bonuses,"Range", "+???", "data/textures/icons/rss.png", permanent)
+        texts, bonuses = churchTip(texts, bonuses,"Asteroids", "+???", "data/textures/icons/rock.png", permanent)
+        return texts, bonuses
     end
 
     table.insert(texts, {ltext = "Material"%_t, rtext = material.name%_t, rcolor = material.color, icon = "data/textures/icons/metal-bar.png", boosted = permanent})
@@ -213,6 +216,10 @@ function getDescriptionLines(seed, rarity, permanent)
     if tech.uid == 0700 then
         table.insert(texts, {ltext = "Displays amount of resources in objects"%_t})
         table.insert(texts, {ltext = "Highlights nearby mineable objects"%_t})
+    end
+    local techTexts = getLines(seed, tech)
+    for i, v in pairs(techTexts) do
+        table.insert(texts, v)   
     end
     return texts
 end

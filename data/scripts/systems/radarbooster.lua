@@ -3,12 +3,14 @@ package.path = package.path .. ";data/scripts/lib/?.lua"
 include ("basesystem")
 include ("randomext")
 include ("enterprise")
+-- 被动雷达
 -- optimization so that energy requirement doesn't have to be read every frame
 FixedEnergyRequirement = true
+local systemType = "radarbooster"
 
 function getBonuses(seed, rarity, permanent)
     math.randomseed(seed)
-    local tech = getEnterprise(seed, rarity, 2)
+    local tech = getEnterprise(seed, rarity, systemType)
     if tech.uid == 0700 then tech.nameId = "" end
 
     local radar = 0
@@ -109,11 +111,12 @@ function getTooltipLines(seed, rarity, permanent)
     local baseRadar, baseHidden = getBonuses(seed, rarity, false)
     if tech.uid ~= 0700 then 
         table.insert(texts, {ltext = "[" .. tech.name .. "]", lcolor = ColorRGB(1, 0.5, 1)}) 
-        if tech.uid == 1002 then
-            texts, bonuses = churchTip(texts, bonuses,"Radar Range", "+???", "data/textures/icons/radar-sweep.png", permanent)
-            texts, bonuses = churchTip(texts, bonuses,"Deep Scan Range", "+???", "data/textures/icons/radar-sweep.png", permanent)
-            return texts, bonuses
-        end
+        
+    end
+    if tech.uid == 1002 then
+        texts, bonuses = churchTip(texts, bonuses,"Radar Range", "+???", "data/textures/icons/radar-sweep.png", permanent)
+        texts, bonuses = churchTip(texts, bonuses,"Deep Scan Range", "+???", "data/textures/icons/radar-sweep.png", permanent)
+        return texts, bonuses
     end
 
     if radar ~= 0 then
@@ -133,13 +136,15 @@ function getDescriptionLines(seed, rarity, permanent)
     local texts = {}
     local radar, hiddenRadar, tech = getBonuses(seed, rarity)
 
-    texts = getLines(seed, tech)
-
     if hiddenRadar ~= 0 then
         table.insert(texts, {ltext = "Shows sectors with mass /* continues with 'as yellow blips on the map' */"%_t})
         table.insert(texts, {ltext = "as yellow blips on the map /* continued from 'Shows sectors with mass '*/"%_t})
     end
     
+    local techTexts = getLines(seed, tech)
+    for i, v in pairs(techTexts) do
+        table.insert(texts, v)   
+    end
     return texts
 end
 

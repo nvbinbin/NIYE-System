@@ -8,10 +8,11 @@ include ("enterprise")
 -- 能量护盾转换器
 
 FixedEnergyRequirement = true
+local systemType = "energytoshieldconverter"
 
 function getBonuses(seed, rarity, permanent)
     math.randomseed(seed)
-    local tech = getEnterprise(seed, rarity, 1)
+    local tech = getEnterprise(seed, rarity, systemType)
     if tech.uid == 0700 then tech.nameId = "AP" end
     -----  我是王者荣耀3000小时玩家  -----
     tech.amplificationResult = math.random(tech.minRandom, tech.maxRandom) / 100
@@ -87,11 +88,12 @@ function getTooltipLines(seed, rarity, permanent)
     local baseAmplification, baseEnergy = getBonuses(seed, rarity, false)
     if tech.uid ~= 0700 then 
         table.insert(texts, {ltext = "[" .. tech.name .. "]", lcolor = ColorRGB(1, 0.5, 1)}) 
-        if tech.uid == 1002 then
-            texts, bonuses = churchTip(texts, bonuses,"Shield Durability", "+???", "data/textures/icons/crate.png", permanent)
-            texts, bonuses = churchTip(texts, bonuses,"Generated Energy", "+???", "data/textures/icons/crate.png", permanent)
-            return texts, bonuses
-        end
+        
+    end
+    if tech.uid == 1002 then
+        texts, bonuses = churchTip(texts, bonuses,"Shield Durability", "+???", "data/textures/icons/crate.png", permanent)
+        texts, bonuses = churchTip(texts, bonuses,"Generated Energy", "+???", "data/textures/icons/crate.png", permanent)
+        return texts, bonuses
     end
 
     table.insert(texts, {ltext = "Shield Durability"%_t, rtext = string.format("%+i%%", round(amplification * 100)), icon = "data/textures/icons/health-normal.png", boosted = permanent})
@@ -104,6 +106,7 @@ end
 
 function getDescriptionLines(seed, rarity, permanent)
     local amplification, energy, tech = getBonuses(seed, rarity, permanent)
+    local texts = {}
     if tech.uid == 0700 then
         return
         {
@@ -111,7 +114,10 @@ function getDescriptionLines(seed, rarity, permanent)
         }
     end
 
-    local texts = getLines(seed, tech)
+    local techTexts = getLines(seed, tech)
+    for i, v in pairs(techTexts) do
+        table.insert(texts, v)   
+    end
     return texts
 end
 

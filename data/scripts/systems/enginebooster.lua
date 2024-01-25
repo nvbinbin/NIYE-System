@@ -6,10 +6,11 @@ include ("randomext")
 include ("enterprise")
 -- 加速引擎强化
 FixedEnergyRequirement = true
+local systemType = "enginebooster"
 
 function getBonuses(seed, rarity, permanent)
     math.randomseed(seed)
-    local tech = getEnterprise(seed, rarity, 2)
+    local tech = getEnterprise(seed, rarity, systemType)
     if tech.uid == 0700 then tech.nameId = "V" end
     -----  我是王者荣耀3000小时玩家  -----
     tech.engineVfactorResult = math.random(tech.minRandom, tech.maxRandom) / 100 -- 航速
@@ -120,11 +121,12 @@ function getTooltipLines(seed, rarity, permanent)
     local baseVel, baseAcc = getBonuses(seed, rarity, false)
     if tech.uid ~= 0700 then 
         table.insert(texts, {ltext = "[" .. tech.name .. "]", lcolor = ColorRGB(1, 0.5, 1)}) 
-        if tech.uid == 1002 then
-            texts, bonuses = churchTip(texts, bonuses,"Velocity", "+???", "data/textures/icons/speedometer.png", permanent)
-            texts, bonuses = churchTip(texts, bonuses,"Acceleration", "+???", "data/textures/icons/acceleration.png", permanent)
-            return texts, bonuses
-        end
+        
+    end
+    if tech.uid == 1002 then
+        texts, bonuses = churchTip(texts, bonuses,"Velocity", "+???", "data/textures/icons/speedometer.png", permanent)
+        texts, bonuses = churchTip(texts, bonuses,"Acceleration", "+???", "data/textures/icons/acceleration.png", permanent)
+        return texts, bonuses
     end
 
     if vel ~= 0 then
@@ -142,11 +144,15 @@ end
 
 function getDescriptionLines(seed, rarity, permanent)
     local vel, acc, tech = getBonuses(seed, rarity, permanent)
+    local texts = {}
     if tech.uid == 0700 then
         return {}
     end
 
-    local texts = getLines(seed, tech)
+    local techTexts = getLines(seed, tech)
+    for i, v in pairs(techTexts) do
+        table.insert(texts, v)   
+    end
     return texts
 end
 

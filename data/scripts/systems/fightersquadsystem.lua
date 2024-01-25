@@ -10,10 +10,12 @@ include ("enterprise")
 -- optimization so that energy requirement doesn't have to be read every frame
 FixedEnergyRequirement = true
 
+local systemType = "fightersquadsystem"
+
 function getBonuses(seed, rarity, permanent)
     math.randomseed(seed)
 
-    local tech = getEnterprise(seed, rarity, 1)
+    local tech = getEnterprise(seed, rarity, systemType)
     if tech.uid == 0700 then tech.nameId = "FCS-" end
     -- 不是很想动他这个函数……
     -- 屎山 典范  等我什么时候头不疼了再来改
@@ -54,7 +56,7 @@ end
 
 function getAllSquads(seed, rarity)
     math.randomseed(seed)
-    local tech = getEnterprise(seed, rarity, 1)
+    local tech = getEnterprise(seed, rarity, systemType)
 
 
     local total = math.max(1, math.ceil((tech.rarity + 1.5) / 2))
@@ -146,11 +148,12 @@ function getTooltipLines(seed, rarity, permanent)
 
     if tech.uid ~= 0700 then 
         table.insert(texts, {ltext = "[" .. tech.name .. "]", lcolor = ColorRGB(1, 0.5, 1)}) 
-        if tech.uid == 1002 then
-            texts, bonuses = churchTip(texts, bonuses,"Fighter Squadrons", "+???", "data/textures/icons/fighter.png", permanent)
-            texts, bonuses = churchTip(texts, bonuses,"Production Speedup", "+???", "data/textures/icons/gears.png", permanent)
-            return texts, bonuses
-        end
+        
+    end
+    if tech.uid == 1002 then
+        texts, bonuses = churchTip(texts, bonuses,"Fighter Squadrons", "+???", "data/textures/icons/fighter.png", permanent)
+        texts, bonuses = churchTip(texts, bonuses,"Production Speedup", "+???", "data/textures/icons/gears.png", permanent)
+        return texts, bonuses
     end
 
     table.insert(texts, {ltext = "Fighter Squadrons"%_t, rtext = "+" .. squads, icon = "data/textures/icons/fighter.png", boosted = permanent})
@@ -177,6 +180,7 @@ end
 
 function getDescriptionLines(seed, rarity, permanent)
     local squads, production, tech = getBonuses(seed, rarity, permanent)
+    local texts = {}
     if tech.uid == 0700 then
         return
         {
@@ -186,7 +190,10 @@ function getDescriptionLines(seed, rarity, permanent)
 
         }
     end
-    local texts = getLines(seed, tech)
+    local techTexts = getLines(seed, tech)
+    for i, v in pairs(techTexts) do
+        table.insert(texts, v)   
+    end
     return texts
 end
 

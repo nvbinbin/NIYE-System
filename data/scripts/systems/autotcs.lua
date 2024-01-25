@@ -13,7 +13,8 @@ Unique = true
 BoostingUpgrades = {}
 BoostingUpgrades["data/scripts/systems/arbitrarytcs.lua"] = true
 BoostingUpgrades["data/scripts/systems/autotcs.lua"] = true
-
+BoostingUpgrades["data/scripts/systems/militarytcs.lua"] = true
+BoostingUpgrades["data/scripts/systems/civiltcs.lua"] = true
 local systemType = "autotcs"
 
 --[[
@@ -242,9 +243,9 @@ function getTooltipLines(seed, rarity, permanent)
     end
     if arbitrarytcs > 0 then
         if permanent then
-            table.insert(texts, {ltext = "Arbitration Turret Slots"%_t, rtext = "+" .. arbitrarytcs, icon = "data/textures/icons/turret.png", boosted = permanent})
+            table.insert(texts, {ltext = "Arbitrary Turret Slots"%_t, rtext = "+" .. arbitrarytcs, icon = "data/textures/icons/turret.png", boosted = permanent})
         end
-        table.insert(bonuses, {ltext = "Arbitration Turret Slots"%_t, rtext = "+" .. arbitrarytcs, icon = "data/textures/icons/turret.png"})
+        table.insert(bonuses, {ltext = "Arbitrary Turret Slots"%_t, rtext = "+" .. arbitrarytcs, icon = "data/textures/icons/turret.png"})
     end
     if militarys > 0 then
         if permanent then

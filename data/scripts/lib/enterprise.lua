@@ -150,7 +150,7 @@ local ENTERS = {
             {type = 1, ltext = "联动线路控制"%_t, rtext ="主要炮塔+1"%_t},
             {type = 3, ltext = "超载线路"%_t, rtext ="能量消耗+20%"%_t}
         },
-        system = {"arbitrarytcs", "autotcs"}
+        system = {"arbitrarytcs", "autotcs","militarytcs","civiltcs"}
     }
     --Xsotan
     -- {

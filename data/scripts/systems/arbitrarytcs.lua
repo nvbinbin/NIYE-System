@@ -119,7 +119,7 @@ function getName(seed, rarity)
     if num >= 16 then name = "优质"%_t .. name end
     if tech.uid == 1002 then num = "XXX" end
 
-    return "${ids} ${name}-${num}"%_t % {name = name, num = num, ids = ids}
+    return "${name} ${ids}-${num}"%_t % {name = name, num = num, ids = ids}
 end
 
 function getBasicName()
