@@ -124,7 +124,7 @@ local ENTERS = {
         perfor = {
             {type = 1, ltext = "Pioneer technology/*先驱科技*/"%_t, rtext ="Only highest quality/*绝对最高品质*/"%_t},
             {type = 2, ltext = "Relic/*遗物*/"%_t, rtext ="Final +100%/*价值+100%*/"%_t},
-            {type = 3, ltext = "Lost enterprise/*失落企业*/"%_t, rtext ="Fixed 1‰ appearance probability/*固定1‰出现概率*/"%_t}},
+            {type = 3, ltext = "Lost enterprise/*失落企业*/"%_t, rtext ="Fixed 1‰ probability/*固定1‰概率*/"%_t}},
         system = {"all"}
     },
     {
@@ -142,16 +142,30 @@ local ENTERS = {
     },
     {
         uid = 1003, name = "武装列车", nameId = "Atn", minLevel = 1, maxLevel = 2,
-        prob = {0.15,0.025,0}, onlyPerm = false, coinFactor = 1, energyFactor = 1.2,
+        prob = {0.15,0.025,0}, onlyPerm = false, coinFactor = 1, energyFactor = 1.35,
         minRandom = 10, maxRandom = 100,
 
         text = ENTERPRISE_TIP.ATN,
         perfor = {
             {type = 1, ltext = "联动线路控制"%_t, rtext ="主要炮塔+1"%_t},
-            {type = 3, ltext = "超载线路"%_t, rtext ="能量消耗+20%"%_t}
+            {type = 3, ltext = "超载线路"%_t, rtext ="能量消耗+35%"%_t}
         },
         system = {"arbitrarytcs", "autotcs","militarytcs","civiltcs"}
-    }
+    },
+    {
+        uid = 1004, name = "盘古重工", nameId = "Pan", minLevel = 2, maxLevel = 2,
+        prob = {0,0.01,0}, onlyPerm = false, coinFactor = 1, energyFactor = 1,
+        minRandom = 10, maxRandom = 100,
+
+        text = ENTERPRISE_TIP.ATN,
+        perfor = {
+            {type = 1, ltext = "盘古™智能稳定器"%_t, rtext ="最低品质+20%"%_t},
+            {type = 1, ltext = "盘古™终端MKI"%_t, rtext ="主要炮塔+2"%_t},
+            {type = 3, ltext = "超凡工艺"%_t, rtext ="概率-100%"%_t}
+        },
+        system = {"militarytcs"}
+    },
+
     --Xsotan
     -- {
     --     uid = 0901, name = "闪耀科技", nameId = "STAR", rarity = 2, quality = 5, type = 0,
