@@ -246,8 +246,8 @@ end
 
 function getComparableValues(seed, rarity)
     local turrets = getNumTurrets(seed, rarity, false)
-    local bonusTurrets = getNumBonusTurrets(seed, rarity, true)
-    local _, pdcs, autos = getNumTurrets(seed, rarity, true)
+    --local bonusTurrets = getNumBonusTurrets(seed, rarity, true)
+    local bonusTurrets, pdcs, autos = getNumTurrets(seed, rarity, true)
 
     return
     {

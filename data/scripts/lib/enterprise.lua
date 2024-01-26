@@ -84,29 +84,52 @@ end
 -- 顶级企业核心部分
 -----------------------------
 
-local effectTable = {}
+local EFT = {}
+--[[
+    EFT全称 effectTable 效果表：
+    使用魔法数字地址 1000 2000 3000 为企业特色词条  4000 5000 6000为企业通用词条
+    每张卡片都有 tech.rarity（-1 ~ 8） - 3 个词条机会  指 红1 紫2 MKI3 MKII4 MKIII5
+    词条机会会被固有企业词条占用  例：HEA拥有3个固有词条 那么MKIII的HEA还有机会抽取2个通用随机词条
+
+    记录格式：EFT[魔法数字地址] = { <词条命名类型>, <颜色类型>, <出现概率>, <含有副词条>, <允许系统>, <说明>, <效果说明>, <副词条颜色>, <副词条效果说明>}
+]]
+-- 如果 id = 1  那么说明这是一个无冲突词条类型；而其他id数字，一旦重复都是冲突；例如你已经抽取过一个含有id2的效果，那么就不可能会抽取到另外一个id2的效果。
+-- 固有
+EFT[1000] = {id = 1, type = 1, prob = 1, link = false, system = {"all"}, ltext = "Pioneer technology/*先驱科技*/"%_t, rtext ="Only highest quality/*绝对最高品质*/"%_t}
+EFT[1001] = {id = 1 ,type = 1, prob = 0.25, link = true, system = {"arbitrarytcs", "autotcs","militarytcs","civiltcs"}, prob = 0.25, ltext = "超载控制器"%_t, rtext ="主要炮塔+1"%_t, rtype2 = 3, rtext2 ="能量消耗+35%"%_t}
+EFT[1002] = {id = 1, type = 1, prob = 1, link = false, system = {"all"}, ltext = "暗金能源"%_t, rtext ="能量消耗-10%"%_t}
+
+EFT[2000] = {id = 1, type = 2, prob = 1,  link = false, system = {"all"}, ltext = "Relic/*遗物*/"%_t, rtext ="Final +50%/*价值+50%*/"%_t}
+EFT[2001] = {id = 1, type = 2, prob = 1,  link = true, system = {"all"}, ltext = "暗金工程"%_t, rtext ="数据被加密"%_t, rtype2 = 2, rtext2 ="Final -25%/*价值-25%*/"%_t}
 
 
----------- A
---          effectTable
---          效果特性表
-----------
--- 1
-effectTable[1000] = {type = 1, ltext = "Pioneer technology/*先驱科技*/"%_t, rtext ="Only the highest quality will appear/*只会出现最高品质*/"%_t, title = "minprob", act = "=", val = 1}
--- 2
-effectTable[2000] = {type = 2, ltext = "Relic/*遗物*/"%_t, rtext ="Final value +100%/*最终价值+100%*/"%_t, title = "money", act = "+", val = 1}
--- 3
-effectTable[3000] = {type = 3, ltext = "Reverse technology/*逆向科技*/"%_t, rtext ="Maximum quality -5%/*最高品质-5%*/"%_t, title = "maxprob", act = "-", val = 0.05}
-effectTable[3001] = {type = 3, ltext = "Stable Quality Control/*稳定品控*/"%_t, rtext ="Minimum quality +5%/*最低品质+5%*/"%_t, title = "mimprob", act = "+", val = 0.05}
--- function needs
-effectTable[9000] = {type = 3, ltext = "Lost enterprise/*失落企业*/"%_t, rtext ="Fixed 1‰ appearance probability/*固定1‰出现概率*/"%_t,title = 9000}
-effectTable[9001] = {type = 3, ltext = "As sparse as morning stars/*寥若晨星*/"%_t, rtext ="Appearance probability -100%/*出现概率-100%*/"%_t,title = 9001}
-effectTable[9002] = {type = 1, ltext = "Emerging enterprise/*新兴企业*/"%_t, rtext ="Appearance probability +50%/*出现概率+50%*/"%_t,title = 9002}
+EFT[3000] = {id = 1, type = 3, prob = 1,  link = false, system = {"all"}, ltext = "Lost enterprise/*失落企业*/"%_t, rtext ="Fixed 1‰ probability/*固定1‰概率*/"%_t}
+EFT[3001] = {id = 1, type = 3, prob = 1,  link = false, system = {"all"}, ltext = "口口口口"%_t, rtext ="[未知数据]"%_t}
+EFT[3002] = {id = 1, type = 3, prob = 1,  link = false, system = {"all"}, ltext = "深度权限"%_t, rtext ="只能永久安装"%_t}
+EFT[3003] = {id = 1, type = 3, prob = 1,  link = false, system = {"all"}, ltext = "超凡工艺"%_t, rtext ="probability-100%/*出现概率-100%*/"%_t}
+EFT[3004] = {id = 1, type = 3, prob = 1,  link = false, system = {"all"}, ltext = "隐世"%_t, rtext ="Fixed 6‰ probability/*固定6‰概率*/"%_t}
+
+-- 通用
+
+EFT[6000] = {id = 2, type = 3, prob = 1,  link = false, system = {"all"}, ltext = "品控缺陷"%_t, rtext ="能量消耗+10%"%_t}
+
+
+------
 
 
 local ENTERPRISE_TIP = {}
-ENTERPRISE_TIP.HEA = {"Welcome to the functional expansion subsystem from Tianfang Creation/*欢迎使用 天创开物 的功能拓展子系统*/"%_t, "Feel the peak technology blessing of the star sea/*感受星海的巅峰科技加持*/"%_t}
-ENTERPRISE_TIP.ATN = { "凡事皆有代价"%_t, "多余的能量换取更强的性能绝对是划算的"%_t, "武装列车只会发行实用好货"%_t}
+ENTERPRISE_TIP.HEA = {}
+ENTERPRISE_TIP.DGC = {}
+ENTERPRISE_TIP.ATN = {}
+
+
+ENTERPRISE_TIP.def = {"这是一张企业芯片"%_t}
+
+ENTERPRISE_TIP.DGC.def = {}
+
+ENTERPRISE_TIP.HEA.def = {"Welcome to use TFC's system./*欢迎使用 天创开物 的功能拓展子系统*/"%_t, "Enjoy the top tech galaxy blessing./*感受星海的巅峰科技加持*/"%_t}
+ENTERPRISE_TIP.HEA.croe = {}
+ENTERPRISE_TIP.ATN.def = { "凡事皆有代价"%_t, "多余的能量换取更强的性能绝对是划算的"%_t, "武装列车只会发行实用好货"%_t}
 
 
 --[[
@@ -115,122 +138,90 @@ ENTERPRISE_TIP.ATN = { "凡事皆有代价"%_t, "多余的能量换取更强的�
     能量科技：固化护盾；能量护盾；复活护盾；能量电池；能量发生器
     高级科技：运输调度；九头蛇；扫描仪；屏蔽器；船体固
 ]]
+local defProb = {0.08,0.04,0.004}
+
 local ENTERS = {
     {
         uid = 1001, name = "Tianfang Creation/*天创造物*/"%_t, nameId = "HEA", minLevel = 3, maxLevel = 3,
-        prob = {0.1,0.1,0.1}, onlyPerm = false, coinFactor = 2, energyFactor = 1,
+        prob = {0.08,0.04,0.001}, onlyPerm = false, coinFactor = 1.5, energyFactor = 1,
         minRandom = 100, maxRandom = 100,
-        text = ENTERPRISE_TIP.HEA,
-        perfor = {
-            {type = 1, ltext = "Pioneer technology/*先驱科技*/"%_t, rtext ="Only highest quality/*绝对最高品质*/"%_t},
-            {type = 2, ltext = "Relic/*遗物*/"%_t, rtext ="Final +100%/*价值+100%*/"%_t},
-            {type = 3, ltext = "Lost enterprise/*失落企业*/"%_t, rtext ="Fixed 1‰ probability/*固定1‰概率*/"%_t}},
+        perfor = {EFT[1000], EFT[2000], EFT[3000]},
+        notice = ENTERPRISE_TIP.HEA.def,
         system = {"all"}
     },
     {
         uid = 1002, name = "暗金教会", nameId = "DGC", minLevel = 1, maxLevel = 3,
-        prob = {0.1,0.1,0.1}, onlyPerm = true, coinFactor = 1, energyFactor = 1,
+        prob = defProb, onlyPerm = true, coinFactor = 0.75, energyFactor = 1,
         minRandom = 10, maxRandom = 100,
-
-        text = {},
-        perfor = {
-            {type = 2, ltext = "暗金工程"%_t, rtext ="数据被加密"%_t},
-            {type = 3, ltext = "口口口口"%_t, rtext ="[未知数据]"%_t},
-            {type = 3, ltext = "口口口口"%_t, rtext ="[未知数据]"%_t}
-        },
+        perfor = {EFT[3001], EFT[5002], EFT[1002]},
+        notice = ENTERPRISE_TIP.DGC.def,
         system = {"all"}
     },
     {
         uid = 1003, name = "武装列车", nameId = "Atn", minLevel = 1, maxLevel = 2,
-        prob = {0.15,0.025,0}, onlyPerm = false, coinFactor = 1, energyFactor = 1.35,
+        prob = defProb, onlyPerm = false, coinFactor = 1, energyFactor = 1.35,
         minRandom = 10, maxRandom = 100,
-
-        text = ENTERPRISE_TIP.ATN,
-        perfor = {
-            {type = 1, ltext = "联动线路控制"%_t, rtext ="主要炮塔+1"%_t},
-            {type = 3, ltext = "超载线路"%_t, rtext ="能量消耗+35%"%_t}
-        },
+        perfor = {EFT[1001]},
+        notice = ENTERPRISE_TIP.ATN.def,
         system = {"arbitrarytcs", "autotcs","militarytcs","civiltcs"}
     },
     {
         uid = 1004, name = "盘古重工", nameId = "Pan", minLevel = 2, maxLevel = 2,
-        prob = {0,0.01,0}, onlyPerm = false, coinFactor = 1, energyFactor = 1,
-        minRandom = 10, maxRandom = 100,
-
-        text = ENTERPRISE_TIP.ATN,
+        prob = {0.04,0.02,0.002}, onlyPerm = false, coinFactor = 1, energyFactor = 1,
+        minRandom = 30, maxRandom = 100,
         perfor = {
             {type = 1, ltext = "盘古™智能稳定器"%_t, rtext ="最低品质+20%"%_t},
             {type = 1, ltext = "盘古™终端MKI"%_t, rtext ="主要炮塔+2"%_t},
             {type = 3, ltext = "超凡工艺"%_t, rtext ="概率-100%"%_t}
         },
+        notice = ENTERPRISE_TIP.def,
         system = {"militarytcs"}
     },
+    {
+        uid = 1005, name = "闪耀研讨会", nameId = "STAR", minLevel = 2, maxLevel = 3,
+        prob = defProb, onlyPerm = false, coinFactor = 1, energyFactor = 1,
+        minRandom = 10, maxRandom = 100,
+        perfor = {
+            {type = 1, ltext = "闪耀发生装置"%_t, rtext ="最低品质+20%"%_t},},
+        notice = ENTERPRISE_TIP.def,
+        system = {"militarytcs"}
+    },
+    {
+        uid = 1006, name = "通用能源公司", nameId = "TY", minLevel = 2, maxLevel = 3,
+        prob = defProb, onlyPerm = false, coinFactor = 1, energyFactor = 1,
+        minRandom = 10, maxRandom = 100,
+        perfor = {},
+        notice = ENTERPRISE_TIP.def,
+        system = {"militarytcs"}
+    },
+    {
+        uid = 1007, name = "索坦科技所", nameId = "Xsotan", minLevel = 2, maxLevel = 3,
+        prob = defProb, onlyPerm = false, coinFactor = 1, energyFactor = 1,
+        minRandom = 10, maxRandom = 100,
+        perfor = {},
+        notice = ENTERPRISE_TIP.def,
+        system = {"militarytcs"}
+    },
+    {
+        uid = 1008, name = "天顶星集团", nameId = "BAK", minLevel = 1, maxLevel = 1,
+        prob = defProb, onlyPerm = false, coinFactor = 1, energyFactor = 1,
+        minRandom = 10, maxRandom = 100,
+        perfor = {},
+        notice = ENTERPRISE_TIP.def,
+        system = {"all"}
+    },
+    {
+        uid = 1009, name = "惠民企业", nameId = "HUI", minLevel = 2, maxLevel = 3,
+        prob = defProb, onlyPerm = false, coinFactor = 1, energyFactor = 1,
+        minRandom = 10, maxRandom = 100,
+        perfor = {},
+        notice = ENTERPRISE_TIP.def,
+        system = {"militarytcs"}
+    }
 
-    --Xsotan
-    -- {
-    --     uid = 0901, name = "闪耀科技", nameId = "STAR", rarity = 2, quality = 5, type = 0,
-    --     prob = 0.02, onlyPerm = false, coinFactor = 1.2, energyFactor = 1.1,
-    --     minRandom = 10, maxRandom = 100,
-
-    --     text = {"Xsotan System Decompile", "产自 - 闪耀科技研讨会"},
-    --     perfor = {{type = 3, ltext = "Reverse technology/*逆向科技*/"%_t, rtext ="Maximum quality -5%/*最高品质-5%*/"%_t}},
-    --     turretSystem = true, energySystem = true, currentSystem = true, seniorSystem = true
-    -- },
-
-    -- {
-    --     uid = 9901, name = "晓立天下", nameId = "NVCX", rarity = 2, quality = 5, type = 0,
-    --     prob = 0.006, onlyPerm = false, coinFactor = 1.2, energyFactor = 1.1,
-    --     minRandom = 10, maxRandom = 100,
-
-    --     text = {},
-    --     perfor = {},
-    --     turretSystem = true, energySystem = true, currentSystem = true, seniorSystem = true
-    -- },
-    -- {
-    --     uid = 9902, name = "莱莎重工", nameId = "BA", rarity = 2, quality = 5, type = 1,
-    --     prob = 0.006, onlyPerm = false, coinFactor = 1.2, energyFactor = 1.1,
-    --     minRandom = 10, maxRandom = 100,
-
-    --     text = {},
-    --     perfor = {},
-    --     turretSystem = true, energySystem = true, currentSystem = true, seniorSystem = true
-    -- },
-
-    -- {
-    --     uid = 0801, name = "AISystem", nameId = "AI", rarity = 1, quality = 4, type = 0,
-    --     prob = 0.1, onlyPerm = false, coinFactor = 1.1, energyFactor = 1.05,
-    --     minRandom = 10, maxRandom = 100,
-
-    --     text = {"通过最新的量子计算器", "我们已成功推算出传说之上"},
-    --     perfor = {},
-    --     turretSystem = true, energySystem = true, currentSystem = true, seniorSystem = true
-    -- },
-    -- {
-    --     uid = 0802, name = "天顶星集团", nameId = "HCK", rarity = 1, quality = 4, type = 0,
-    --     prob = 0.04, onlyPerm = false, coinFactor = 1.1, energyFactor = 1.05,
-    --     minRandom = 10, maxRandom = 100,
-
-    --     text = {"欢迎加入我们", "无论您是从事什么行业"},
-    --     perfor = {},
-    --     turretSystem = true, energySystem = true, currentSystem = true, seniorSystem = true
-    -- },
-    -- {
-    --     uid = 0803, name = "大秦军工", nameId = "QIN", rarity = 1, quality = 4, type = 1,
-    --     prob = 0.04, onlyPerm = false, coinFactor = 1.1, energyFactor = 1.05,
-    --     minRandom = 10, maxRandom = 100,
-
-    --     text = {"欢迎购买并使用我们的外贸产品"},
-    --     perfor = {},
-    --     turretSystem = true, energySystem = true, currentSystem = true, seniorSystem = true
-    -- },
-    -- {
-    --     uid = 0804, name = "惠民企业", nameId = "HM", rarity = 1, quality = 4, type = 2,
-    --     prob = 0.04, onlyPerm = false, coinFactor = 1.1, energyFactor = 1.05,
-    --     minRandom = 10, maxRandom = 100,
-
-    --     text = {"惠民企业给你带来更高端的产业升级"},
-    -- }
 }
+local dbg = {}
+dbg.prob = 5 --企业出现倍率
 
 -- 抽取并返回企业数据
 function getEnterprise(seed, rarity, inType)
@@ -270,10 +261,10 @@ function getEnterprise(seed, rarity, inType)
                 goto continue
             end
 
-            local porb = ent.prob[level] -- 获取当前等级的概率
+            local prob = ent.prob[level] * dbg.prob -- 获取当前等级的概率
             if key then
                 local random = math.random()
-                if random < porb then
+                if random < prob then
                     tech = ent
                     tech.rarity = rarity.value + level
                     break -- 退出类型检索循环
@@ -289,10 +280,10 @@ function getEnterprise(seed, rarity, inType)
     ::notech::
     if not tech then --如果抽奖失败了那么我们就创造一个0799 = 原版
         tech = {
-            uid = 0700, name = "", nameId = "", rarity = rarity.value,
-            prob = 0, onlyPerm = false, coinFactor = 1, energyFactor = 1,
+            uid = 0700, name = "SYS", nameId = "SYS", rarity = rarity.value,
+            prob = defProb, onlyPerm = false, coinFactor = 1, energyFactor = 1,
             minRandom = 0, maxRandom = 100,
-            text = {},perfor = {}
+            notice ={}, perfor = {}
         }
         
     end
@@ -341,7 +332,12 @@ function getLines(seed, tech)
     local colors
 
     local tips = tech.perfor
-    local notice = tech.text
+
+    if tech.notice then
+        local notice = tech.notice
+    else
+        local notice = {}
+    end
     
 
     if next(tips) ~= nil then
