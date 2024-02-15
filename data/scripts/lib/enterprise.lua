@@ -96,11 +96,15 @@ local EFT = {}
 -- 如果 id = 1  那么说明这是一个无冲突词条类型；而其他id数字，一旦重复都是冲突；例如你已经抽取过一个含有id2的效果，那么就不可能会抽取到另外一个id2的效果。
 -- 固有
 EFT[1000] = {id = 1, type = 1, prob = 1, link = false, system = {"all"}, ltext = "Pioneer technology/*先驱科技*/"%_t, rtext ="Only highest quality/*绝对最高品质*/"%_t}
-EFT[1001] = {id = 1 ,type = 1, prob = 0.25, link = true, system = {"arbitrarytcs", "autotcs","militarytcs","civiltcs"}, prob = 0.25, ltext = "超载控制器"%_t, rtext ="主要炮塔+1"%_t, rtype2 = 3, rtext2 ="能量消耗+35%"%_t}
+EFT[1001] = {id = 1 ,type = 1, prob = 0.25, link = true, system = {"arbitrarytcs", "autotcs","militarytcs","civiltcs"}, ltext = "超载控制器"%_t, rtext ="主要炮塔+1"%_t, rtype2 = 3, rtext2 ="能量消耗+35%"%_t}
 EFT[1002] = {id = 1, type = 1, prob = 1, link = false, system = {"all"}, ltext = "暗金能源"%_t, rtext ="能量消耗-10%"%_t}
+EFT[1003] = {id = 1, type = 1, prob = 1, link = false, system = {"all"}, ltext = "盘古™智能稳定器"%_t, rtext ="最低品质+20%"%_t}
+EFT[1004] = {id = 1, type = 1, prob = 1, link = false, system = {"arbitrarytcs", "autotcs","militarytcs","civiltcs"}, ltext = "盘古™炮塔终端MKI"%_t, rtext ="主要炮塔+1"%_t}
+EFT[1005] = {id = 1, type = 1, prob = 1, link = false, system = {"all"}, ltext = "闪耀信标"%_t, rtext ="最低品质+20%"%_t}
 
 EFT[2000] = {id = 1, type = 2, prob = 1,  link = false, system = {"all"}, ltext = "Relic/*遗物*/"%_t, rtext ="Final +50%/*价值+50%*/"%_t}
-EFT[2001] = {id = 1, type = 2, prob = 1,  link = true, system = {"all"}, ltext = "暗金工程"%_t, rtext ="数据被加密"%_t, rtype2 = 2, rtext2 ="Final -25%/*价值-25%*/"%_t}
+EFT[2001] = {id = 1, type = 2, prob = 1,  link = true, system = {"all"}, ltext = "暗金工程"%_t, rtext ="数据被加密"%_t, rtype2 = 3, rtext2 ="[未知数据]"%_t}
+EFT[2002] = {id = 1, type = 2, prob = 1,  link = true, system = {"all"}, ltext = "暗金工程"%_t, rtext ="数据已解密"%_t, rtype2 = 2, rtext2 ="Final -25%/*价值-25%*/"%_t}
 
 
 EFT[3000] = {id = 1, type = 3, prob = 1,  link = false, system = {"all"}, ltext = "Lost enterprise/*失落企业*/"%_t, rtext ="Fixed 1‰ probability/*固定1‰概率*/"%_t}
@@ -114,8 +118,13 @@ EFT[3004] = {id = 1, type = 3, prob = 1,  link = false, system = {"all"}, ltext 
 EFT[6000] = {id = 2, type = 3, prob = 1,  link = false, system = {"all"}, ltext = "品控缺陷"%_t, rtext ="能量消耗+10%"%_t}
 
 
-------
 
+------
+--[[
+    def：正常情况
+    core：在有核心的情况下
+    lp x = 随机播放
+]]
 
 local ENTERPRISE_TIP = {}
 ENTERPRISE_TIP.HEA = {}
@@ -129,7 +138,8 @@ ENTERPRISE_TIP.DGC.def = {}
 
 ENTERPRISE_TIP.HEA.def = {"Welcome to use TFC's system./*欢迎使用 天创开物 的功能拓展子系统*/"%_t, "Enjoy the top tech galaxy blessing./*感受星海的巅峰科技加持*/"%_t}
 ENTERPRISE_TIP.HEA.croe = {}
-ENTERPRISE_TIP.ATN.def = { "凡事皆有代价"%_t, "多余的能量换取更强的性能绝对是划算的"%_t, "武装列车只会发行实用好货"%_t}
+ENTERPRISE_TIP.ATN.def = {"感谢使用武装列车扩展系统"%_t}
+ENTERPRISE_TIP.ATN.core = {"多余的能量换取更强的性能绝对是划算的"%_t, "感谢使用武装列车扩展系统"%_t}
 
 
 --[[
@@ -169,11 +179,7 @@ local ENTERS = {
         uid = 1004, name = "盘古重工", nameId = "Pan", minLevel = 2, maxLevel = 2,
         prob = {0.04,0.02,0.002}, onlyPerm = false, coinFactor = 1, energyFactor = 1,
         minRandom = 30, maxRandom = 100,
-        perfor = {
-            {type = 1, ltext = "盘古™智能稳定器"%_t, rtext ="最低品质+20%"%_t},
-            {type = 1, ltext = "盘古™终端MKI"%_t, rtext ="主要炮塔+2"%_t},
-            {type = 3, ltext = "超凡工艺"%_t, rtext ="概率-100%"%_t}
-        },
+        perfor = {EFT[1003],EFT[1004],EFT[3003]},
         notice = ENTERPRISE_TIP.def,
         system = {"militarytcs"}
     },
@@ -181,8 +187,7 @@ local ENTERS = {
         uid = 1005, name = "闪耀研讨会", nameId = "STAR", minLevel = 2, maxLevel = 3,
         prob = defProb, onlyPerm = false, coinFactor = 1, energyFactor = 1,
         minRandom = 10, maxRandom = 100,
-        perfor = {
-            {type = 1, ltext = "闪耀发生装置"%_t, rtext ="最低品质+20%"%_t},},
+        perfor = {EFT[1005]},
         notice = ENTERPRISE_TIP.def,
         system = {"militarytcs"}
     },
